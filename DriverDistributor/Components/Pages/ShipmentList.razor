@@ -20,28 +20,28 @@
 
     @* <div style="display: flex; flex-direction: column; height: 100vh;"> *@
     <!-- Top toolbar -->
-    <MudStack Row="true"  Class="mb-2" Style="align-items:center;">
+    <MudStack Row="true" Class="mb-2" Style="align-items:center;">
 
-            <Excel />
-     
+        <Excel />
 
-            <MudSelect T="string"
-                       @bind-Value="Month"
-                       Dense="true"
-                       FitContent="true"
-                       Clearable="false">
-                @foreach (var month in monthList)
-                {
-                    <MudSelectItem Value="@month">@month</MudSelectItem>
-                }
-            </MudSelect>
 
-            <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-                       IconColor="Color.Primary"
-                       Size="Size.Small"
-                       @onclick="Refresh">
-                آپدیت
-            </MudButton>
+        <MudSelect T="string"
+                   @bind-Value="Month"
+                   Dense="true"
+                   FitContent="true"
+                   Clearable="false">
+            @foreach (var month in monthList)
+            {
+                <MudSelectItem Value="@month">@month</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudButton StartIcon="@Icons.Material.Filled.Refresh"
+                   IconColor="Color.Primary"
+                   Size="Size.Small"
+                   @onclick="Refresh">
+            آپدیت
+        </MudButton>
     </MudStack>
 
     <!-- Table container with scroll -->
