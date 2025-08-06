@@ -1,0 +1,109 @@
+﻿@page "/test"
+
+@using System.Globalization
+
+<PageTitle>Excel-Like Table</PageTitle>
+
+<MudRTLProvider RightToLeft="true">
+    <div style="padding: 10px;">
+
+        <h3>📊 Excel-Like Table (MudBlazor)</h3>
+
+
+        <MudDataGrid 
+                     Items="@sample"
+                     Dense="true"
+                     Bordered="true"
+                     Hover="true"
+                     Striped="true"
+                     FixedHeader="true"
+                     Style="height: calc(100vh - 150px); overflow: auto;">
+            <Columns>
+                <PropertyColumn Property="x => x.Id" Title="ردیف" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Name" Title="نام" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.City" Title="شهر" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Date" Title="تاریخ" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value1" Title="مقدار 1" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value2" Title="مقدار 2" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value3" Title="مقدار 3" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value4" Title="مقدار 4" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value5" Title="مقدار 5" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value6" Title="مقدار 6" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value7" Title="مقدار 7" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value8" Title="مقدار 8" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value9" Title="مقدار 9" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Value10" Title="مقدار 10" HeaderClass="table-header" CellClass="table-cell" />
+
+            </Columns>
+        </MudDataGrid>
+
+    </div>
+</MudRTLProvider>
+
+<style>
+    .table-header {
+        background-color: #1976d2;
+        color: white;
+        text-align: center;
+        padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold;
+    }
+
+    .table-cell {
+        padding: 2px 6px !important;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+</style>
+
+@code {
+    private bool _isEditable = false;
+    private List<SampleRow> sample = new();
+
+    protected override void OnInitialized()
+    {
+        var persianCalendar = new PersianCalendar();
+        var rnd = new Random();
+
+        // Generate 50 sample rows
+        for (int i = 1; i <= 50; i++)
+        {
+            sample.Add(new SampleRow
+            {
+                Id = i,
+                Name = $"نام {i}",
+                City = $"شهر {i % 5 + 1}",
+                Date = $"{persianCalendar.GetYear(DateTime.Now)}/{persianCalendar.GetMonth(DateTime.Now):00}/{persianCalendar.GetDayOfMonth(DateTime.Now):00}",
+                Value1 = rnd.Next(100),
+                Value2 = rnd.Next(100),
+                Value3 = rnd.Next(100),
+                Value4 = rnd.Next(100),
+                Value5 = rnd.Next(100),
+                Value6 = rnd.Next(100),
+                Value7 = rnd.Next(100),
+                Value8 = rnd.Next(100),
+                Value9 = rnd.Next(100),
+                Value10 = rnd.Next(100)
+            });
+        }
+    }
+
+    public class SampleRow
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string City { get; set; }
+        public string Date { get; set; }
+        public int Value1 { get; set; }
+        public int Value2 { get; set; }
+        public int Value3 { get; set; }
+        public int Value4 { get; set; }
+        public int Value5 { get; set; }
+        public int Value6 { get; set; }
+        public int Value7 { get; set; }
+        public int Value8 { get; set; }
+        public int Value9 { get; set; }
+        public int Value10 { get; set; }
+    }
+}

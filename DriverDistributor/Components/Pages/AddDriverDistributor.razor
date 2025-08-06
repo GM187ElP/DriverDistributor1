@@ -1,0 +1,107 @@
+﻿@page "/add-driver-distributor"
+@using System.ComponentModel
+@using DriverDistributor.Entities
+@using DriverDistributor.Services
+@using MudBlazor
+
+<PageTitle>اضافه کردن راننده و موزع</PageTitle>
+
+<h1>اضافه کردن راننده و موزع</h1>
+
+
+<MudRTLProvider RightToLeft=true>
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudPaper Class="pa-4">
+                <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+
+                    <MudRadioGroup @bind-Value="IsDriver">
+                        <MudRadio Value="@(true)" Color="Color.Primary">راننده</MudRadio>
+                        <MudRadio Value="@(false)" Color="Color.Secondary">موزع</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudTextField Class="mt-5" For="@(()=>model.FirstName)" @bind-Value="model.FirstName" Required="true" RequiredError="نام را وارد کنید" TextChanged="@(s=>OnFirstNameChanged(s))" />
+
+                    <MudTextField Class="mt-5" For="@(()=>model.LastName)" @bind-Value="model.LastName" Required="true" TextChanged="@(s=>OnLastNameChanged(s))"
+                    RequiredError="نام خانوادگی را وارد کنید" />
+
+                    <MudTextField Value="model.FullName" Label="نام و نام خانوادگی" ReadOnly="true" Disabled=true Validation="@(new Func<string, string>(Exists))" />
+
+                    <MudButton Class="mt-5" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
+                </MudForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudRTLProvider>
+
+@code {
+    [Inject] public DataServices services { get; set; }
+    public bool IsDriver { get; set; } = true;
+
+    bool success;
+    string[] errors = { };
+    private MudForm form;
+
+    List<Driver> drivers = [];
+    List<Distributor> distributors = [];
+
+    private AddDriverDistributorDto model = new();
+
+    public class AddDriverDistributorDto
+    {
+        private string _fullName = string.Empty;
+        [Label("نام")]
+        public string FirstName { get; set; } = string.Empty;
+        [Label("نام خانوادگی")]
+        public string LastName { get; set; } = string.Empty;
+        [Label("نام و نام خانوادگی")]
+        public string FullName { get; set; } = string.Empty;
+    }
+
+    private void OnFirstNameChanged(string value)
+    {
+        model.FirstName = value;
+        model.FullName = $"{(model.FirstName ?? "").Trim()} {(model.LastName ?? "").Trim()}";
+    }
+
+    private void OnLastNameChanged(string value)
+    {
+        model.LastName = value;
+        model.FullName = $"{(model.FirstName ?? "").Trim()} {(model.LastName ?? "").Trim()}";
+    }
+
+    private string Exists(string name)
+    {
+        IsDriver = IsDriver;
+        if (IsDriver)
+            drivers = services.Load(TableName.Driver) as List<Driver> ?? [];
+        else
+            distributors = services.Load(TableName.Distributor) as List<Distributor> ?? [];
+
+        if(IsDriver&& drivers.Any(x=>x.Name==name))
+            return "نام راننده وارد شده موجود است.";
+        else if (!IsDriver && distributors.Any(x => x.Name == name))
+            return "نام موزع وارد شده موجود است.";
+
+        return null;
+    }
+
+    private async Task Add(MudForm form)
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            if (IsDriver)
+                services.Add<Driver>(new Driver { Name = model.FullName });
+            else 
+                services.Add<Distributor>(new Distributor { Name = model.FullName });
+
+            model = new(); 
+            await Task.Delay(1); 
+
+            StateHasChanged();
+            await form.ResetAsync(); 
+        }
+    }
+}

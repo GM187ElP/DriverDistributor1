@@ -1,0 +1,605 @@
+﻿@page "/edit-shipment/{Id:long=0}"
+@using System.ComponentModel.DataAnnotations
+@using DriverDistributor.Data
+@using DriverDistributor.Entities
+@using DriverDistributor.Services
+@using Microsoft.EntityFrameworkCore
+@using static DriverDistributor.Components.Pages.RegisterShipment
+@using static DriverDistributor.Components.PersianDatePicker
+@inject AppDbContext  dbContext
+@inject ISnackbar Snackbar
+@inject NavigationManager navigationManager
+
+<PageTitle>ویرایش خروجی</PageTitle>
+
+<h3>EditShipment</h3>
+
+<MudRTLProvider RightToLeft="true">
+    <MudForm @ref=form @bind-IsValid=success @bind-Errors=errors>
+        <MudContainer>
+            <MudGrid>
+                <MudItem Class="mt-5" xs="4" sm="3" md="4">
+                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                        <MudCheckBox @bind-Value="IsException" />
+                        <MudText Typo="Typo.h6">حالت خاص</MudText>
+                    </MudStack>
+                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                        <MudCheckBox @bind-Value="dto.HasVip" Disabled="IsException" />
+                        <MudText Typo="Typo.h6">VIP</MudText>
+                    </MudStack>
+
+                    <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DriverName,false)">
+                        <Columns>
+                            <PropertyColumn Property="x=>x.Name" Title="مسیر" />
+                            <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                        </Columns>
+                    </MudDataGrid>
+                    <br />
+                    <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DistributorName,true)">
+                        <Columns>
+                            <PropertyColumn Property="x=>x.Name" Title="مسیر" />
+                            <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                        </Columns>
+                    </MudDataGrid>
+                </MudItem>
+
+                <MudItem xs="4" sm="6" md="4">
+                    <div class="autocomplete-container">
+                    <MudAutocomplete T="string"
+                                     @bind-Value=dto.DriverName
+                                     Label="راننده"
+                                     SearchFunc="SearchDriver"
+                                     ToStringFunc="(x) => x"
+                                     Dense="true"
+                                     ResetValueOnEmptyText="true"
+                                     Clearable="true"
+                                     MaxItems="100"
+                                     Required="@(IsException ? string.IsNullOrWhiteSpace(dto.DistributorName) : true)"
+                                     ErrorText=@DriverErrorText()
+                                     Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DistributorName))>
+                        <ItemTemplate>
+                            <div class="item-template">
+                                @context
+                            </div>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+
+                    <MudAutocomplete Class="mt-5" T="string"
+                                     @bind-Value=dto.DistributorName
+                                     Label="موزع"
+                                     SearchFunc="SearchDistributor"
+                                     ToStringFunc="(x) => x"
+                                     Dense="true"
+                                     ResetValueOnEmptyText="true"
+                                     Clearable="true"
+                                     MaxItems="100"
+                                     Required="@(IsException ? string.IsNullOrWhiteSpace(dto.DriverName) : true)"
+                                     ErrorText=@DistributorErrorText()
+                                     Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DriverName))>
+                        <ItemTemplate>
+                            <div class="item-template">
+                                @context
+                            </div>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+
+                    <MudAutocomplete Class="mt-5" T="string"
+                                     @bind-Value=dto.RouteName
+                                     Label="مسیر"
+                                     SearchFunc="SearchRoute"
+                                     ToStringFunc="(x) => x"
+                                     Dense="true"
+                                     ResetValueOnEmptyText="true"
+                                     Clearable="true"
+                                     MaxItems="100"
+                                     Required=true
+                                     ErrorText="لطفا مسیر را انتخاب کنید">
+                        <ItemTemplate>
+                            <div class="item-template">
+                                @context
+                            </div>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+
+                    <MudAutocomplete Class="mt-5" T="string"
+                                     @bind-Value=dto.WarehouseName
+                                     Label="انبار"
+                                     SearchFunc="SearchWarehouse"
+                                     ToStringFunc="(x) => x"
+                                     Dense="true"
+                                     ResetValueOnEmptyText="true"
+                                     Clearable="true"
+                                     MaxItems="100"
+                                     Disabled=IsException
+                                     Required=@(!IsException)
+                                     ErrorText="لطفا انبار را انتخاب کنید">
+                        <ItemTemplate>
+                            <div class="item-template">
+                                @context
+                            </div>
+                        </ItemTemplate>
+                    </MudAutocomplete>
+                    </div>
+
+                    <MudStack Class="mt-3" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                        <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
+                        <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+
+                            @if (persian.DisplayDate != string.Empty)
+                            {
+                                <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                    <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
+                                    <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
+                                    <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
+                                    <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
+                                </MudStack>
+                            }
+
+                        </MudStack>
+                    </MudStack>
+
+                    <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=IsException Required=@(!IsException)
+                                     ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+
+                    <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="0" Disabled=IsException Required=@(!IsException) ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+
+                    <div class="mt-5">
+                        @for (int i = 0; i < shipmentNumbersList.Count; i++)
+                        {
+                            var index = i;
+                            <MudGrid Class="align-center mt-2">
+                                <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
+                                    <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
+                                </MudButton>
+
+                                <MudTextField T="int?"
+                                              @bind-Value=shipmentNumbersList[index]
+                                              Disabled=IsException
+                                              Label="@($"خروجی {index + 1}")"
+                                              Required=!IsException
+                                              ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
+
+                                <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
+                                    <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
+                                </MudButton>
+                            </MudGrid>
+                        }
+                    </div>
+
+                </MudItem>
+                <MudItem xs="12" sm="6" md="4">
+                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                        <MudCheckBox @bind-Value="IsSecondService" Disabled=IsException />
+                        <MudText Typo="Typo.h6">سرویس دوم</MudText>
+                    </MudStack>
+                    <MudNumericField @bind-Value="dto.SecondServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsSecondService || IsException) Required=IsSecondService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                    <MudNumericField Class="mt-5" @bind-Value="dto.SecondServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsSecondService || IsException)
+                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                                     Required=IsSecondService />
+
+                    <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                        <MudCheckBox @bind-Value="IsThirdService" Disabled=!IsSecondService />
+                        <MudText Typo="Typo.h6">سرویس سوم</MudText>
+                    </MudStack>
+
+                    <MudNumericField @bind-Value="dto.ThirdServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsThirdService || IsException) Required=IsThirdService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                    <MudNumericField Class="mt-5" @bind-Value="dto.ThirdServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsThirdService || IsException)
+                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                                     Required=IsThirdService />
+
+                    <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" onclick="ClearForm"><MudText Typo="Typo.h6">پاک کردن</MudText></MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick=Cancel><MudText Typo="Typo.h6">انصراف</MudText></MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=AddShipmentToList ButtonType=ButtonType.Submit><MudText Typo="Typo.h6">ذخیره</MudText></MudButton>
+                    </MudStack>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </MudForm>
+</MudRTLProvider>
+
+<style>
+    .same-height {
+        height: 56px;
+    }
+
+     .item-template {
+        font-size: 1.2rem;
+        padding: 8px 16px;
+        text-align: center;
+        font-family: 'Iranian Sans', sans-serif;
+    }
+
+    .autocomplete-container, .autocomplete-container * {
+        text-align: center;
+        font-size: 1.2rem;
+        font-family: 'Iranian Sans', sans-serif;
+    }
+
+    .align-center {
+        display: flex;
+        align-items: center;
+    }
+</style>
+
+@code {
+    [Parameter] public long Id { get; set; }
+    private MudForm form;
+    private ShipmentEditDto dto = new();
+    private Shipment shipment;
+
+    [Required(ErrorMessage = "لطفا تاریخ را انتخاب کنید")]
+    private PersianCalendarClass persian;
+
+    private bool isSecondService = false;
+    private bool isThirdService = false;
+    private bool isException = false;
+    private bool success = false;
+    private string[] errors = [];
+
+    private List<int?> shipmentNumbersList = [];
+    private List<Driver> drivers = [];
+    private List<Distributor> distributors = [];
+    private List<Route> routes = [];
+    private List<Route> extRoutes = [];
+    private List<Warehouse> warehouses = [];
+
+
+    public bool IsException
+    {
+        get => isException;
+        set
+        {
+            isException = value;
+            if (isException)
+            {
+                dto = new();
+                dto.IsException = IsException;
+                IsSecondService = false;
+                shipmentNumbersList = [];
+                shipmentNumbersList.Add(null);
+                dto.RouteName = null;
+            }
+            else
+            {
+                LoadShipment().Wait();
+            }
+            LoadData(isException);
+
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadShipment()
+    {
+        shipment = await dbContext.Shipments.Include(s => s.ShipmentNumbers).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        Mapper.MapToDto(shipment, dto);
+
+        shipmentNumbersList = new();
+        if (shipment.ShipmentNumbers.Count > 0)
+        {
+            foreach (var number in shipment.ShipmentNumbers)
+            {
+                shipmentNumbersList.Add(number.Number);
+            }
+        }
+    }
+
+    string? DriverErrorText()
+    {
+        if (string.IsNullOrWhiteSpace(dto.DistributorName))
+            return "لطفا راننده را انتخاب کنید";
+        return null;
+    }
+
+    string? DistributorErrorText()
+    {
+        if (string.IsNullOrWhiteSpace(dto.DriverName))
+            return "لطفا موزع را انتخاب کنید";
+        return null;
+    }
+
+    public bool IsSecondService
+    {
+        get => isSecondService;
+        set
+        {
+            isSecondService = value;
+            if (!isSecondService)
+            {
+                isThirdService = false;
+                dto.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceCount = null;
+                dto.SecondServiceInvoiceAmount = dto.SecondServiceInvoiceCount = null;
+            }
+        }
+    }
+
+    public bool IsThirdService
+    {
+        get => isThirdService;
+        set
+        {
+            isThirdService = value;
+            if (!isThirdService)
+            {
+                dto.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceCount = null;
+            }
+        }
+    }
+
+    List<RoutesCount> LoadDriverDistributorRoutesAndCount(string name, bool isDistributor)
+    {
+        if (name == null)
+            return [];
+
+        var query = dbContext.Shipments.AsQueryable();
+
+        if (isDistributor)
+            query = query.Where(s => s.DistributorName == name);
+        else
+            query = query.Where(s => s.DriverName == name);
+
+        return query
+            .GroupBy(s => s.RouteName)
+            .Select(g => new RoutesCount
+                {
+                    Name = g.Key,
+                    Count = g.Count()
+                })
+            .ToList();
+    }
+
+    public class RoutesCount
+    {
+        public string Name { get; set; }
+        public int Count { get; set; }
+    }
+
+    DateTime ResetDate() => DateTime.Today.AddDays(0);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == 0)
+        {
+            IsException = false;
+            persian = new(ResetDate(), isEmptyAtStart: true);
+            IsSecondService = false;
+            IsThirdService = false;
+            dto.ShipmentDateGregorian = persian.GregorianDate;
+            shipmentNumbersList.Add(null);
+        }
+        else
+        {
+            await LoadShipment();
+            persian = new(dto.ShipmentDateGregorian!.Value);
+            IsException = dto.IsException;
+            IsSecondService = dto.SecondServiceInvoiceAmount != null;
+            IsThirdService = dto.ThirdServiceInvoiceAmount != null;
+        }
+
+        LoadData(IsException);
+    }
+
+    private void LoadData(bool isExc)
+    {
+        drivers = dbContext.Drivers.ToList();
+        distributors = dbContext.Distributors.ToList();
+        warehouses = dbContext.Warehouses.ToList();
+        routes = !isExc ? dbContext.Routes.Where(r => !r.IsExt).ToList() : dbContext.Routes.Where(r => r.IsExt).ToList();
+    }
+
+    private void IncrementShipmentCount()
+    {
+        shipmentNumbersList.Add(null);
+    }
+
+    private void DecrementShipmentCount(int index)
+    {
+        if (shipmentNumbersList.Count > 1)
+        {
+            shipmentNumbersList.RemoveAt(index);
+        }
+    }
+
+    private void Cancel() => navigationManager.NavigateTo("/");
+
+    private async Task ClearForm()
+    {
+        if (Id == 0)
+        {
+            dto = new();
+            persian = new(ResetDate(), isEmptyAtStart: true);
+            IsException = false;
+            shipmentNumbersList = [];
+            shipmentNumbersList.Add(null);
+            IsSecondService = false;
+            IsThirdService = false;
+        }
+        else
+        {
+            await LoadShipment();
+            IsException = dto.IsException;
+        }
+        StateHasChanged();
+    }
+
+    private async Task AddShipmentToList()
+    {
+        if (form is not null)
+            await form.Validate();
+
+        if (!form!.IsValid)
+            return;
+
+        dto.ShipmentDateGregorian = persian.GregorianDate;
+        dto.Weekday = persian.DayOfWeek;
+        dto.ShipmentDatePersian = persian.Date;
+        dto.ShipmentNumbers = new();
+        dto.ShipmentNumbers.AddRange(shipmentNumbersList);
+        dto.IsException = IsException;
+
+        if (dto.DriverName is not null)
+        {
+            var driver = await dbContext.Drivers.FirstOrDefaultAsync(d => d.Name == dto.DriverName);
+            dto.DriverPersonnelCode = driver.PersonnelCode;
+        }
+        if (dto.DistributorName is not null)
+        {
+            var distributor = await dbContext.Distributors.FirstOrDefaultAsync(d => d.Name == dto.DistributorName);
+            dto.DistributorPersonnelCode = distributor.PersonnelCode;
+        }
+
+        if (!IsSecondService)
+        {
+            dto.SecondServiceInvoiceAmount = dto.SecondServiceInvoiceCount = null;
+        }
+        if (!IsThirdService)
+        {
+            dto.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceCount = null;
+        }
+
+        var changedRowCount = 0;
+        Services.Mapper.MapFromDto(dto, shipment);
+        shipment.ShipmentNumbers = [];
+        if (Id == 0)
+        {
+            if (!IsException)
+            {
+                foreach (var number in dto.ShipmentNumbers)
+                {
+                    shipment.ShipmentNumbers.Add(new() { Number = number!.Value });
+                }
+            }
+
+            dbContext.Shipments.Add(shipment);
+            changedRowCount = await dbContext.SaveChangesAsync();
+        }
+        else
+        {
+            var shipmentNumbersRemoveList = dbContext.ShipmentNumbers.Where(s => s.ShipmentId == Id).ToList();
+
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            try
+            {
+                foreach (var item in shipmentNumbersRemoveList)
+                {
+                    dbContext.Remove(item);
+                }
+                await dbContext.SaveChangesAsync();
+                foreach (var item in dto.ShipmentNumbers)
+                {
+                    if (item != null)
+                        shipment.ShipmentNumbers.Add(new() { ShipmentId = shipment.Id, Number = item!.Value });
+                }
+                //dbContext.Shipments.Update(shipment);
+                changedRowCount = await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+        if (changedRowCount > 0)
+            Cancel();
+
+
+        //await Services.Mapper.MapDtoToEntityWithNavigations(dto, shipment, dbContext);
+        //dto = new();
+        //StateHasChanged();
+    }
+
+    private Task<IEnumerable<string>> SearchDriver(string text, CancellationToken cancellationToken = default)
+    {
+        text ??= "";
+        var results = drivers
+            .Where(d => d.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Select(d => $"{d.Name}");
+
+        return Task.FromResult(results);
+    }
+
+    private Task<IEnumerable<string>> SearchDistributor(string text, CancellationToken cancellationToken = default)
+    {
+        text ??= "";
+        var results = distributors
+            .Where(d => d.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Select(d => $"{d.Name}");
+
+        return Task.FromResult(results);
+    }
+
+    private Task<IEnumerable<string>> SearchRoute(string text, CancellationToken cancellationToken = default)
+    {
+        text ??= "";
+        var results = routes
+            .Where(d => d.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Select(d => $"{d.Name}");
+
+        return Task.FromResult(results.AsEnumerable());
+    }
+
+    private Task<IEnumerable<string>> SearchWarehouse(string text, CancellationToken cancellationToken = default)
+    {
+        text ??= "";
+        var results = warehouses
+            .Where(d => d.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+            .Select(d => $"{d.Name}");
+        return Task.FromResult(results);
+    }
+
+    @*
+    void MapFromDto2(ShipmentAddDto dto, Shipment shipment)
+    {
+        shipment.Driver = dbContext.Drivers.FirstOrDefault(d => d.Name == dto.DistributorName);
+        shipment.Distributor = dbContext.Distributors.FirstOrDefault(d => d.Name == dto.DriverName);
+        shipment.Route = dbContext.Routes.FirstOrDefault(r => r.Name == dto.RouteName);
+        shipment.Warehouse = dbContext.Warehouses.FirstOrDefault(w => w.Name == dto.WarehouseName);
+
+
+        shipment.DistributorPersonnelCode = dto.DistributorPersonnelCode;
+        shipment.DriverPersonnelCode = dto.DriverPersonnelCode;
+        shipment.HasVip = dto.HasVip;
+        shipment.InvoiceAmount = dto.InvoiceAmount;
+        shipment.InvoiceCount = dto.InvoiceCount;
+        shipment.IsException = shipment.IsException;
+        shipment.SecondServiceInvoiceAmount = dto.SecondServiceInvoiceAmount;
+        shipment.SecondServiceInvoiceCount = dto.SecondServiceInvoiceCount;
+        shipment.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceAmount;
+        shipment.ThirdServiceInvoiceCount = dto.ThirdServiceInvoiceCount;
+        shipment.ShipmentDateGregorian = dto.ShipmentDateGregorian;
+        shipment.ShipmentDatePersian = dto.ShipmentDatePersian;
+        shipment.Weekday = dto.Weekday;
+    }
+
+    private bool IsSuccess()
+    {
+        if (isException)
+        {
+            if (string.IsNullOrWhiteSpace(dto.DistributorName))
+                return !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
+
+            else if (string.IsNullOrWhiteSpace(dto.DriverName))
+                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
+
+            else
+                return false;
+        }
+        else
+        {
+            if (IsSecondService && !IsThirdService)
+                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.SecondServiceInvoiceAmount != 0 && dto.SecondServiceInvoiceCount != 0 && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
+
+            if (IsThirdService)
+                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.SecondServiceInvoiceAmount != 0 && dto.SecondServiceInvoiceCount != 0 && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && dto.ThirdServiceInvoiceCount != 0 && dto.ThirdServiceInvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
+
+            else
+            {
+                var msdsd = !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
+                return msdsd;
+            }
+        }
+    }
+    *@
+}

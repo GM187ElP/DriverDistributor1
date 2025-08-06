@@ -1,0 +1,62 @@
+﻿@using DriverDistributor.Data
+@using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+
+@inject NavigationManager navigation
+@inject UserManager<ApplicationUser> userManager
+@inject AppDbContext dbContext
+@inject AuthenticationStateProvider authStateProvider
+@inject IAntiforgery antiforgery
+@inject IHttpContextAccessor httpContextAccessor
+
+<AuthorizeView>
+    <Authorized>
+        <a href="Identity/Account/Manage">@(personnel?.Name ?? context?.User?.Identity?.Name)</a>
+        <form method="post" action="Identity/Account/Logout">
+            <input name="__RequestVerificationToken" type="hidden" value="@_antiforgeryToken" />
+            <button type="submit">Log out</button>
+        </form>
+
+    </Authorized>
+    <NotAuthorized>
+        <ul>
+            <a href="@($"/Identity/Account/Register?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
+                Register
+            </a>
+            <a href="@($"/Identity/Account/LogIn?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
+                Login
+            </a>
+        </ul>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private Personnel? personnel;
+    private string? _antiforgeryToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (httpContextAccessor.HttpContext != null)
+        {
+            var tokens = antiforgery.GetAndStoreTokens(httpContextAccessor.HttpContext);
+            _antiforgeryToken = tokens.RequestToken ?? string.Empty;
+        }
+        else
+        {
+            _antiforgeryToken = string.Empty; 
+        }
+
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var user = await userManager.GetUserAsync(authState.User);
+
+        if (user != null)
+        {
+            personnel = await dbContext.Personnels
+                .FirstOrDefaultAsync(p => p.PersonnelCode == user.UserName);
+        }
+    }
+
+}

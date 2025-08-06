@@ -1,0 +1,69 @@
+﻿@page "/add-warehouse"
+@using DriverDistributor.Entities
+@using DriverDistributor.Services
+
+
+
+<PageTitle>اضافه کردن انبار</PageTitle>
+
+<MudRTLProvider RightToLeft=true>
+<h1>اضافه کردن انبار</h1>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudPaper Class="pa-4">
+                <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField For="@(()=>model.Name)" @bind-Value="model.Name" Required="true" RequiredError="انبار را وارد کنید" Validation="@(new Func<string, string>(Exists))" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
+                </MudForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudRTLProvider>
+
+@code {
+    [Inject] public DataServices services { get; set; }
+
+    bool success;
+    string[] errors = { };
+    private MudForm form;
+    List<Route> data = [];
+
+    private Warehouse model = new();
+
+
+
+
+    private string Exists(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "انبار را وارد کنید";
+
+        data = services.Load(TableName.Warehouse) as List<Route> ?? [];
+        if (data.Any(x => x.Name == name))
+            return "انبار وارد شده موجود است.";
+
+        return null;
+    }
+
+    private async Task Add(MudForm form)
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            var route = new Warehouse
+                {
+                    Name = model.Name,
+                };
+
+            services.Add(route);
+
+            model = new(); // resets the form model
+            await Task.Delay(1); // give UI time to bind
+
+            StateHasChanged();
+            await form.ResetAsync(); // reset form fields and validation
+        }
+    }
+}

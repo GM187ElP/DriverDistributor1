@@ -1,0 +1,260 @@
+﻿@page "/"
+@using System.Globalization
+@using DriverDistributor.Data
+@using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager nm
+@inject AuthenticationStateProvider authStateProvider
+@inject NavigationManager nm
+@inject AppDbContext dbContext
+
+
+<PageTitle>لیست حواله ها</PageTitle>
+
+
+<MudRTLProvider RightToLeft="true">
+
+
+    <h3 class="mt-5">لیست حواله ها</h3>
+
+    @* <div style="display: flex; flex-direction: column; height: 100vh;"> *@
+    <!-- Top toolbar -->
+    <MudStack Row="true"  Class="mb-2" Style="align-items:center;">
+
+            <Excel />
+     
+
+            <MudSelect T="string"
+                       @bind-Value="Month"
+                       Dense="true"
+                       FitContent="true"
+                       Clearable="false">
+                @foreach (var month in monthList)
+                {
+                    <MudSelectItem Value="@month">@month</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh"
+                       IconColor="Color.Primary"
+                       Size="Size.Small"
+                       @onclick="Refresh">
+                آپدیت
+            </MudButton>
+    </MudStack>
+
+    <!-- Table container with scroll -->
+    <div style="height: calc(100vh - 210px); overflow-y: auto;">
+        <MudDataGrid T="ShipmentWithIndex"
+                     RowClassFunc="@RowClassFunc"
+                     Items="@indexedShipments"
+                     Dense="true"
+                     Bordered="true"
+                     Hover="true"
+                     Striped="true"
+                     FixedHeader="true"
+                     Height="600px"
+                     Style="flex: 1; overflow: auto;"
+                     QuickFilter="@Filter"
+                     HeaderClass="table-header"
+                     Filterable=true>
+
+
+            <ToolBarContent>
+                <MudTextField @bind-Value="_searchString"
+                              Placeholder="جستجو"
+                              Adornment="Adornment.Start"
+                              Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              FullWidth=false
+                              Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <SelectColumn T="Shipment" />
+
+                <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+
+                <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
+                    <CellTemplate Context="row">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       Disabled="@( !isAuthorized)"
+                                       OnClick="@(() => EditItem(row.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
+                    <CellTemplate Context="row">
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Color="Color.Primary"
+                                       Size="Size.Small"
+                                       Disabled="@(row.Item.Shipment.IsException || !isAuthorized)"
+                                       OnClick="@(() => RegisterReturn(row.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <PropertyColumn Property="x => x.Shipment.ShipmentDatePersian" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Shipment.Weekday" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
+                @* <PropertyColumn Property="x => x.Shipment.DriverPersonnelCode" Title="کد پرسنلی راننده"    HeaderClass="table-header" CellClass="table-cell"*@
+                <PropertyColumn Property="x => x.Shipment.DriverName" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
+                @* <PropertyColumn Property="x => x.Shipment.DistributorPersonnelCode" Title="کد پرسنلی موزع"    HeaderClass="table-header" CellClass="table-cell"*@
+                <PropertyColumn Property="x => x.Shipment.DistributorName" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Shipment.RouteName" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Shipment.WarehouseName" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.InvoiceCountFormatted" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.InvoiceAmountFormatted" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.ShipmentNumbers" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.SecondServiceInvoiceCountFormatted" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.SecondServiceInvoiceAmountFormatted" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.ThirdServiceInvoiceCountFormatted" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.ThirdServiceInvoiceAmountFormatted" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Shipment.HasVip" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Title="ریال خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+            </Columns>
+        </MudDataGrid>
+    </div>
+</MudRTLProvider>
+
+<style>
+    .table-header {
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
+    }
+
+    .table-cell {
+        padding: 2px 6px !important;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+</style>
+
+
+@code {
+    private readonly string[] monthList = { "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
+    private PersianCalendar persianCalendar = new();
+    private string _month = "فروردین";
+    private string? _selectedMonth;
+    private bool isAuthorized;
+
+    void SetMonth()
+    {
+        var num = persianCalendar.GetMonth(DateTime.Now);
+        _month = monthList[num - 1];
+        _selectedMonth = num.ToString("00");
+    }
+
+    void ChangeMonth()
+    {
+        var num = Array.IndexOf(monthList, _month) + 1;
+        _selectedMonth = num.ToString("00");
+    }
+
+    public string Month
+    {
+        get => _month; set
+        {
+            _month = value;
+            ChangeMonth();
+        }
+    }
+
+    private MudDataGrid<ShipmentWithIndex> table;
+
+
+
+    private string shipmentNumbers = string.Empty;
+    private readonly Shipment shipment = new();
+    private List<Shipment> shipments = [];
+    private string _searchString;
+    public List<int> Count { get; set; } = [];
+
+
+    void Refresh() => LoadData();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        LoadData();
+
+
+
+        var authState = await authStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        isAuthorized = user.Identity?.IsAuthenticated ?? false;
+        StateHasChanged();
+    }
+
+
+    //meatadatagrid RowClick = "@RowClicked" RowContextMenuClick="RowRightClicked" SelectedItemsChanged="@SelectedItemsChanged"
+
+
+    private List<ShipmentWithIndex> indexedShipments = [];
+
+    private string RowClassFunc(ShipmentWithIndex element, int rowNumber)
+    {
+        element.Index = 1 + rowNumber + (table?.CurrentPage ?? 0) * (table?.RowsPerPage ?? 0);
+        return string.Empty;
+    }
+
+    void LoadData()
+    {
+        SetMonth();
+        shipments = dbContext.Shipments.Include(x => x.ShipmentNumbers).ToList();
+
+        var a = shipments.Count;
+        indexedShipments = shipments.Select(s => new ShipmentWithIndex { Shipment = s }).ToList();
+
+        StateHasChanged();
+    }
+
+    private Func<ShipmentWithIndex, bool> Filter => s =>
+    {
+        bool matchesSearch = string.IsNullOrWhiteSpace(_searchString) || (
+        (s.Shipment.ShipmentDatePersian?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Shipment.Weekday?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Shipment.DriverName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Shipment.DistributorName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Shipment.RouteName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Shipment.WarehouseName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        s.Shipment.InvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.InvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.ShipmentNumbers.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
+        s.Shipment.ReturnInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.ReturnInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.SecondServiceInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.SecondServiceInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.ThirdServiceInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.HasVip.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.DriverPersonnelCode.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.DistributorPersonnelCode.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.NetInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        s.Shipment.NetInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase
+    );
+        bool matchesMonth = string.IsNullOrWhiteSpace(_selectedMonth) ||
+                  (s.Shipment.ShipmentDatePersian?.Contains($"/{_selectedMonth}/") ?? false);
+
+        return matchesSearch && matchesMonth;
+    };
+
+
+    void EditItem(ShipmentWithIndex row)
+    {
+        nm.NavigateTo($"/edit-shipment/{row.Shipment.Id}");
+    }
+
+    void RegisterReturn(ShipmentWithIndex row)
+    {
+        nm.NavigateTo($"/register-return/{row.Shipment.Id}");
+    }
+}
+

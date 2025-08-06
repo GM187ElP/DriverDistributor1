@@ -1,0 +1,71 @@
+﻿@page "/add-route"
+@using System.ComponentModel.DataAnnotations
+@using DriverDistributor.Entities
+@using DriverDistributor.Services
+@using MudBlazor.Components
+
+<PageTitle>اضافه کردن مسیر</PageTitle>
+
+<MudRTLProvider RightToLeft=true>
+    <h1>اضافه کردن مسیر</h1>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudPaper Class="pa-4">
+                <MudForm @ref="form"  Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField For="@(()=>model.Name)" @bind-Value="model.Name" Required="true" RequiredError="مسیر را وارد کنید" Validation="@(new Func<string, string>(Exists))" />
+                    <MudSwitch For="@(()=>model.IsExt)" @bind-Value="model.IsExt" Color="Color.Primary" />
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
+                </MudForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudRTLProvider>
+
+@code {
+    [Inject] public DataServices services { get; set; }
+
+    bool success;
+    string[] errors = { };
+    private MudForm form;
+    List<Route> data = [];
+
+    private Route model = new();
+
+
+
+
+    private string Exists(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "مسیر را وارد کنید";
+
+        data = services.Load(TableName.Route) as List<Route>??[];
+        if (data.Any(x => x.Name == name))
+            return "مسیر وارد شده موجود است.";
+
+        return null;
+    }
+
+    private async Task Add(MudForm form)
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            var route = new Route
+                {
+                    Name = model.Name,
+                    IsExt = model.IsExt
+                };
+
+            services.Add(route);
+
+            model = new(); // resets the form model
+            await Task.Delay(1); // give UI time to bind
+
+            StateHasChanged();
+            await form.ResetAsync(); // reset form fields and validation
+        }
+    }
+}
