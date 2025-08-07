@@ -211,7 +211,6 @@
         SetMonth();
         shipments = dbContext.Shipments.Include(x => x.ShipmentNumbers).ToList();
 
-        var a = shipments.Count;
         indexedShipments = shipments.Select(s => new ShipmentWithIndex { Shipment = s }).ToList();
 
         StateHasChanged();

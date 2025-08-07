@@ -38,6 +38,9 @@ builder.Services.Configure<IdentityOptions>(options =>
 
     // You can also configure other options here
 });
+
+builder.Services.AddServerSideBlazor()
+    .AddCircuitOptions(options => { options.DetailedErrors = true; });
 //-------------------------------------------------------------------
 
 // Add MudBlazor services
