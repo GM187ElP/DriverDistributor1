@@ -1,14 +1,16 @@
 ﻿@page "/driver-distributor-report"
+
 @using System.Globalization
+@using ClosedXML.Excel
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
+@using static DriverDistributor.Components.Excel
 @inject NavigationManager nm
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
 @inject AppDbContext dbContext
-
 
 <PageTitle>لیست حواله ها</PageTitle>
 
@@ -20,90 +22,118 @@
 
     @* <div style="display: flex; flex-direction: column; height: 100vh;"> *@
     <!-- Top toolbar -->
-    <MudStack Row="true" Class="mb-2" Style="align-items:center;">
 
-        <Excel />
 
-        <MudSelect T="string"
-        @bind-Value="Month"
-        Dense="true"
-        FitContent="true"
-        Clearable="false">
-            @foreach (var month in monthList)
-            {
-                <MudSelectItem Value="@month">@month</MudSelectItem>
-            }
-        </MudSelect>
+    <MudStack Class="mb-2" Style="align-items:center;">
+        <MudStack Row="true" Class="mb-2" Style="align-items:center;">
 
-        <MudSelect Value="selectedName"
-        T="string?"
-        Dense="true"
-        FitContent="true"
-        Clearable="false"
-        ValueChanged="LoadProperData">
-            @foreach (var name in nameList)
-            {
-                <MudSelectItem Value="name.name">@name.name</MudSelectItem>
-            }
-        </MudSelect>
+            <Excel  FileName="SelectedName"/>
 
-        <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-        IconColor="Color.Primary"
-        Size="Size.Small"
-        @onclick="Refresh">
-            آپدیت
-        </MudButton>
+            <MudSelect T="string"
+                       @bind-Value="Month"
+                       Dense="true"
+                       FitContent="true"
+                       Clearable="false">
+                @foreach (var month in monthList)
+                {
+                    <MudSelectItem Value="@month">@month</MudSelectItem>
+                }
+            </MudSelect>
 
-        <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" @bind-Value="IsDistributor" Color="Color.Secondary" CheckMark FixedContent>
-            <MudToggleItem T="bool?" Value="@(false)" Text="راننده" />
-            <MudToggleItem T="bool?" Value="@(null)" Text="کلی" />
-            <MudToggleItem T="bool?" Value="@(true)" Text="موزع" />
-        </MudToggleGroup>
+            <MudSelect @bind-value="@SelectedName"
+                       T="string"
+                       Dense="true"
+                       FitContent="true"
+                       Clearable="true"
+                       @onselectionchange=LoadProperData>
+                @foreach (var name in nameList)
+                {
+                    <MudSelectItem Value="name.name">@name.name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <MudButton StartIcon="@Icons.Material.Filled.Refresh"
+                       IconColor="Color.Primary"
+                       Size="Size.Small"
+                       @onclick="Refresh">
+                آپدیت
+            </MudButton>
+
+            <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" @bind-Value="IsDistributor" Color="Color.Secondary" CheckMark FixedContent>
+                <MudToggleItem T="bool?" Value="@(false)" Text="راننده" />
+                <MudToggleItem T="bool?" Value="@(null)" Text="کلی" />
+                <MudToggleItem T="bool?" Value="@(true)" Text="موزع" />
+            </MudToggleGroup>
+
+        </MudStack>
+        <MudDataGrid @ref="_report1Data" T="Report"
+                     RowClassFunc="@(RowClassFunc<Report>)"
+                     Items="@(_selectedName == null ? null : reportByWarehouse)"
+                     Dense="true"
+                     Bordered="true"
+                     Hover="true"
+                     Striped="true"
+                     Style="flex: 1; overflow: auto;"
+                     ShowColumnOptions=false
+                     ReadOnly=true
+                     HeaderClass="table-header">
+
+            <Columns>
+                <PropertyColumn Property="x => x.Warehouse" Title="انبار" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.InvoiceCountFormatted)" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.InvoiceAmountFormatted)" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.ReturnInvoiceCountFormatted)" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.ReturnInvoiceAmountFormatted)" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.NetInvoiceCountFormatted)" Title="تعداد خالص" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+                <PropertyColumn Property="@(x => x.NetInvoiceAmountFormatted)" Title="ریال خالص" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
+            </Columns>
+        </MudDataGrid>
 
     </MudStack>
 
     <!-- Table container with scroll -->
     <div style="height: calc(100vh - 210px); overflow-y: auto;">
-        <MudDataGrid T="Report2"
-        RowClassFunc="@RowClassFunc"
-        Items="@data"
-        Dense="true"
-        Bordered="true"
-        Hover="true"
-        Striped="true"
-        FixedHeader="true"
-        Height="600px"
-        Style="flex: 1; overflow: auto;"
-        QuickFilter="@Filter"
-        HeaderClass="table-header"
-        Filterable=true>
+        <MudDataGrid @ref="_report2Data" T="Report2"
+                     RowClassFunc="@(RowClassFunc)"
+                     Items="@(_selectedName == null ? null : data)"
+                     Dense="true"
+                     Bordered="true"
+                     Hover="true"
+                     Striped="true"
+                     FixedHeader="true"
+                     Height="600px"
+                     Style="flex: 1; overflow: auto;"
+                     QuickFilter="@Filter"
+                     HeaderClass="table-header"
+                     Filterable=false>
 
 
             <ToolBarContent>
-                <MudTextField @bind-Value="_searchString"
-                Placeholder="جستجو"
-                Adornment="Adornment.Start"
-                Immediate="true"
-                AdornmentIcon="@Icons.Material.Filled.Search"
-                IconSize="Size.Medium"
-                FullWidth=false
-                Class="mt-0" />
+                <MudTextField Value="_searchString"
+                              T="string"
+                              Placeholder="جستجو"
+                              Adornment="Adornment.Start"
+                              Immediate="true"
+                              ValueChanged="OnSearchChanged"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              FullWidth=false
+                              Class="mt-0" />
             </ToolBarContent>
 
             <Columns>
-                <SelectColumn T="Shipment" />
                 <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
                 <PropertyColumn Property="x => x.PersianDate" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
                 <PropertyColumn Property="x => x.PersianWeekday" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="x => x.Duty" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Duty" Title="ماهیت" HeaderClass="table-header" CellClass="table-cell" />
                 <PropertyColumn Property="x => x.Route" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
                 <PropertyColumn Property="x => x.Warehouse" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.InvoiceCount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.InvoiceAmount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.ReturnInvoiceCount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.ReturnInvoiceAmount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.NetInvoiceCount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-                <PropertyColumn Property="@(x => x.NetInvoiceAmount.ToString("N0"))" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.InvoiceCountFormatted)" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.InvoiceAmountFormatted)" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.ReturnInvoiceCountFormatted)" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.ReturnInvoiceAmountFormatted)" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.NetInvoiceCountFormatted)" Title="تعداد خالص" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="@(x => x.NetInvoiceAmountFormatted)" Title="ریال خالص" HeaderClass="table-header" CellClass="table-cell" />
             </Columns>
         </MudDataGrid>
     </div>
@@ -112,35 +142,48 @@
 
 <style>
     .table-header {
-    background-color: #1976d2 !important;
-    color: white !important;
-    text-align: center !important padding: 4px !important;
-    vertical-align: middle !important;
-    font-weight: bold !important;
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
     }
 
     .table-cell {
-    padding: 2px 6px !important;
-    font-size: 0.85rem;
-    text-align: center;
+        padding: 2px 6px !important;
+        font-size: 0.85rem;
+        text-align: center;
     }
 </style>
 
 
 @code {
-
     //------------------------------------------------
+    private MudDataGrid<Report2> _report2Data;
+    private MudDataGrid<Report> _report1Data;
+    List<Report> report1ToExcel;
+    List<Report2> report2ToExcel;
     private PersianCalendar persianCalendar = new();
+    private string? _selectedName;
     private string? _selectedMonth;
     private string _month = "فروردین";
     private readonly string[] monthList = { "کلی", "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
-    private string? selectedName;
+    private string? SelectedName
+    {
+        get => _selectedName;
+        set
+        {
+            _selectedName = value;
+            LoadProperData();
+        }
+    }
     private List<Driver> drivers = [];
     private List<Distributor> distributors = [];
     private bool? isDistributor = null;
     private HashSet<(int? code, string name)> nameList = [];
     private HashSet<Report2> data = [];
     private MudDataGrid<ShipmentWithIndex> table;
+    List<Report> reportByWarehouse = [];
 
     private string Month
     {
@@ -148,6 +191,7 @@
         {
             _month = value;
             ChangeMonth();
+            LoadProperData();
         }
     }
 
@@ -167,74 +211,104 @@
                 nameList.UnionWith(drivers.Select(d => (d.PersonnelCode, d.Name)));
                 nameList.UnionWith(distributors.Select(d => (d.PersonnelCode, d.Name)));
             }
-
+            LoadProperData();
             StateHasChanged();
         }
     }
 
-    private async Task LoadData()
+    private List<T> SafeFilteredItems<T>(MudDataGrid<T> grid)
+    {
+        if (grid == null)
+            return new List<T>();
+
+        try
+        {
+            return grid.FilteredItems?.ToList() ?? new List<T>();
+        }
+        catch
+        {
+            return new List<T>();
+        }
+    }
+
+    private async Task PrepareExportData()
+    {
+        report1ToExcel = SafeFilteredItems(_report1Data);
+        report2ToExcel = SafeFilteredItems(_report2Data);
+    }
+
+
+    private async Task LoadData(bool isRefresh = false)
     {
         SetMonth();
         drivers = await dbContext.Drivers.AsNoTracking().ToListAsync();
         distributors = await dbContext.Distributors.AsNoTracking().ToListAsync();
-        IsDistributor = null;
+        if (!isRefresh)
+            IsDistributor = null;
 
         StateHasChanged();
     }
 
-    private async Task LoadProperData()
+    private void LoadProperData()
     {
         var query = dbContext.Shipments.AsNoTracking();
 
         if (IsDistributor == false)
-            query = query.Where(x => Evaluate(x.ShipmentDatePersian, x.DriverName ,));
-        else if (IsDistributor == true)
-            query = query.Where(x => x.DistributorName == name);
-        else
-            query = query.Where(x => x.DriverName == name || x.DistributorName == name);
+            query = query.Where(x => x.DriverName == SelectedName && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
 
-        data = await query.Select(x => new Report2
+        else if (IsDistributor == true)
+            query = query.Where(x => x.DistributorName == SelectedName && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
+        else
+            query = query.Where(x => (x.DriverName == SelectedName || x.DistributorName == SelectedName) && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
+
+        data = query.Select(x => new Report2
             {
+                Id = x.Id,
                 PersianDate = x.ShipmentDatePersian ?? string.Empty,
                 PersianWeekday = x.Weekday ?? string.Empty,
-                Duty = GetDuty(x.DriverName ?? string.Empty, x.DistributorName ?? string.Empty, name),
+                Duty = (string.IsNullOrWhiteSpace(x.DistributorName) && !x.IsException) ? "راننده_موزع" : (x.DriverName == SelectedName && !x.IsException ? "راننده" : (x.IsException ? "" : "موزع")),
                 Route = x.RouteName ?? string.Empty,
                 Warehouse = x.WarehouseName ?? string.Empty,
-                InvoiceCount = x.InvoiceCount ?? 0,
-                InvoiceAmount = x.InvoiceAmount ?? 0,
-                ReturnInvoiceCount = x.ReturnInvoiceCount ?? 0,
-                ReturnInvoiceAmount = x.ReturnInvoiceAmount ?? 0
-            }).ToHashSetAsync();
+                InvoiceCount = (x.InvoiceCount ?? 0 + x.SecondServiceInvoiceCount ?? 0 + x.ThirdServiceInvoiceCount ?? 0),
+                InvoiceAmount = (x.InvoiceAmount ?? 0 + x.SecondServiceInvoiceAmount ?? 0 + x.ThirdServiceInvoiceAmount ?? 0),
+                ReturnInvoiceCount = x.ReturnInvoiceCount ?? null,
+                ReturnInvoiceAmount = x.ReturnInvoiceAmount ?? null
+            }).OrderBy(x => x.PersianDate).ToHashSet();
+
+        foreach (var item in data)
+        {
+            if (item.InvoiceCount is 0) item.InvoiceCount = null;
+            if (item.InvoiceAmount is 0) item.InvoiceAmount = null;
+        }
+
+        SetReport();
+        PrepareExportData();
     }
 
 
-    private async Task SetReport(string name)
+    private async Task OnSearchChanged(string value)
     {
-        if (!string.IsNullOrWhiteSpace(name))
+        _searchString = value;
+        await SetReport();
+    }
+
+    private async Task SetReport()
+    {
+        if (!string.IsNullOrWhiteSpace(SelectedName))
         {
-            HashSet<Shipment> shipments = [];
+            shipments = [];
 
-            var query = dbContext.Shipments.Include(x => x.ShipmentNumbers);
-
-            if (IsDistributor == false)
-                shipments = await query.Where(x => (!x.IsException && x.DriverName == name)).AsNoTracking().ToHashSetAsync();
-            else if (IsDistributor == true)
-                shipments = await query.Where(x => (!x.IsException && x.DistributorName == name)).AsNoTracking().ToHashSetAsync();
-            else
-            {
-                shipments = await query.Where(x => (!x.IsException && (x.DriverName == name || x.DistributorName == name))).AsNoTracking().ToHashSetAsync();
-            }
-
-            var m = shipments.GroupBy(x => x.WarehouseName).Select(x => new Report
+            reportByWarehouse = data.Where(x => !string.IsNullOrWhiteSpace(x.Warehouse)).Where(Filter).GroupBy(x => x.Warehouse).Select(x => new Report
                 {
                     Warehouse = x.Key!,
-                    InvoiceCount = x.Select(i => i.InvoiceCount).Sum() ?? 0,
-                    InvoiceAmount = x.Select(i => i.InvoiceAmount).Sum() ?? 0,
-                    ReturnInvoiceCount = x.Select(i => i.ReturnInvoiceCount).Sum() ?? 0,
-                    ReturnInvoiceAmount = x.Select(i => i.ReturnInvoiceAmount).Sum() ?? 0
-                }).ToList();
+                    InvoiceCount = (x.Sum(i => i.InvoiceCount ?? 0)) switch { 0 => null, var sum => sum },
+                    InvoiceAmount = (x.Sum(i => i.InvoiceAmount ?? 0)) switch { 0 => null, var sum => sum },
+                    ReturnInvoiceCount = (x.Sum(i => i.ReturnInvoiceCount ?? 0)) switch { 0 => null, var sum => sum },
+                    ReturnInvoiceAmount = (x.Sum(i => i.ReturnInvoiceAmount ?? 0)) switch { 0 => null, var sum => sum },
+                }).OrderBy(x => x.Warehouse).ToList();
         }
     }
+
 
     private void SetMonth()
     {
@@ -251,11 +325,14 @@
         StateHasChanged();
     }
 
-    private List<ShipmentWithIndex> indexedShipments = [];
+    private List<ShipmentWithIndex>
+        indexedShipments = [];
 
-    private string RowClassFunc(Report2 element, int rowNumber)
+    private string RowClassFunc<T>
+        (T element, int rowNumber)
     {
-        element.Index = 1 + rowNumber + (table?.CurrentPage ?? 0) * (table?.RowsPerPage ?? 0);
+        var value = 1 + rowNumber + (table?.CurrentPage ?? 0) * (table?.RowsPerPage ?? 0);
+        typeof(T).GetProperty("Index").SetValue(element, value);
         return string.Empty;
     }
 
@@ -265,120 +342,96 @@
         _selectedMonth = num.ToString("00");
     }
 
-    async Task Refresh() => await LoadData();
+    async Task Refresh() => await LoadData(true);
     //------------------------------------------------
-
-
-
 
     private string shipmentNumbers = string.Empty;
     private readonly Shipment shipment = new();
-    private List<Shipment> shipments = [];
+    private List<Shipment>
+        shipments = [];
     private string _searchString;
-    private List<int> Count { get; set; } = [];
+    private List<int>
+        Count
+    { get; set; } = [];
 
-    private Func<ShipmentWithIndex, bool> Filter => s =>
+    private Func<Report2, bool> Filter => s =>
+        {
+            bool matchesSearch = string.IsNullOrWhiteSpace(_searchString) ||
+                        (s.PersianDate?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (s.PersianWeekday?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (s.Route?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (s.Duty?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        (s.Warehouse?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                        s.InvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                        s.InvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                        s.ReturnInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                        s.ReturnInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                        s.NetInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                        s.NetInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase
+                        );
+
+            return matchesSearch;
+        };
+
+    public class Report
     {
-        bool matchesSearch = string.IsNullOrWhiteSpace(_searchString) || (
-        (s.Shipment.ShipmentDatePersian?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Shipment.Weekday?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Shipment.DriverName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Shipment.DistributorName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Shipment.RouteName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Shipment.WarehouseName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        s.Shipment.InvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.InvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.ShipmentNumbers.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) ||
-        s.Shipment.ReturnInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.ReturnInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.SecondServiceInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.SecondServiceInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.ThirdServiceInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.HasVip.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.DriverPersonnelCode.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.DistributorPersonnelCode.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.NetInvoiceCount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
-        s.Shipment.NetInvoiceAmount.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase
-    );
-        bool matchesMonth = string.IsNullOrWhiteSpace(_selectedMonth) ||
-                  (s.Shipment.ShipmentDatePersian?.Contains($"/{_selectedMonth}/") ?? false);
+        public  string Name { get; set; }
 
-        return matchesSearch && matchesMonth;
-    };
-
-
-
-    string GetDuty(string driverName, string distributorName, string name) => driverName == distributorName ? "راننده_موزع" : (driverName == name ? "راننده" : "موزع");
-
-    private class Report
-    {
+        [PropertyInfo(1, "ردیف", true, ColumnType.Number)]
         public int Index { get; set; }
+
+        [PropertyInfo(6, "انبار", true, ColumnType.Text)]
         public string Warehouse { get; set; } = string.Empty;
-        public int InvoiceCount { get; set; } = 0;
-        public long InvoiceAmount { get; set; } = 0;
-        public int ReturnInvoiceCount { get; set; } = 0;
-        public long ReturnInvoiceAmount { get; set; } = 0;
-        public int NetInvoiceCount => InvoiceCount - ReturnInvoiceCount;
-        public long NetInvoiceAmount => InvoiceAmount - ReturnInvoiceAmount;
+
+        [PropertyInfo(7, "تعداد فاکتور", true, ColumnType.Number)]
+        public int? InvoiceCount { get; set; } = 0;
+
+        [PropertyInfo(8, "ریال فاکتور", true, ColumnType.Number)]
+        public long? InvoiceAmount { get; set; } = 0;
+
+        [PropertyInfo(9, "تعداد فاکتور مرجوعی", true, ColumnType.Number)]
+        public int? ReturnInvoiceCount { get; set; } = 0;
+
+        [PropertyInfo(10, "ریال فاکتور مرجوعی", true, ColumnType.Number)]
+        public long? ReturnInvoiceAmount { get; set; } = 0;
+
+        [PropertyInfo(11, "تعداد خلص ف", true, ColumnType.Number)]
+        public int NetInvoiceCount => (InvoiceCount ?? 0) - (ReturnInvoiceCount ?? 0);
+
+        [PropertyInfo(12, "ریال خالص ف", true, ColumnType.Number)]
+        public long NetInvoiceAmount => (InvoiceAmount ?? 0) - (ReturnInvoiceAmount ?? 0);
+
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string InvoiceCountFormatted => InvoiceCount.HasValue ? InvoiceCount.Value.ToString("N0") : string.Empty;
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string InvoiceAmountFormatted => InvoiceAmount.HasValue ? InvoiceAmount.Value.ToString("N0") : string.Empty;
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string ReturnInvoiceCountFormatted => ReturnInvoiceCount.HasValue ? ReturnInvoiceCount.Value.ToString("N0") : string.Empty;
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string ReturnInvoiceAmountFormatted => ReturnInvoiceAmount.HasValue ? ReturnInvoiceAmount.Value.ToString("N0") : string.Empty;
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string NetInvoiceCountFormatted => NetInvoiceCount == 0 ? string.Empty : NetInvoiceCount.ToString("N0");
+        [PropertyInfo(21, "-", false, ColumnType.Text)]
+        public string NetInvoiceAmountFormatted => NetInvoiceAmount == 0 ? string.Empty : NetInvoiceAmount.ToString("N0");
     }
 
-    private class Report2 : Report
+    public class Report2 : Report
     {
+        [PropertyInfo(21, "آیدی", false, ColumnType.Number)]
+        public long Id { get; set; }
+
+        [PropertyInfo(2, "تاریخ", true, ColumnType.Text)]
         public string PersianDate { get; set; } = string.Empty;
+
+        [PropertyInfo(3, "روز", true, ColumnType.Text)]
         public string PersianWeekday { get; set; } = string.Empty;
+
+        [PropertyInfo(4, "ماهیت", true, ColumnType.Text)]
         public string Duty { get; set; } = string.Empty;
+
+        [PropertyInfo(5, "مسیر", true, ColumnType.Text)]
         public string Route { get; set; } = string.Empty;
     }
 }
 
 
-
-
-@code {
-
-    // private class ReportByDate
-    // {
-    //     public string PersianDate { get; set; }
-    //     public string PersianWeekday { get; set; }
-    //     public HashSet<ReportByRoute> Routes { get; set; }
-    // }
-
-    // private class ReportByRoute
-    // {
-    //     public string Warehouse { get; set; }
-    //     public HashSet<ReportByWarehouse> DayInfos { get; set; }
-    // }
-
-    // private class DayInfo
-    // {
-    //     public int InvoiceCount { get; set; } = 0;
-    //     public long InvoiceAmount { get; set; } = 0;
-    //     public int ReturnInvoiceCount { get; set; } = 0;
-    //     public long ReturnInvoiceAmount { get; set; } = 0;
-    //     public int NetInvoiceCount => InvoiceCount - ReturnInvoiceCount;
-    //     public long NetInvoiceAmount => InvoiceAmount - ReturnInvoiceAmount;
-    // }
-
-    // var m = shipments.GroupBy(x => x.ShipmentDatePersian)
-    //         .Select(g1 => new ReportByDate
-    //             {
-    //                 PersianDate = g1.Key,
-    //                 PersianWeekday = g1.Select(x => x.Weekday).FirstOrDefault() ?? string.Empty,
-    //                 Routes = g1.GroupBy(x => x.RouteName).Select(g2 => new ReportByRoute
-    //                 {
-    //                     Warehouse = g2.Key,
-    //                     DayInfos = g2.GroupBy(y => y.WarehouseName).Select(g3 => new ReportByWarehouse
-    //                     {
-    //                         Route = g3.Key,
-    //                         DayInfos = g3.Select(z => new DayInfo
-    //                         {
-    //                             Duty = GetDuty(z.DriverName, z.DistributorName, name),
-    //                             InvoiceCount = z.InvoiceCount!.Value,
-    //                             InvoiceAmount = z.InvoiceAmount!.Value,
-    //                             ReturnInvoiceCount = z.ReturnInvoiceCount!.Value,
-    //                             ReturnInvoiceAmount = z.ReturnInvoiceAmount!.Value
-    //                         }).ToHashSet()
-    //                     }).ToHashSet()
-    //                 }).ToHashSet()
-    //             }).ToList();
-}

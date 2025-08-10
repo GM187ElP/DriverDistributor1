@@ -8,4 +8,5 @@ public class Personnel
     public string PersonnelCode { get; set; }
     public string Name { get; set; }
     public string PhoneNumber { get; set; }
+    public ICollection<Shipment> Shipments { get; set; }
 }

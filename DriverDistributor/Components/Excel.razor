@@ -1,11 +1,12 @@
 ﻿@using ClosedXML.Excel
+@using DocumentFormat.OpenXml.Bibliography
 @using DriverDistributor.Data
+@using System.Globalization
+@using DriverDistributor.Entities
+@using static DriverDistributor.Components.Pages.DriverDistributorReport
 
 
-<MudButton OnClick="Export" Style="background:#1D6F42;text-align:center;color:white;">Excel</MudButton>
-
-
-
+<MudButton OnClick="ExportShipmentList" Style="background:#1D6F42;text-align:center;color:white;">Excel</MudButton>
 
 <script>
     window.downloadFileFromStream = async (fileName, bytes, mimeType) => {
@@ -20,12 +21,153 @@
 </script>
 
 @code {
-
     [Inject] public IJSRuntime JS { get; set; }
-    [Inject] public AppDbContext dbContext { get; set; }
+
+    [Parameter] public string FileName { get; set; } = string.Empty;
 
 
-    public async Task Export()
+    public (int lastRow, int lastColumn) SetData<T>(List<T> report, IXLWorksheet worksheet, int startHeaderRow, int? startColumn, int? startDataRow)
+    {
+        if (startDataRow == null) startDataRow = startHeaderRow + 1;
+        if (startColumn == null) startColumn = 1;
+
+        var reportInfo = GetPropertyInfo(typeof(T));
+
+        var lastCol = SetTableHeader(startHeaderRow, startColumn.Value, reportInfo, worksheet);
+
+        var lastRow = WriteTable(report, reportInfo, worksheet, startDataRow.Value, startColumn.Value);
+
+        worksheet.Columns(startColumn.Value, lastCol).AdjustToContents();
+
+        return (lastRow, lastCol);
+    }
+
+    public async Task Export(IXLWorkbook workbook)
+    {
+        var persianCalendar = new PersianCalendar();
+        var now = DateTime.Now;
+        var persianTime = $"{persianCalendar.GetYear(now)}{persianCalendar.GetMonth(now)}{persianCalendar.GetDayOfMonth(now)}{persianCalendar.GetHour(now)}{persianCalendar.GetMinute(now)}";
+
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+
+        var content = stream.ToArray();
+        var fileName = $"{persianTime}_{FileName}.xlsx";
+        var mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, content, mime);
+    }
+
+    int WriteTable<T>(List<T> items, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet, int startRow, int startCol)
+    {
+        int row = startRow;
+        foreach (var item in items)
+        {
+            int col = startCol;
+            foreach (var propEntry in propInfos)
+            {
+                var attr = propEntry.Value;
+                if (attr != null && attr.Include)
+                {
+                    var value = typeof(T).GetProperty(propEntry.Key)?.GetValue(item);
+                    var cell = worksheet.Cell(row, col);
+
+                    if (value == null)
+                        cell.Value = string.Empty;
+                    else if (value is int i)
+                        cell.Value = i;
+                    else if (value is long l)
+                        cell.Value = l;
+                    else if (value is double d)
+                        cell.Value = d;
+                    else if (value is float f)
+                        cell.Value = f;
+                    else if (value is decimal dec)
+                        cell.Value = (double)dec;
+                    else if (value is DateTime dt)
+                    {
+                        cell.Value = dt;
+                        cell.Style.DateFormat.Format = "yyyy/MM/dd";
+                    }
+                    else
+                        cell.Value = value.ToString();
+
+                    if (attr.Type == ColumnType.Number)
+                    {
+                        cell.Style.NumberFormat.Format = "#,##0";
+                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    }
+
+                    col++;
+                }
+            }
+            row++;
+        }
+        return row - 1; 
+    }
+
+    int SetTableHeader(int startRow, int startCol, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet)
+    {
+        int col = startCol;
+        foreach (var propEntry in propInfos)
+        {
+            var attr = propEntry.Value;
+            var cell = worksheet.Cell(startRow, col);
+            if (attr != null && attr.Include)
+            {
+                cell.Value = attr.DisplayName;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                col++;
+            }
+        }
+        return col - 1; 
+    }
+
+
+    List<KeyValuePair<string, PropertyInfoAttribute?>> GetPropertyInfo(Type type)
+    {
+        var properties = type.GetProperties();
+        var propInfos = new List<KeyValuePair<string, PropertyInfoAttribute?>>();
+
+        foreach (var prop in properties)
+        {
+            var attr = prop.GetCustomAttributes(typeof(PropertyInfoAttribute), inherit: true)
+                           .FirstOrDefault() as PropertyInfoAttribute;
+
+            propInfos.Add(new KeyValuePair<string, PropertyInfoAttribute?>(prop.Name, attr));
+        }
+
+        return propInfos.OrderBy(kvp => kvp.Value?.Index ?? int.MaxValue).ToList();
+    }
+
+    public class PropertyInfoAttribute : Attribute
+    {
+        public PropertyInfoAttribute(int index, string name, bool include, ColumnType columnType)
+        {
+            Index = index;
+            DisplayName = name;
+            Include = include;
+            Type = columnType;
+        }
+        public int Index { get; set; }
+        public string DisplayName { get; set; }
+        public bool Include { get; set; }
+        public ColumnType Type { get; set; }
+    }
+
+    public enum ColumnType
+    {
+        Number, Text, Boolean
+    }
+    //----------------------------------------------------------------------------------------
+    // var worksheet = _workbook.AddWorksheet($"گزارش فردی {Name}");
+    // worksheet.Cell(1, lastCol).Value = ".";
+    // lastCol += SeparationDistance;
+    // SetTableHeader(lastCol, report1Info, worksheet);
+    // var report1Info = GetPropertyInfo(typeof(Report));
+
+    public async Task ExportShipmentList()
     {
         using var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش");
@@ -51,7 +193,8 @@
         worksheet.Cell(2, 21).Value = "ریال خالص ف";
 
 
-        var data = dbContext.Shipments.ToList();
+        var data =  Enumerable.Empty<Shipment>();
+        //dbContext.Shipments.ToList();
 
         int row = 3;
 
@@ -67,7 +210,7 @@
             worksheet.Cell(row, 9).Value = item.WarehouseName;
             worksheet.Cell(row, 10).Value = item.InvoiceCount;
             worksheet.Cell(row, 11).Value = item.InvoiceAmount;
-            //worksheet.Cell(row, 12).Value = item.ShipmentNumbers;
+            worksheet.Cell(row, 12).Value = string.Join('-', item.ShipmentNumbers.Select(x => x.Number));
             worksheet.Cell(row, 13).Value = item.ReturnInvoiceCount;
             worksheet.Cell(row, 14).Value = item.ReturnInvoiceAmount;
             worksheet.Cell(row, 15).Value = item.SecondServiceInvoiceCount;
@@ -90,5 +233,8 @@
         var mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
         await JS.InvokeVoidAsync("downloadFileFromStream", fileName, content, mime);
     }
+
+    
 }
+
 

@@ -3,6 +3,7 @@ using System;
 using DriverDistributor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorApp1.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250809095411_add duty to shipment")]
+    partial class adddutytoshipment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -122,9 +125,6 @@ namespace BlazorApp1.Migrations
 
                     b.HasKey("PersonnelCode");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.ToTable("Personnels");
                 });
 
@@ -146,9 +146,6 @@ namespace BlazorApp1.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("DistributorDuty")
                         .HasColumnType("TEXT");
@@ -213,10 +210,6 @@ namespace BlazorApp1.Migrations
                     b.Property<int?>("ThirdServiceInvoiceCount")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("WarehouseName")
                         .HasColumnType("TEXT");
 
@@ -226,15 +219,11 @@ namespace BlazorApp1.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("DistributorName");
 
                     b.HasIndex("DriverName");
 
                     b.HasIndex("RouteName");
-
-                    b.HasIndex("UserName");
 
                     b.HasIndex("WarehouseName");
 
@@ -404,10 +393,6 @@ namespace BlazorApp1.Migrations
 
             modelBuilder.Entity("DriverDistributor.Entities.Shipment", b =>
                 {
-                    b.HasOne("DriverDistributor.Entities.ApplicationUser", null)
-                        .WithMany("Shipments")
-                        .HasForeignKey("ApplicationUserId");
-
                     b.HasOne("DriverDistributor.Entities.Distributor", "Distributor")
                         .WithMany("Shipments")
                         .HasForeignKey("DistributorName");
@@ -422,13 +407,6 @@ namespace BlazorApp1.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DriverDistributor.Entities.Personnel", "Personnel")
-                        .WithMany("Shipments")
-                        .HasForeignKey("UserName")
-                        .HasPrincipalKey("Name")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("DriverDistributor.Entities.Warehouse", "Warehouse")
                         .WithMany("Shipments")
                         .HasForeignKey("WarehouseName");
@@ -436,8 +414,6 @@ namespace BlazorApp1.Migrations
                     b.Navigation("Distributor");
 
                     b.Navigation("Driver");
-
-                    b.Navigation("Personnel");
 
                     b.Navigation("Route");
 
@@ -506,22 +482,12 @@ namespace BlazorApp1.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("DriverDistributor.Entities.ApplicationUser", b =>
-                {
-                    b.Navigation("Shipments");
-                });
-
             modelBuilder.Entity("DriverDistributor.Entities.Distributor", b =>
                 {
                     b.Navigation("Shipments");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Driver", b =>
-                {
-                    b.Navigation("Shipments");
-                });
-
-            modelBuilder.Entity("DriverDistributor.Entities.Personnel", b =>
                 {
                     b.Navigation("Shipments");
                 });

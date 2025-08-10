@@ -8,30 +8,36 @@ public class Shipment
     public long Id { get; set; }
     public DateTime? ShipmentDateGregorian { get; set; }
     public string ShipmentDatePersian { get; set; }
-    public string Weekday { get; set; } 
+    public string Weekday { get; set; }
+    public string MonthName { get; set; }
     public int? DriverPersonnelCode { get; set; }
     public int? DistributorPersonnelCode { get; set; }
-    [ForeignKeyLink(nameof(Driver),"Name")]
+    [ForeignKeyLink(nameof(Driver), "Name")]
     public string? DriverName { get; set; }
+    public string? DriverDuty { get; set; } = null;
     [ForeignKeyLink(nameof(Distributor), "Name")]
     public string? DistributorName { get; set; }
     [ForeignKeyLink(nameof(Route), "Name")]
+    public string? DistributorDuty { get; set; } = null;
     public string RouteName { get; set; }
     [ForeignKeyLink(nameof(Warehouse), "Name")]
     public string? WarehouseName { get; set; }
-    public int? InvoiceCount { get; set; } 
-    public long? InvoiceAmount { get; set; } 
-    public int? ReturnInvoiceCount { get; set; } = 0;
-    public long? ReturnInvoiceAmount { get; set; } = 0;
-    public int? SecondServiceInvoiceCount { get; set; } = 0;
-    public int? ThirdServiceInvoiceCount { get; set; } = 0;
-    public long? SecondServiceInvoiceAmount { get; set; } = 0;
-    public long? ThirdServiceInvoiceAmount { get; set; } = 0;
+    public int? InvoiceCount { get; set; }
+    public long? InvoiceAmount { get; set; }
+    public int? ReturnInvoiceCount { get; set; }
+    public long? ReturnInvoiceAmount { get; set; }
+    public int? SecondServiceInvoiceCount { get; set; }
+    public int? ThirdServiceInvoiceCount { get; set; }
+    public long? SecondServiceInvoiceAmount { get; set; }
+    public long? ThirdServiceInvoiceAmount { get; set; }
     public bool HasVip { get; set; } = false;
     public bool IsException { get; set; } = false;
 
-    public int? NetInvoiceCount => InvoiceCount + SecondServiceInvoiceCount + ThirdServiceInvoiceCount - ReturnInvoiceCount;
-    public long? NetInvoiceAmount => InvoiceAmount + SecondServiceInvoiceAmount + ThirdServiceInvoiceAmount - ReturnInvoiceAmount;
+    public int? NetInvoiceCount => !IsException ? InvoiceCount ?? 0 + SecondServiceInvoiceCount ?? 0 + ThirdServiceInvoiceCount ?? 0 - ReturnInvoiceCount ?? 0 : null;
+    public long? NetInvoiceAmount => !IsException ? InvoiceAmount ?? 0 + SecondServiceInvoiceAmount ?? 0 + ThirdServiceInvoiceAmount ?? 0 - ReturnInvoiceAmount ?? 0 : null;
+
+    public string UserName { get; set; }
+    public Personnel Personnel { get; set; }
 
     public Driver Driver { get; set; }
     public Route Route { get; set; }

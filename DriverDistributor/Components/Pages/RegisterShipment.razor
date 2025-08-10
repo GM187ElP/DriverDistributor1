@@ -1,12 +1,16 @@
 ﻿@page "/register-shipment"
+@attribute [Authorize]
 @using System.Text.Json
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using static DriverDistributor.Components.PersianDatePicker
 @inject NavigationManager navigationManager
 @inject AppDbContext dbContext
 @inject IWebHostEnvironment Env
+@inject AuthenticationStateProvider authenticationStateProvider;
 
 <PageTitle>ثبت خروجی</PageTitle>
 
@@ -26,14 +30,14 @@
 
                     <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DriverName,false)">
                         <Columns>
-                            <PropertyColumn Property="x=>x.Name" Title="مسیر" />
+                            <PropertyColumn Property="x=>x.Name" Title="مسیر راننده" />
                             <PropertyColumn Property="x=>x.Count" Title="دفعات" />
                         </Columns>
                     </MudDataGrid>
                     <br />
                     <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DistributorName,true)">
                         <Columns>
-                            <PropertyColumn Property="x=>x.Name" Title="مسیر" />
+                            <PropertyColumn Property="x=>x.Name" Title="مسیر موزع" />
                             <PropertyColumn Property="x=>x.Count" Title="دفعات" />
                         </Columns>
                     </MudDataGrid>
@@ -44,8 +48,10 @@
                                      @bind-Value=dto.DriverName
                                      Label="راننده"
                                      SearchFunc="SearchDriver"
+                                     HelperText="@(string.IsNullOrWhiteSpace(dto.DriverName) ? "" : (string.IsNullOrWhiteSpace(dto.DistributorName) ? "راننده_موزع" : "راننده"))"
                                      ToStringFunc="(x) => x"
                                      Dense="true"
+                                     @onselectionchange="DistributorReload"
                                      ResetValueOnEmptyText="true"
                                      Clearable="true"
                                      MaxItems="100"
@@ -56,13 +62,15 @@
                     <MudAutocomplete Class="mt-5" T="string"
                                      @bind-Value=dto.DistributorName
                                      Label="موزع"
+                                     HelperText="@(string.IsNullOrWhiteSpace(dto.DistributorName) ? "" : "موزع")"
                                      SearchFunc="SearchDistributor"
                                      ToStringFunc="(x) => x"
                                      Dense="true"
+                                     @onselectionchange="DriverReload"
                                      ResetValueOnEmptyText="true"
                                      Clearable="true"
                                      MaxItems="100"
-                                     Required=@(IsException && string.IsNullOrWhiteSpace(dto.DriverName)||!IsException)
+                                     Required=@(string.IsNullOrWhiteSpace(dto.DriverName))
                                      ErrorText=@DistributorErrorText()
                                      Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DriverName)) />
 
@@ -168,7 +176,7 @@
 
 @code {
     private MudForm form;
-    private ShipmentAddDto dto = new();
+    private ShipmentEditDto dto = new();
     private PersianCalendarClass persian;
     private bool isSecondService = false;
     private bool isThirdService = false;
@@ -202,6 +210,18 @@
 
             StateHasChanged();
         }
+    }
+
+    async Task DriverReload()
+    {
+        drivers = await dbContext.Drivers.Where(d => d.Name != dto.DistributorName).AsNoTracking().ToListAsync();
+        StateHasChanged();
+    }
+
+    async Task DistributorReload()
+    {
+        distributors = await dbContext.Distributors.Where(d => d.Name != dto.DriverName).AsNoTracking().ToListAsync();
+        StateHasChanged();
     }
 
     string? DriverErrorText()
@@ -335,6 +355,7 @@
         dto.ShipmentNumbers.AddRange(shipmentNumbersList);
         dto.IsException = IsException;
 
+
         if (dto.DriverName is not null)
         {
             var driver = await dbContext.Drivers.FirstOrDefaultAsync(d => d.Name == dto.DriverName);
@@ -364,6 +385,8 @@
                 shipment.ShipmentNumbers.Add(new() { Number = number!.Value });
             }
         }
+
+        
 
         Services.Mapper.MapFromDto(dto, shipment);
         //await Services.Mapper.MapDtoToEntityWithNavigations(dto, shipment, dbContext);

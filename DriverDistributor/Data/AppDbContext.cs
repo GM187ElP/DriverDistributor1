@@ -16,4 +16,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ShipmentNumber> ShipmentNumbers { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<Personnel>()
+            .HasIndex(x=>x.Name)
+            .IsUnique();
+
+        builder.Entity<Personnel>()
+            .HasMany(x => x.Shipments)
+            .WithOne(x => x.Personnel)
+            .HasForeignKey(x => x.UserName)
+            .HasPrincipalKey(x => x.Name)
+            .OnDelete(DeleteBehavior.Cascade);
+            
+        base.OnModelCreating(builder);
+    }
 }
