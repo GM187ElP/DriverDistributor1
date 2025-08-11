@@ -471,6 +471,7 @@
         {
             dto.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceCount = null;
         }
+        dto.DistributionCenter = dto.IsException ? null : (dto.WarehouseName == "فيروز" ? "کوشش" : "گسترش");
 
         var changedRowCount = 0;
         Services.Mapper.MapFromDto(dto, shipment);
@@ -489,6 +490,7 @@
 
             if (personnel != null)
                 shipment.UserName = personnel.Name;
+
 
             dbContext.Shipments.Add(shipment);
             changedRowCount = await dbContext.SaveChangesAsync();

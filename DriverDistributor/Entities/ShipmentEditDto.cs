@@ -13,6 +13,7 @@ public class ShipmentEditDto
     public string Weekday { get; set; }
     public string MonthName { get; set; }
     public int? DriverPersonnelCode { get; set; }
+    public string? DistributionCenter { get; set; }
     public int? DistributorPersonnelCode { get; set; }
     public string DriverName { get; set; }
     public string DistributorName { get; set; }

@@ -33,18 +33,59 @@ public class Mapper
 
         foreach (var dtoProp in dtoProps)
         {
-            var entityProp = entityProps.FirstOrDefault(p =>
-                p.Name == dtoProp.Name &&
-                p.PropertyType == dtoProp.PropertyType &&
-                dtoProp.CanWrite);
+            if (!dtoProp.CanWrite)
+                continue;
 
-            if (entityProp != null)
+            var entityProp = entityProps.FirstOrDefault(p => p.Name == dtoProp.Name);
+            if (entityProp == null)
+                continue;
+
+            // Skip mapping if property is a collection or complex class (except string)
+            if (IsComplexType(dtoProp.PropertyType))
+                continue;
+
+            var value = entityProp.GetValue(entity);
+
+            if (value == null)
             {
-                var value = entityProp.GetValue(entity);
-                dtoProp.SetValue(dto, value);
+                dtoProp.SetValue(dto, null);
+                continue;
+            }
+
+            var dtoType = dtoProp.PropertyType;
+            var entityType = entityProp.PropertyType;
+
+            try
+            {
+                if (dtoType.IsAssignableFrom(entityType))
+                {
+                    dtoProp.SetValue(dto, value);
+                }
+                else
+                {
+                    var targetType = Nullable.GetUnderlyingType(dtoType) ?? dtoType;
+                    var convertedValue = Convert.ChangeType(value, targetType);
+                    dtoProp.SetValue(dto, convertedValue);
+                }
+            }
+            catch
+            {
+                // optionally log conversion failure here
             }
         }
     }
+
+    // Helper to detect complex types that should be skipped
+    private static bool IsComplexType(Type type)
+    {
+        if (type == typeof(string)) return false;
+        if (type.IsPrimitive) return false;
+        if (Nullable.GetUnderlyingType(type) != null && Nullable.GetUnderlyingType(type).IsPrimitive) return false;
+        if (typeof(System.Collections.IEnumerable).IsAssignableFrom(type) && type != typeof(string)) return true;
+        return type.IsClass;
+    }
+
+
     public static async Task MapDtoToEntityWithNavigations<TDto, TEntity>(TDto dto, TEntity entity, DbContext dbContext)
     {
         // 1. Map simple properties synchronously

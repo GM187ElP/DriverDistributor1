@@ -27,13 +27,13 @@
     <MudStack Class="mb-2" Style="align-items:center;">
         <MudStack Row="true" Class="mb-2" Style="align-items:center;">
 
-            <Excel  FileName="SelectedName"/>
+            <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
             <MudSelect T="string"
-                       @bind-Value="Month"
-                       Dense="true"
-                       FitContent="true"
-                       Clearable="false">
+            @bind-Value="Month"
+            Dense="true"
+            FitContent="true"
+            Clearable="false">
                 @foreach (var month in monthList)
                 {
                     <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -41,11 +41,11 @@
             </MudSelect>
 
             <MudSelect @bind-value="@SelectedName"
-                       T="string"
-                       Dense="true"
-                       FitContent="true"
-                       Clearable="true"
-                       @onselectionchange=LoadProperData>
+            T="string"
+            Dense="true"
+            FitContent="true"
+            Clearable="true"
+            @onselectionchange=LoadProperData>
                 @foreach (var name in nameList)
                 {
                     <MudSelectItem Value="name.name">@name.name</MudSelectItem>
@@ -53,9 +53,9 @@
             </MudSelect>
 
             <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-                       IconColor="Color.Primary"
-                       Size="Size.Small"
-                       @onclick="Refresh">
+            IconColor="Color.Primary"
+            Size="Size.Small"
+            @onclick="Refresh">
                 آپدیت
             </MudButton>
 
@@ -67,16 +67,16 @@
 
         </MudStack>
         <MudDataGrid @ref="_report1Data" T="Report"
-                     RowClassFunc="@(RowClassFunc<Report>)"
-                     Items="@(_selectedName == null ? null : reportByWarehouse)"
-                     Dense="true"
-                     Bordered="true"
-                     Hover="true"
-                     Striped="true"
-                     Style="flex: 1; overflow: auto;"
-                     ShowColumnOptions=false
-                     ReadOnly=true
-                     HeaderClass="table-header">
+        RowClassFunc="@(RowClassFunc<Report>)"
+        Items="@(_selectedName == null ? null : reportByWarehouse)"
+        Dense="true"
+        Bordered="true"
+        Hover="true"
+        Striped="true"
+        Style="flex: 1; overflow: auto;"
+        ShowColumnOptions=false
+        ReadOnly=true
+        HeaderClass="table-header">
 
             <Columns>
                 <PropertyColumn Property="x => x.Warehouse" Title="انبار" HeaderClass="table-header" CellClass="table-cell" Sortable="false" />
@@ -94,31 +94,31 @@
     <!-- Table container with scroll -->
     <div style="height: calc(100vh - 210px); overflow-y: auto;">
         <MudDataGrid @ref="_report2Data" T="Report2"
-                     RowClassFunc="@(RowClassFunc)"
-                     Items="@(_selectedName == null ? null : data)"
-                     Dense="true"
-                     Bordered="true"
-                     Hover="true"
-                     Striped="true"
-                     FixedHeader="true"
-                     Height="600px"
-                     Style="flex: 1; overflow: auto;"
-                     QuickFilter="@Filter"
-                     HeaderClass="table-header"
-                     Filterable=false>
+        RowClassFunc="@(RowClassFunc)"
+        Items="@(_selectedName == null ? null : data)"
+        Dense="true"
+        Bordered="true"
+        Hover="true"
+        Striped="true"
+        FixedHeader="true"
+        Height="600px"
+        Style="flex: 1; overflow: auto;"
+        QuickFilter="@Filter"
+        HeaderClass="table-header"
+        Filterable=false>
 
 
             <ToolBarContent>
                 <MudTextField Value="_searchString"
-                              T="string"
-                              Placeholder="جستجو"
-                              Adornment="Adornment.Start"
-                              Immediate="true"
-                              ValueChanged="OnSearchChanged"
-                              AdornmentIcon="@Icons.Material.Filled.Search"
-                              IconSize="Size.Medium"
-                              FullWidth=false
-                              Class="mt-0" />
+                T="string"
+                Placeholder="جستجو"
+                Adornment="Adornment.Start"
+                Immediate="true"
+                ValueChanged="OnSearchChanged"
+                AdornmentIcon="@Icons.Material.Filled.Search"
+                IconSize="Size.Medium"
+                FullWidth=false
+                Class="mt-0" />
             </ToolBarContent>
 
             <Columns>
@@ -142,17 +142,17 @@
 
 <style>
     .table-header {
-        background-color: #1976d2 !important;
-        color: white !important;
-        text-align: center !important padding: 4px !important;
-        vertical-align: middle !important;
-        font-weight: bold !important;
+    background-color: #1976d2 !important;
+    color: white !important;
+    text-align: center !important padding: 4px !important;
+    vertical-align: middle !important;
+    font-weight: bold !important;
     }
 
     .table-cell {
-        padding: 2px 6px !important;
-        font-size: 0.85rem;
-        text-align: center;
+    padding: 2px 6px !important;
+    font-size: 0.85rem;
+    text-align: center;
     }
 </style>
 
@@ -160,6 +160,7 @@
 @code {
     //------------------------------------------------
     private MudDataGrid<Report2> _report2Data;
+    private Excel excel;
     private MudDataGrid<Report> _report1Data;
     List<Report> report1ToExcel;
     List<Report2> report2ToExcel;
@@ -282,7 +283,6 @@
         }
 
         SetReport();
-        PrepareExportData();
     }
 
 
@@ -372,6 +372,19 @@
 
             return matchesSearch;
         };
+
+
+    private async Task OnExportRequested()
+    {
+        await PrepareExportData();
+
+        var workbook = new XLWorkbook();
+        var worksheet = workbook.AddWorksheet("گزارش کلی");
+
+        var columnsdsfs = excel.SetData(report2ToExcel, worksheet, 1, 2, null);
+
+        await excel.Export(workbook);
+    }
 
     public class Report
     {

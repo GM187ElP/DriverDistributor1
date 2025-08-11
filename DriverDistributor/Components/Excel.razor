@@ -5,8 +5,7 @@
 @using DriverDistributor.Entities
 @using static DriverDistributor.Components.Pages.DriverDistributorReport
 
-
-<MudButton OnClick="ExportShipmentList" Style="background:#1D6F42;text-align:center;color:white;">Excel</MudButton>
+<MudButton Style="background:#1D6F42;text-align:center;color:white;" OnClick="@OnExportClick">Excel</MudButton>
 
 <script>
     window.downloadFileFromStream = async (fileName, bytes, mimeType) => {
@@ -21,10 +20,18 @@
 </script>
 
 @code {
-    [Inject] public IJSRuntime JS { get; set; }
+    [Inject] public IJSRuntime JS { get; set; } 
 
     [Parameter] public string FileName { get; set; } = string.Empty;
+    [Parameter] public EventCallback ExportRequested { get; set; }
 
+    private async Task OnExportClick()
+    {
+        if (ExportRequested.HasDelegate)
+        {
+            await ExportRequested.InvokeAsync(null);
+        }
+    }
 
     public (int lastRow, int lastColumn) SetData<T>(List<T> report, IXLWorksheet worksheet, int startHeaderRow, int? startColumn, int? startDataRow)
     {
@@ -58,55 +65,58 @@
         await JS.InvokeVoidAsync("downloadFileFromStream", fileName, content, mime);
     }
 
-    int WriteTable<T>(List<T> items, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet, int startRow, int startCol)
+    private int WriteTable<T>(List<T> items, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet, int startRow, int startCol)
     {
         int row = startRow;
-        foreach (var item in items)
+        if (items != null)
         {
-            int col = startCol;
-            foreach (var propEntry in propInfos)
+            foreach (var item in items)
             {
-                var attr = propEntry.Value;
-                if (attr != null && attr.Include)
+                int col = startCol;
+                foreach (var propEntry in propInfos)
                 {
-                    var value = typeof(T).GetProperty(propEntry.Key)?.GetValue(item);
-                    var cell = worksheet.Cell(row, col);
-
-                    if (value == null)
-                        cell.Value = string.Empty;
-                    else if (value is int i)
-                        cell.Value = i;
-                    else if (value is long l)
-                        cell.Value = l;
-                    else if (value is double d)
-                        cell.Value = d;
-                    else if (value is float f)
-                        cell.Value = f;
-                    else if (value is decimal dec)
-                        cell.Value = (double)dec;
-                    else if (value is DateTime dt)
+                    var attr = propEntry.Value;
+                    if (attr != null && attr.Include)
                     {
-                        cell.Value = dt;
-                        cell.Style.DateFormat.Format = "yyyy/MM/dd";
-                    }
-                    else
-                        cell.Value = value.ToString();
+                        var value = typeof(T).GetProperty(propEntry.Key)?.GetValue(item);
+                        var cell = worksheet.Cell(row, col);
 
-                    if (attr.Type == ColumnType.Number)
-                    {
-                        cell.Style.NumberFormat.Format = "#,##0";
-                        cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                    }
+                        if (value == null)
+                            cell.Value = string.Empty;
+                        else if (value is int i)
+                            cell.Value = i;
+                        else if (value is long l)
+                            cell.Value = l;
+                        else if (value is double d)
+                            cell.Value = d;
+                        else if (value is float f)
+                            cell.Value = f;
+                        else if (value is decimal dec)
+                            cell.Value = (double)dec;
+                        else if (value is DateTime dt)
+                        {
+                            cell.Value = dt;
+                            cell.Style.DateFormat.Format = "yyyy/MM/dd";
+                        }
+                        else
+                            cell.Value = value.ToString();
 
-                    col++;
+                        if (attr.Type == ColumnType.Number)
+                        {
+                            cell.Style.NumberFormat.Format = "#,##0";
+                            cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        }
+
+                        col++;
+                    }
                 }
+                row++;
             }
-            row++;
         }
-        return row - 1; 
+        return row - 1;
     }
 
-    int SetTableHeader(int startRow, int startCol, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet)
+    private int SetTableHeader(int startRow, int startCol, List<KeyValuePair<string, PropertyInfoAttribute?>> propInfos, IXLWorksheet worksheet)
     {
         int col = startCol;
         foreach (var propEntry in propInfos)
@@ -121,11 +131,11 @@
                 col++;
             }
         }
-        return col - 1; 
+        return col - 1;
     }
 
 
-    List<KeyValuePair<string, PropertyInfoAttribute?>> GetPropertyInfo(Type type)
+    private List<KeyValuePair<string, PropertyInfoAttribute?>> GetPropertyInfo(Type type)
     {
         var properties = type.GetProperties();
         var propInfos = new List<KeyValuePair<string, PropertyInfoAttribute?>>();
@@ -160,81 +170,6 @@
     {
         Number, Text, Boolean
     }
-    //----------------------------------------------------------------------------------------
-    // var worksheet = _workbook.AddWorksheet($"گزارش فردی {Name}");
-    // worksheet.Cell(1, lastCol).Value = ".";
-    // lastCol += SeparationDistance;
-    // SetTableHeader(lastCol, report1Info, worksheet);
-    // var report1Info = GetPropertyInfo(typeof(Report));
-
-    public async Task ExportShipmentList()
-    {
-        using var workbook = new XLWorkbook();
-        var worksheet = workbook.AddWorksheet("گزارش");
-        worksheet.Cell(2, 2).Value = "تاریخ";
-        worksheet.Cell(2, 3).Value = "روز";
-        worksheet.Cell(2, 4).Value = "کد پرسنلی راننده";
-        worksheet.Cell(2, 5).Value = "راننده";
-        worksheet.Cell(2, 6).Value = "کد پرسنلی موزع";
-        worksheet.Cell(2, 7).Value = "موزع";
-        worksheet.Cell(2, 8).Value = "مسیر";
-        worksheet.Cell(2, 9).Value = "انبار";
-        worksheet.Cell(2, 10).Value = "تعداد فاکتور";
-        worksheet.Cell(2, 11).Value = "ریال فاکتور";
-        worksheet.Cell(2, 12).Value = "خروجی";
-        worksheet.Cell(2, 13).Value = "تعداد فاکتور مرجوعی";
-        worksheet.Cell(2, 14).Value = "ریال فاکتور مرجوعی";
-        worksheet.Cell(2, 15).Value = "تعداد ف سرویس دوم";
-        worksheet.Cell(2, 16).Value = "ریال ف سرویس دوم";
-        worksheet.Cell(2, 17).Value = "تعداد ف سرویس سوم";
-        worksheet.Cell(2, 18).Value = "ریال ف سرویس سوم";
-        worksheet.Cell(2, 19).Value = "VIP";
-        worksheet.Cell(2, 20).Value = "تعداد خلص ف";
-        worksheet.Cell(2, 21).Value = "ریال خالص ف";
-
-
-        var data =  Enumerable.Empty<Shipment>();
-        //dbContext.Shipments.ToList();
-
-        int row = 3;
-
-        foreach (var item in data)
-        {
-            worksheet.Cell(row, 2).Value = item.ShipmentDatePersian;
-            worksheet.Cell(row, 3).Value = item.Weekday;
-            worksheet.Cell(row, 4).Value = item.DriverPersonnelCode;
-            worksheet.Cell(row, 5).Value = item.DriverName;
-            worksheet.Cell(row, 6).Value = item.DistributorPersonnelCode;
-            worksheet.Cell(row, 7).Value = item.DistributorName;
-            worksheet.Cell(row, 8).Value = item.RouteName;
-            worksheet.Cell(row, 9).Value = item.WarehouseName;
-            worksheet.Cell(row, 10).Value = item.InvoiceCount;
-            worksheet.Cell(row, 11).Value = item.InvoiceAmount;
-            worksheet.Cell(row, 12).Value = string.Join('-', item.ShipmentNumbers.Select(x => x.Number));
-            worksheet.Cell(row, 13).Value = item.ReturnInvoiceCount;
-            worksheet.Cell(row, 14).Value = item.ReturnInvoiceAmount;
-            worksheet.Cell(row, 15).Value = item.SecondServiceInvoiceCount;
-            worksheet.Cell(row, 16).Value = item.SecondServiceInvoiceAmount;
-            worksheet.Cell(row, 17).Value = item.ThirdServiceInvoiceCount;
-            worksheet.Cell(row, 18).Value = item.ThirdServiceInvoiceAmount;
-            worksheet.Cell(row, 19).Value = item.HasVip;
-            worksheet.Cell(row, 20).Value = item.NetInvoiceCount;
-            worksheet.Cell(row, 21).Value = item.NetInvoiceAmount;
-
-            row++;
-        }
-
-
-        using var stream = new MemoryStream();
-        workbook.SaveAs(stream);
-        var content = stream.ToArray();
-
-        var fileName = $"Export_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
-        var mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, content, mime);
-    }
-
-    
 }
 
 

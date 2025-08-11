@@ -35,6 +35,7 @@ public class Shipment
 
     public int? NetInvoiceCount => !IsException ? InvoiceCount ?? 0 + SecondServiceInvoiceCount ?? 0 + ThirdServiceInvoiceCount ?? 0 - ReturnInvoiceCount ?? 0 : null;
     public long? NetInvoiceAmount => !IsException ? InvoiceAmount ?? 0 + SecondServiceInvoiceAmount ?? 0 + ThirdServiceInvoiceAmount ?? 0 - ReturnInvoiceAmount ?? 0 : null;
+    public string? DistributionCenter { get; set; }
 
     public string UserName { get; set; }
     public Personnel Personnel { get; set; }
