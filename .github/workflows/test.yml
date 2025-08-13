@@ -1,4 +1,4 @@
-name: Deploy .NET app to VM
+name: Deploy to MonsterASP via WebDeploy
 
 on:
   push:
@@ -6,38 +6,25 @@ on:
       - underservice1
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x' # Change if needed
 
-      - name: Publish app
-        run: dotnet publish -c Release -o publish
+    - name: Publish .NET app
+      run: dotnet publish -c Release -o ./publish
 
-      - name: Copy files to VM
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          port: ${{ secrets.SERVER_PORT }}       # add this line
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "publish/*"
-          target: "/var/www/myapp"
-
-      - name: Restart app service
-        uses: appleboy/ssh-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          port: ${{ secrets.SERVER_PORT }}       # add this line
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            sudo systemctl restart myapp.service
-
+    - name: Deploy via WebDeploy
+      run: |
+        "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe" ^
+          -verb:sync ^
+          -source:contentPath="publish" ^
+          -dest:auto,computerName="https://${{ secrets.WEBDEPLOY_SERVER }}:8172/msdeploy.axd?site=${{ secrets.WEBDEPLOY_SITE }}",userName="${{ secrets.WEBDEPLOY_USERNAME }}",password="${{ secrets.WEBDEPLOY_PASSWORD }}",authType="Basic" ^
+          -allowUntrusted
