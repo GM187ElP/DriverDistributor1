@@ -28,7 +28,7 @@ jobs:
         $args = @(
           '-verb:sync'
           '-source:contentPath=publish'
-          '-dest:auto,computerName="https://site33774.siteasp.net:8172/msdeploy.axd?site=site33774",userName="site33774",password="3Lq#m9-E=D8w",authType=Basic'
+          '-dest:auto,computerName="https:\\site33774.siteasp.net:8172/msdeploy.axd?site=site33774",userName="site33774",password="3Lq#m9-E=D8w",authType=Basic'
           '-allowUntrusted'
         )
         & $msdeploy @args
