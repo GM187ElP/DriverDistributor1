@@ -10,25 +10,25 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
 
-      - name: Publish .NET app
-        run: dotnet publish -c Release -o publish
+    - name: Publish .NET app
+      run: dotnet publish -c Release -o publish
 
-      - name: Deploy via WebDeploy
-        shell: powershell
-        run: |
-          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-          $args = @(
-            '-verb:sync'
-            '-source:contentPath=publish'
-            "-dest:auto,computerName=`"https://${{ secrets.WEBDEPLOY_SERVER }}:8172/msdeploy.axd?site=${{ secrets.WEBDEPLOY_SITE }}`",userName=${{ secrets.WEBDEPLOY_USERNAME }},password=${{ secrets.WEBDEPLOY_PASSWORD }},authType=Basic"
-            '-allowUntrusted'
-          )
-          & $msdeploy @args
+    - name: Deploy via WebDeploy
+      shell: powershell
+      run: |
+        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        $args = @(
+          '-verb:sync'
+          '-source:contentPath=publish'
+          '-dest:auto,computerName="https://site33774.siteasp.net:8172/msdeploy.axd?site=site33774",userName="site33774",password="3Lq#m9-E=D8w",authType=Basic'
+          '-allowUntrusted'
+        )
+        & $msdeploy @args
