@@ -16,21 +16,21 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '9.0.x' # Change if needed
-
+        dotnet-version: '9.0.x' 
     - name: Publish .NET app
       run: dotnet publish -c Release -o ./publish
 
     - name: Deploy via WebDeploy
       shell: powershell
       run: |
-       $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-       $args = @(
-       '-verb:sync'
-       '-source:contentPath="publish"'
-       "-dest:auto,computerName=`"https://${{ secrets.WEBDEPLOY_SERVER }}:8172/msdeploy.axd?site=${{ secrets.WEBDEPLOY_SITE }}`",userName=${{ secrets.WEBDEPLOY_USERNAME }},password=${{ secrets.WEBDEPLOY_PASSWORD }},authType=Basic"
-       '-allowUntrusted'
-       )
-       & $msdeploy @args
+        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+        $args = @(
+        '-verb:sync'
+        '-source:contentPath=publish'
+        "-dest:auto,computerName=`"https://${{ secrets.WEBDEPLOY_SERVER }}:8172/msdeploy.axd?site=${{ secrets.WEBDEPLOY_SITE }}`",userName=${{ secrets.WEBDEPLOY_USERNAME }},password=${{ secrets.WEBDEPLOY_PASSWORD }},authType=Basic"
+        '-allowUntrusted'
+        )
+        & $msdeploy @args
+
 
 
