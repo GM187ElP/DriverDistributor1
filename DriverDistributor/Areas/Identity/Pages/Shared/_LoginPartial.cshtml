@@ -8,30 +8,44 @@
     @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 
-<ul class="navbar-nav">
-    @if(signInManager.IsSignedIn(User))
+<ul dir="rtl" class="navbar-nav">
+    @if (signInManager.IsSignedIn(User))
     {
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index">
-                Hello, @User.Identity.Name!</a>
+                Hello, @User.Identity.Name!
+            </a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/LogOut">
-                Logout
+                ov,[]
             </a>
         </li>
     }
     else
     {
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">
-                Register
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/LogIn">
-                Login
-            </a>
-        </li>
+
+        
+            var routeData = Url.ActionContext.RouteData;
+            var controller = routeData.Values["controller"];
+            var action = routeData.Values["action"];
+        
+
+        if (action == "Register")
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/LogIn">
+                    ورود
+                </a>
+            </li>
+        }
+        else
+        {
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">
+                    ثبت نام
+                </a>
+            </li>
+        }
     }
 </ul>

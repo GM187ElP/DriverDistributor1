@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using DriverDistributor.Data;
 using DriverDistributor.Entities;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace DriverDistributor.Areas.Identity.Pages.Account;
 
@@ -25,7 +26,7 @@ public class RegisterModel : PageModel
     public InputModel Input { get; set; }
 
     public string ReturnUrl { get; set; }
-
+    
     public class InputModel
     {
         [Required]
@@ -56,26 +57,35 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostAsync(string returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
+        string errors = string.Empty;
 
         if (ModelState.IsValid)
         {
             var personnel = await _dbContext.Personnels.FirstOrDefaultAsync(p => p.PersonnelCode == Input.Username);
-            var user = new ApplicationUser { UserName = Input.Username };
 
             if (personnel != null)
+            {
+
+            var user = new ApplicationUser { UserName = Input.Username };
                 user.PhoneNumber = personnel.PhoneNumber;
 
-            var result = await _userManager.CreateAsync(user, Input.Password);
+                var result = await _userManager.CreateAsync(user, Input.Password);
 
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return LocalRedirect("/");
+                if (result.Succeeded)
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return LocalRedirect("/");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
-
-            foreach (var error in result.Errors)
+            else
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                ModelState.AddModelError("errors", "شما اجازه ثبت نام در این وبسایت را ندارید!");
+                ViewData["Errors"] = "شما اجازه ثبت نام در این وبسایت را ندارید!";
             }
         }
 

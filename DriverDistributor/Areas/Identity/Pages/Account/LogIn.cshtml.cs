@@ -1,3 +1,4 @@
+﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using DriverDistributor.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -21,14 +22,17 @@ public class LogInModel : PageModel
 
     public class InputModel
     {
-        [Required]
+        [Required(ErrorMessage ="لطفا {0} خود را وارد کنید")]
+        [Display(Name ="کد پرسنلی")]
         public string Email { get; set; }
 
-        [Required]
         [DataType(DataType.Password)]
+        [Display(Name = "رمز عبور")]
+        [Required(ErrorMessage = "لطفا {0} خود را وارد کنید")]
         public string Password { get; set; }
 
-        [Display(Name = "Remember me?")]
+
+        [Display(Name = "مرا به یاد داشته باش!")]
         public bool RememberMe { get; set; }
     }
 

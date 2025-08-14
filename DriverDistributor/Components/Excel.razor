@@ -35,6 +35,7 @@
 
     public (int lastRow, int lastColumn) SetData<T>(List<T> report, IXLWorksheet worksheet, int startHeaderRow, int? startColumn, int? startDataRow)
     {
+        worksheet.RightToLeft = true;
         if (startDataRow == null) startDataRow = startHeaderRow + 1;
         if (startColumn == null) startColumn = 1;
 
@@ -82,7 +83,7 @@
                         var cell = worksheet.Cell(row, col);
 
                         if (value == null)
-                            cell.Value = string.Empty;
+                            cell.Value = 0;
                         else if (value is int i)
                             cell.Value = i;
                         else if (value is long l)
@@ -105,6 +106,11 @@
                         {
                             cell.Style.NumberFormat.Format = "#,##0";
                             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                            cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        }
+                        else
+                        {
+                            cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                         }
 
                         col++;
@@ -128,6 +134,8 @@
                 cell.Value = attr.DisplayName;
                 cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                cell.Style.Font.Bold = true;
                 col++;
             }
         }

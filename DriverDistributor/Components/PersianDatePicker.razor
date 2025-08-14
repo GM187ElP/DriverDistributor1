@@ -7,22 +7,22 @@
 
 <MudStack Row="true" AlignItems="AlignItems.Start" Spacing="2" Class="inline-stack">
     <MudTextField @bind-Value="Value.DisplayDate"
-                  Label="@Label"
-                  ReadOnly=true
-                  Adornment="Adornment.End"
-                  AdornmentIcon="@Icons.Material.Filled.DateRange"
-                  Required="@Required"
-                  ErrorText="@ErrorText"
-                  OnAdornmentClick="ToggleDatePicker"
-                  @onclick="ToggleDatePicker" />
+    Label="@Label"
+    ReadOnly=true
+    Adornment="Adornment.End"
+    AdornmentIcon="@Icons.Material.Filled.DateRange"
+    Required="@Required"
+    ErrorText="@ErrorText"
+    OnAdornmentClick="ToggleDatePicker"
+    @onclick="ToggleDatePicker" />
 
 
     <!-- Date picker popover -->
     <MudPopover Open="@_isDatePickerOpen"
-                AnchorOrigin="Origin.BottomCenter"
-                TransformOrigin="Origin.TopCenter"
-                CloseOnOutsideClick="true"
-                OnClose="ClosePicker">
+    AnchorOrigin="Origin.BottomCenter"
+    TransformOrigin="Origin.TopCenter"
+    CloseOnOutsideClick="true"
+    OnClose="ClosePicker">
         <MudPaper Class="pa-4" Style="width: 300px;">
             <!-- Navigation: month/year/today -->
             <div class="d-flex justify-space-between align-center mb-2">
@@ -42,16 +42,16 @@
                 </MudButton>
                 <!-- Month Name Button -->
                 <MudPopover Open="@_isYearPickerOpen"
-                            AnchorOrigin="Origin.BottomCenter"
-                            TransformOrigin="Origin.TopCenter"
-                            CloseOnOutsideClick="true"
-                            OnClose="() => IsYearPickerOpen = false">
+                AnchorOrigin="Origin.BottomCenter"
+                TransformOrigin="Origin.TopCenter"
+                CloseOnOutsideClick="true"
+                OnClose="() => IsYearPickerOpen = false">
                     <MudPaper Class="pa-2" Style="width: 150px; text-align:center;">
                         <MudNumericField T="int"
-                                         AutoFocus=true
-                                         @bind-Value="_tempYearInput"
-                                         Variant="Variant.Outlined"
-                                         Required="Required" />
+                        AutoFocus=true
+                        @bind-Value="_tempYearInput"
+                        Variant="Variant.Outlined"
+                        Required="Required" />
 
                         <MudButton Variant="Variant.Filled" Class=" mt-2 mud-width-full" Color="Color.Success" OnClick="ApplyYearFromInput">
                             <MudText Typo="Typo.h6">تایید</MudText>
@@ -65,10 +65,10 @@
 
             <!-- Month List Popover -->
             <MudPopover Open="@_isMonthPickerOpen"
-                        AnchorOrigin="Origin.CenterCenter"
-                        TransformOrigin="Origin.TopCenter"
-                        CloseOnOutsideClick="true"
-                        OnClose="CloseMonthPicker">
+            AnchorOrigin="Origin.CenterCenter"
+            TransformOrigin="Origin.TopCenter"
+            CloseOnOutsideClick="true"
+            OnClose="CloseMonthPicker">
                 <div style="width: 222px; max-width: 100%; padding: 8px;">
                     <table class="calendar-month-table">
                         @for (int i = 0; i < 4; i++)
@@ -147,82 +147,82 @@
 
 <style>
     .small-date-input {
-        width: auto !important;
-        max-width: 160px;
+    width: auto !important;
+    max-width: 160px;
     }
 
     .inline-field {
-        display: inline-flex;
-        vertical-align: baseline;
+    display: inline-flex;
+    vertical-align: baseline;
     }
 
 
     .calendar-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-        text-align: center;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    text-align: center;
     }
 
-        .calendar-table thead tr {
-            border-bottom: 5px solid transparent;
-            background-color: lightgray;
-        }
+    .calendar-table thead tr {
+    border-bottom: 5px solid transparent;
+    background-color: lightgray;
+    }
 
 
     .year-input input {
-        text-align: center !important;
-        font-size: 0.875rem;
+    text-align: center !important;
+    font-size: 0.875rem;
     }
 
     .calendar-month-table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-        text-align: center;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    text-align: center;
     }
 
-        .calendar-month-table td button {
-            width: 100%;
-            padding: 6px 0;
-            border: none;
-            background: none;
-            cursor: pointer;
-        }
+    .calendar-month-table td button {
+    width: 100%;
+    padding: 6px 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    }
 
 
     .calendar-table td button {
-        width: 100%;
-        height: 100%;
-        background: none;
-        border: none;
+    width: 100%;
+    height: 100%;
+    background: none;
+    border: none;
     }
 
     .calendar-table td.holiday {
-        background-color: #ffe5e5;
+    background-color: #ffe5e5;
     }
 
     .calendar-table td.today {
-        border: 2px solid #1976d2;
+    border: 2px solid #1976d2;
     }
 
     .calendar-table td.selected {
-        background-color: #cce5ff;
+    background-color: #cce5ff;
     }
 
     .calendar-table td.faded {
-        opacity: 0.4;
+    opacity: 0.4;
     }
 
     .selected-month {
-        background-color: cyan;
-        color: blue;
-        border-radius: 4px;
+    background-color: cyan;
+    color: blue;
+    border-radius: 4px;
     }
 
     .inline-stack {
-        display: inline-flex;
-        align-items: center;
+    display: inline-flex;
+    align-items: center;
     }
 </style>
 
@@ -242,6 +242,7 @@
     [Parameter] public string? ErrorText { get; set; } = string.Empty;
 
     private MudNumericField<int> textFieldRef;
+    private (int year, int month, List<int> holidays)? _holidaysList = null;
     private PersianCalendar Pc;
     private readonly char[] PersianDayNames = { 'ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش' };
     private readonly string[] monthList = { "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
@@ -322,7 +323,7 @@
     }
 
     private void ToggleDatePicker() => _isDatePickerOpen = !_isDatePickerOpen; // datefield
-    private void CloseDatePicker()=>        _isDatePickerOpen = false;
+    private void CloseDatePicker() => _isDatePickerOpen = false;
 
     private void ToggleMonthPicker() => _isMonthPickerOpen = !_isMonthPickerOpen; // month button
     private void CloseMonthPicker() => _isMonthPickerOpen = false;
@@ -389,6 +390,7 @@
 
         UpdateGridDays();
         _isDatePickerOpen = false;
+        Value.Holidays = _holidaysList;
     }
 
     private DateTime ValidatedDate(DateTime date) =>
@@ -411,6 +413,8 @@
         int month = Pc.GetMonth(Value.GregorianDate);
         _gridDays = MonthRange(year, month);
         AddHolidays(_gridDays);
+
+        _holidaysList = (year, month, _gridDays.Where(x => x.IsHoliday).Select(x => x.PersianDay).ToList());
     }
 
     private void AddHolidays(List<Day> gridDays) // UpdateGridDays
@@ -726,7 +730,7 @@
         }
 
         public GregorianCalendarClass Gregorian { get; set; } = new();
-        public string DisplayDate { get;  set; } = string.Empty;
+        public string DisplayDate { get; set; } = string.Empty;
 
         public string Date { get; private set; }
         public int DayOfMonth { get; private set; }
@@ -737,6 +741,7 @@
         public int Year { get; private set; }
         public bool IsLeapYear { get; private set; }
         public int NumberOfDaysInMonth { get; private set; }
+        public (int year, int month, List<int> holidays)? Holidays { get;  internal  set; }
         public int NumberOfDaysInYear { get; private set; }
 
         private void SetDate()
@@ -754,7 +759,6 @@
 
             Gregorian.SetDate(GregorianDate, delimiter);
         }
-
 
         private string GetPersianWeekday(DayOfWeek day) => day switch
         {

@@ -22,4 +22,16 @@
     </PackageReference>
     <PackageReference Include="MudBlazor" Version="8.*" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <Folder Include="Components\Pages\Reports\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Include="wwwroot\App_Data\1404.db" />
+    <None Include="wwwroot\App_Data\1404.db-shm" />
+    <None Include="wwwroot\App_Data\1404.db-wal" />
+  </ItemGroup>
 </Project>

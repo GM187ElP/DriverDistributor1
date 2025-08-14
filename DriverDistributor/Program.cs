@@ -11,7 +11,7 @@ using DriverDistributor.Entities;
 var builder = WebApplication.CreateBuilder(args);
 //-------------------------------------------------------------------
 var env = builder.Environment;
-var dbPath = Path.Combine(env.ContentRootPath, "App_Data", "1404.db");
+var dbPath = Path.Combine(env.ContentRootPath, "wwwroot", "App_Data", "1404.db");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 

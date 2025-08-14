@@ -5,21 +5,23 @@
     <MudPopoverProvider />
     <MudDialogProvider />
     <MudSnackbarProvider />
-    <MudLayout >
-       
-        <MudAppBar Elevation="1">
+    <MudLayout>
+
+        <MudAppBar Elevation="1" Dense="true">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
             <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
             <MudSpacer />
             <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
             <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
-            <LoginDisplay/>
+            <LoginDisplay />
         </MudAppBar>
-        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" Anchor=Anchor.Right ClipMode="DrawerClipMode.Always" Variant=DrawerVariant.Temporary  Elevation="2" OverlayAutoClose=true  OpenMiniOnHover=true>
+        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" Anchor=Anchor.Right ClipMode="DrawerClipMode.Always" Variant=DrawerVariant.Temporary Elevation="2" OverlayAutoClose=true OpenMiniOnHover=true>
             <NavMenu />
         </MudDrawer>
         <MudMainContent Class="pt-16 pa-4">
-            @Body
+        <MudPaper Class="pa-2" Outlined="true" >
+                @Body
+        </MudPaper>
         </MudMainContent>
     </MudLayout>
 </MudRTLProvider>

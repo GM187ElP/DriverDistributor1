@@ -1,37 +1,47 @@
 ﻿@page
-@using DriverDistributor.Areas.Identity.Pages.Account
 @model DriverDistributor.Areas.Identity.Pages.Account.RegisterModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "ثبت نام";
 }
 
-<h1>@ViewData["Title"]</h1>
+<div dir="rtl" class="ui container" style="max-width: 500px; margin-top: 50px;">
 
-<form method="post">
-    @Html.AntiForgeryToken()
+    @if (ViewData["Errors"] != null)
+    {
+        <div class="ui negative message">
+            <p>@ViewData["Errors"]</p>
+        </div>
+    }
 
-    <div>
-        <label asp-for="Input.Username"></label>
-        <input asp-for="Input.Username" />
-        <span asp-validation-for="Input.Username"></span>
-    </div>
+    <h1 class="ui header">@ViewData["Title"]</h1>
 
-    <div>
-        <label asp-for="Input.Password"></label>
-        <input asp-for="Input.Password" type="password" />
-        <span asp-validation-for="Input.Password"></span>
-    </div>
+    <form method="post" class="ui form">
+        @Html.AntiForgeryToken()
 
-    <div>
-        <label asp-for="Input.ConfirmPassword"></label>
-        <input asp-for="Input.ConfirmPassword" type="password" />
-        <span asp-validation-for="Input.ConfirmPassword"></span>
-    </div>
+        <div class="field">
+            <label asp-for="Input.Username"></label>
+            <input asp-for="Input.Username" />
+            <span asp-validation-for="Input.Username" class="ui pointing red basic label"></span>
+        </div>
 
-    <button type="submit">Register</button>
-</form>
+        <div class="field">
+            <label asp-for="Input.Password"></label>
+            <input asp-for="Input.Password" type="password" />
+            <span asp-validation-for="Input.Password" class="ui pointing red basic label"></span>
+        </div>
+
+        <div class="field">
+            <label asp-for="Input.ConfirmPassword"></label>
+            <input asp-for="Input.ConfirmPassword" type="password" />
+            <span asp-validation-for="Input.ConfirmPassword" class="ui pointing red basic label"></span>
+        </div>
+
+        <button type="submit" class="ui primary button mt-3">ثبت نام</button>
+    </form>
+
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

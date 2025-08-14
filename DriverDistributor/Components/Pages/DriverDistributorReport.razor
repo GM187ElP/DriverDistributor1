@@ -381,7 +381,8 @@
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش کلی");
 
-        var columnsdsfs = excel.SetData(report2ToExcel, worksheet, 1, 2, null);
+        var rowCol = excel.SetData(report2ToExcel, worksheet, 1, 2, null);
+        excel.SetData(report1ToExcel, worksheet, 1, rowCol.lastColumn+2, null);
 
         await excel.Export(workbook);
     }

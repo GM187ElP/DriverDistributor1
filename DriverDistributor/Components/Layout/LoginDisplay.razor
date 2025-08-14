@@ -17,17 +17,16 @@
         <a href="Identity/Account/Manage">@(personnel?.Name ?? context?.User?.Identity?.Name)</a>
         <form method="post" action="Identity/Account/Logout">
             <input name="__RequestVerificationToken" type="hidden" value="@_antiforgeryToken" />
-            <button type="submit">Log out</button>
+            <button class="mr-5" type="submit">خروج</button>
         </form>
-
     </Authorized>
     <NotAuthorized>
         <ul>
             <a href="@($"/Identity/Account/Register?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
-                Register
+                ثبت نام
             </a>
             <a href="@($"/Identity/Account/LogIn?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
-                Login
+                ورود
             </a>
         </ul>
     </NotAuthorized>

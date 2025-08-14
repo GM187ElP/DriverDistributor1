@@ -8,17 +8,17 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
-@using static DriverDistributor.Components.Pages.RegisterShipment
 @using static DriverDistributor.Components.PersianDatePicker
 @inject AppDbContext dbContext
 @inject ISnackbar Snackbar
 @inject NavigationManager navigationManager
 @inject AuthenticationStateProvider authenticationStateProvider
 @inject UserManager<ApplicationUser> userManager
+@attribute [Authorize]
+
 
 <PageTitle>ویرایش خروجی</PageTitle>
 
-<h3>EditShipment</h3>
 
 <MudRTLProvider RightToLeft="true">
     <MudForm @ref=form @bind-IsValid=success @bind-Errors=errors>

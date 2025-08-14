@@ -1,0 +1,28 @@
+﻿
+@font-face {
+    font-family: 'IranFont';
+    src: url('../fonts/iran-font.woff2') format('woff2'), url('../fonts/iran-font.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+body, html {
+    font-family: 'IranFont', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   /* margin:auto;
+    width:300px;*/
+}
+
+.alert{
+    color:red;
+    font-weight:200;
+}
+
+.text-red{
+    color:red;
+}
+  
+.text-green{
+    color:green;
+}
+

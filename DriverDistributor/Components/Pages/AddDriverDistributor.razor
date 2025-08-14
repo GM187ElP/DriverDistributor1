@@ -2,7 +2,9 @@
 @using System.ComponentModel
 @using DriverDistributor.Entities
 @using DriverDistributor.Services
+@using Microsoft.AspNetCore.Authorization
 @using MudBlazor
+@attribute [Authorize]
 
 <PageTitle>اضافه کردن راننده و موزع</PageTitle>
 
@@ -26,7 +28,7 @@
                     RequiredError="نام خانوادگی را وارد کنید" />
 
                     <MudTextField Value="model.FullName" Label="نام و نام خانوادگی" ReadOnly="true" Disabled=true Validation="@(new Func<string, string>(Exists))" />
-
+                        
                     <MudButton Class="mt-5" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
                 </MudForm>
             </MudPaper>
