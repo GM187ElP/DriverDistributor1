@@ -1,34 +1,23 @@
-name: Deploy to MonsterASP via WebDeploy
+name: SSH to Windows PC
 
 on:
-  push:
-    branches:
-      - underservice1
+  push
 
 jobs:
-  build-and-deploy:
-    runs-on: windows-latest
+  ssh-windows:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY2" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H serveo.net >> ~/.ssh/known_hosts
+          ssh-keyscan -H taksunpars2 >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY2 }}
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-
-    - name: Publish .NET app
-      run: dotnet publish -c Release -o publish
-
-    - name: Deploy via WebDeploy
-      shell: powershell
-      run: |
-        $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-        $args = @(
-          '-verb:sync'
-          '-source:contentPath=publish'
-          '-dest:auto,computerName="https:\\site33774.siteasp.net:8172/msdeploy.axd?site=site33774",userName="site33774",password="3Lq#m9-E=D8w",authType=Basic'
-          '-allowUntrusted'
-        )
-        & $msdeploy @args
+      - name: SSH into Windows
+        run: |
+          ssh -o StrictHostKeyChecking=no -J serveo.net a.rahmanian@taksunpars2 "powershell -Command 'Write-Output \"Hello from GitHub Actions!\"'"
