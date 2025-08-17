@@ -1,11 +1,12 @@
 using DriverDistributor.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace DriverDistributor.Areas.Identity.Pages.Account;
 
-
+[AllowAnonymous]
 public class LogOutModel : PageModel
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
@@ -20,11 +21,12 @@ public class LogOutModel : PageModel
         await _signInManager.SignOutAsync();
         if (returnUrl != null)
         {
-            return LocalRedirect(returnUrl);
+            //return LocalRedirect(returnUrl);
+            return RedirectToPage("/Account/Logout");
         }
         else
         {
-            return RedirectToPage();
+            return RedirectToPage("/Account/Logout");
         }
     }
 }

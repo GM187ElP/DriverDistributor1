@@ -26,7 +26,7 @@ public class RegisterModel : PageModel
     public InputModel Input { get; set; }
 
     public string ReturnUrl { get; set; }
-    
+
     public class InputModel
     {
         [Required]
@@ -57,38 +57,49 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostAsync(string returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
-        string errors = string.Empty;
 
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var personnel = await _dbContext.Personnels.FirstOrDefaultAsync(p => p.PersonnelCode == Input.Username);
-
-            if (personnel != null)
-            {
-
-            var user = new ApplicationUser { UserName = Input.Username };
-                user.PhoneNumber = personnel.PhoneNumber;
-
-                var result = await _userManager.CreateAsync(user, Input.Password);
-
-                if (result.Succeeded)
-                {
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return LocalRedirect("/");
-                }
-
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-            }
-            else
-            {
-                ModelState.AddModelError("errors", "شما اجازه ثبت نام در این وبسایت را ندارید!");
-                ViewData["Errors"] = "شما اجازه ثبت نام در این وبسایت را ندارید!";
-            }
+            // Collect model errors to show as error alert
+            ViewData["Errors"] = string.Join("<br/>", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage));
+            return Page();
         }
 
+        var personnel = await _dbContext.Personnels.FirstOrDefaultAsync(p => p.PersonnelCode == Input.Username);
+
+        if (personnel == null)
+        {
+            ViewData["Errors"] = "شما اجازه ثبت نام در این وبسایت را ندارید!";
+            return Page();
+        }
+
+        var existingUser = await _userManager.FindByNameAsync(Input.Username);
+        if (existingUser != null)
+        {
+            ViewData["Warning"] = "شما قبلا ثبت نام کرده اید.";
+            return Page();
+        }
+
+        var user = new ApplicationUser
+        {
+            UserName = Input.Username,
+            PhoneNumber = personnel.PhoneNumber
+        };
+
+        var result = await _userManager.CreateAsync(user, Input.Password);
+
+        if (result.Succeeded)
+        {
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            ViewData["Success"] = "ثبت نام با موفقیت انجام شد!";
+            return Page();
+        }
+
+        // If creation failed
+        ViewData["Errors"] = string.Join("<br/>", result.Errors.Select(e => e.Description));
         return Page();
     }
+
 }

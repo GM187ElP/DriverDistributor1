@@ -3,26 +3,63 @@
 @using DriverDistributor.Entities
 @using DriverDistributor.Services
 @using Microsoft.AspNetCore.Authorization
-@using MudBlazor.Components
+@using MudBlazor
 @attribute [Authorize]
 
 <PageTitle>اضافه کردن مسیر</PageTitle>
 
-<MudRTLProvider RightToLeft=true>
-    <h1>اضافه کردن مسیر</h1>
+<MudContainer MaxWidth="MaxWidth.Small" Class="page-center">
+    <MudPaper Class="pa-6 form-card" Elevation="4">
+        <div style="display:flex; justify-content:center; align-items:center; margin-bottom:16px;">
+            <h2 class="mud-typography-h5 mb-0">اضافه کردن مسیر</h2>
+        </div>
 
-    <MudGrid>
-        <MudItem xs="12" sm="6">
-            <MudPaper Class="pa-4">
-                <MudForm @ref="form"  Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
-                    <MudTextField For="@(()=>model.Name)" @bind-Value="model.Name" Required="true" RequiredError="مسیر را وارد کنید" Validation="@(new Func<string, string>(Exists))" />
-                    <MudSwitch For="@(()=>model.IsExt)" @bind-Value="model.IsExt" Color="Color.Primary" />
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
-                </MudForm>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
-</MudRTLProvider>
+        <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+
+            <MudTextField Class="mb-3" @bind-Value="model.Name" Immediate="true"
+                          Required="true" RequiredError="مسیر را وارد کنید"
+                          Placeholder="نام مسیر" Validation="@(new Func<string,string>(Exists))" />
+
+            <MudSwitch  T="bool" Class="mb-4" @bind-Checked="model.IsExt" Color="Color.Primary" Label="مسیر خارجی؟" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       OnClick="@(async ()=>await Add(form))">
+                ثبت
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    /* Center the container */
+    .page-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0 auto;
+    }
+
+    /* Card styling */
+    .form-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    /* Reduce MudBlazor default spacing */
+    .mud-form .mud-text-field,
+    .mud-form .mud-switch {
+        margin-bottom: 12px !important;
+    }
+
+    /* Override MudPaper default margin */
+    .mud-paper {
+        margin: 0 !important;
+    }
+</style>
 
 @code {
     [Inject] public DataServices services { get; set; }
@@ -34,15 +71,12 @@
 
     private Route model = new();
 
-
-
-
     private string Exists(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             return "مسیر را وارد کنید";
 
-        data = services.Load(TableName.Route) as List<Route>??[];
+        data = services.Load(TableName.Route) as List<Route> ?? [];
         if (data.Any(x => x.Name == name))
             return "مسیر وارد شده موجود است.";
 
@@ -56,18 +90,18 @@
         if (success)
         {
             var route = new Route
-                {
-                    Name = model.Name,
-                    IsExt = model.IsExt
-                };
+            {
+                Name = model.Name,
+                IsExt = model.IsExt
+            };
 
             services.Add(route);
 
-            model = new(); // resets the form model
-            await Task.Delay(1); // give UI time to bind
+            model = new(); // reset the form model
+            await Task.Delay(1); // allow UI binding
 
             StateHasChanged();
-            await form.ResetAsync(); // reset form fields and validation
+            await form.ResetAsync(); // reset form fields & validation
         }
     }
 }

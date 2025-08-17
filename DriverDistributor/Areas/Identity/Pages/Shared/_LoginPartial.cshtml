@@ -3,49 +3,88 @@
 @inject SignInManager<ApplicationUser> signInManager
 @inject UserManager<ApplicationUser> userManager
 
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-
-    @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
-
-<ul dir="rtl" class="navbar-nav">
+<ul dir="rtl" class="navbar-nav login-nav">
     @if (signInManager.IsSignedIn(User))
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index">
-                Hello, @User.Identity.Name!
-            </a>
+            <span class="nav-btn username">خوش آمدید، @User.Identity.Name!</span>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/LogOut">
-                ov,[]
-            </a>
+            <form method="post" asp-area="Identity" asp-page="/Account/Logout" style="display:inline;">
+                <button type="submit" class="nav-btn logout">خروج</button>
+            </form>
         </li>
     }
     else
     {
-
-        
-            var routeData = Url.ActionContext.RouteData;
-            var controller = routeData.Values["controller"];
-            var action = routeData.Values["action"];
-        
+        var routeData = Url.ActionContext.RouteData;
+        var action = routeData.Values["action"]?.ToString();
 
         if (action == "Register")
         {
             <li class="nav-item">
-                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/LogIn">
-                    ورود
-                </a>
+                <a class="nav-btn login" asp-area="Identity" asp-page="/Account/Login">ورود</a>
             </li>
         }
         else
         {
             <li class="nav-item">
-                <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">
-                    ثبت نام
-                </a>
+                <a class="nav-btn register" asp-area="Identity" asp-page="/Account/Register">ثبت نام</a>
             </li>
         }
     }
 </ul>
+
+
+<style>
+    /* Container */
+    .login-nav {
+        display: flex !important;
+        gap: 12px !important; /* space between buttons */
+        align-items: center !important;
+    }
+
+    /* Shared style */
+    .nav-btn {
+        display: inline-block !important;
+        padding: 8px 18px !important;
+        border-radius: 50px !important; /* pill / ellipse shape */
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        text-decoration: none !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: background 0.2s ease, transform 0.1s ease !important;
+        white-space: nowrap !important; /* keep text in one line */
+    }
+
+    /* Different colors */
+    .username {
+        background-color: #f0f0f0 !important;
+        color: #333 !important;
+        cursor: default !important;
+    }
+
+    .logout {
+        background-color: #e53935 !important;
+        color: #fff !important;
+    }
+
+    .login {
+        background-color: #1976d2 !important;
+        color: #fff !important;
+    }
+
+    .register {
+        background-color: #43a047 !important;
+        color: #fff !important;
+    }
+
+    /* Hover effects (skip username) */
+    .nav-btn:hover:not(.username) {
+        transform: scale(1.05) !important;
+        opacity: 0.9 !important;
+    }
+</style>

@@ -1,0 +1,23 @@
+name: SSH to Windows PC
+
+on:
+  push
+
+jobs:
+  ssh-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY2" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H serveo.net >> ~/.ssh/known_hosts
+          ssh-keyscan -H taksunpars2 >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY2 }}
+
+      - name: SSH into Windows
+        run: |
+          ssh -o StrictHostKeyChecking=no -J serveo.net a.rahmanian@taksunpars2 "powershell -Command 'Write-Output \"Hello from GitHub Actions!\"'"

@@ -8,33 +8,76 @@
 
 <PageTitle>اضافه کردن راننده و موزع</PageTitle>
 
-<h1>اضافه کردن راننده و موزع</h1>
+<MudContainer MaxWidth="MaxWidth.Small" Class="page-center">
+    <MudPaper Class="pa-6 form-card" Elevation="4">
+        <div style="display:flex; justify-content:center; align-items:center; margin-bottom:16px;">
+            <h2 class="mud-typography-h5 mb-0">اضافه کردن راننده و موزع</h2>
+        </div>
 
+        <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
 
-<MudRTLProvider RightToLeft=true>
-    <MudGrid>
-        <MudItem xs="12" sm="6">
-            <MudPaper Class="pa-4">
-                <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+            <MudRadioGroup @bind-Value="IsDriver" Row="true" Class="mb-4">
+                <MudRadio Value="@(true)" Color="Color.Primary">راننده</MudRadio>
+                <MudRadio Value="@(false)" Color="Color.Secondary">موزع</MudRadio>
+            </MudRadioGroup>
 
-                    <MudRadioGroup @bind-Value="IsDriver">
-                        <MudRadio Value="@(true)" Color="Color.Primary">راننده</MudRadio>
-                        <MudRadio Value="@(false)" Color="Color.Secondary">موزع</MudRadio>
-                    </MudRadioGroup>
+            <MudTextField Class="mb-3" @bind-Value="model.FirstName" Immediate="true"
+                          Required="true" RequiredError="نام را وارد کنید"
+                          Placeholder="نام" TextChanged="@(s=>OnFirstNameChanged(s))" />
 
-                    <MudTextField Class="mt-5" For="@(()=>model.FirstName)" @bind-Value="model.FirstName" Required="true" RequiredError="نام را وارد کنید" TextChanged="@(s=>OnFirstNameChanged(s))" />
+            <MudTextField Class="mb-3" @bind-Value="model.LastName" Immediate="true"
+                          Required="true" RequiredError="نام خانوادگی را وارد کنید"
+                          Placeholder="نام خانوادگی" TextChanged="@(s=>OnLastNameChanged(s))" />
 
-                    <MudTextField Class="mt-5" For="@(()=>model.LastName)" @bind-Value="model.LastName" Required="true" TextChanged="@(s=>OnLastNameChanged(s))"
-                    RequiredError="نام خانوادگی را وارد کنید" />
+            <MudTextField Value="model.FullName"  ReadOnly="true"
+                          Disabled="true" Validation="@(new Func<string, string>(Exists))" Class="mb-4" />
 
-                    <MudTextField Value="model.FullName" Label="نام و نام خانوادگی" ReadOnly="true" Disabled=true Validation="@(new Func<string, string>(Exists))" />
-                        
-                    <MudButton Class="mt-5" Variant="Variant.Filled" Color="Color.Primary" DropShadow="false" OnClick="@(async ()=>await Add(form))">ثبت</MudButton>
-                </MudForm>
-            </MudPaper>
-        </MudItem>
-    </MudGrid>
-</MudRTLProvider>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                       OnClick="@(async ()=>await Add(form))">
+                ثبت
+            </MudButton>
+        </MudForm>
+    </MudPaper>
+</MudContainer>
+
+<style>
+    /* Center the container */
+    .page-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh; /* full viewport height */
+        margin: 0 auto;
+    }
+
+    /* Card styling */
+    .form-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    /* Reduce MudBlazor default spacing */
+    .mud-form .mud-radio-group {
+        margin-bottom: 16px !important;
+    }
+
+    .mud-form .mud-text-field {
+        margin-bottom: 12px !important;
+    }
+
+    /* Optional: center radio buttons text */
+    .mud-radio-group {
+        justify-content: center;
+    }
+
+    /* Override Semantic/MudBlazor global spacing if needed */
+    .mud-paper {
+        margin: 0 !important;
+    }
+</style>
 
 @code {
     [Inject] public DataServices services { get; set; }
@@ -74,13 +117,12 @@
 
     private string Exists(string name)
     {
-        IsDriver = IsDriver;
         if (IsDriver)
             drivers = services.Load(TableName.Driver) as List<Driver> ?? [];
         else
             distributors = services.Load(TableName.Distributor) as List<Distributor> ?? [];
 
-        if(IsDriver&& drivers.Any(x=>x.Name==name))
+        if (IsDriver && drivers.Any(x => x.Name == name))
             return "نام راننده وارد شده موجود است.";
         else if (!IsDriver && distributors.Any(x => x.Name == name))
             return "نام موزع وارد شده موجود است.";
@@ -96,14 +138,14 @@
         {
             if (IsDriver)
                 services.Add<Driver>(new Driver { Name = model.FullName });
-            else 
+            else
                 services.Add<Distributor>(new Distributor { Name = model.FullName });
 
-            model = new(); 
-            await Task.Delay(1); 
+            model = new();
+            await Task.Delay(1);
 
             StateHasChanged();
-            await form.ResetAsync(); 
+            await form.ResetAsync();
         }
     }
 }

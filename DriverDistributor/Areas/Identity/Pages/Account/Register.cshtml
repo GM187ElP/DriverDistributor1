@@ -6,43 +6,243 @@
     ViewData["Title"] = "ثبت نام";
 }
 
-<div dir="rtl" class="ui container" style="max-width: 500px; margin-top: 50px;">
+<div class="my-center-wrapper">
+    <div class="ui container">
+        <div class="register-card">
 
-    @if (ViewData["Errors"] != null)
-    {
-        <div class="ui negative message">
-            <p>@ViewData["Errors"]</p>
+
+            @if (ViewData["Errors"] != null)
+            {
+                <div class="custom-alert error-alert">
+                    @ViewData["Errors"]
+                </div>
+            }
+
+            <!-- Success Modal -->
+            @if (ViewData["Success"] != null)
+            {
+                <div class="custom-alert success-modal show-success">
+                    @ViewData["Success"]
+                </div>
+            }
+
+            @if (ViewData["Warning"] != null)
+            {
+                <div class="custom-alert warning-alert">
+                    @ViewData["Warning"]
+                    <div>
+                        <a href='/Identity/Account/Login'>ورود</a>
+                    </div>
+                </div>
+            }
+
+            <h1 class="register-title">@ViewData["Title"]</h1>
+
+            <form method="post" class="register-form">
+                @Html.AntiForgeryToken()
+
+                <div class="form-field">
+                    <label asp-for="Input.Username"></label>
+                    <input asp-for="Input.Username" />
+                    <span asp-validation-for="Input.Username" class="validation-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.Password"></label>
+                    <input asp-for="Input.Password" type="password" />
+                    <span asp-validation-for="Input.Password" class="validation-error"></span>
+                </div>
+
+                <div class="form-field">
+                    <label asp-for="Input.ConfirmPassword"></label>
+                    <input asp-for="Input.ConfirmPassword" type="password" />
+                    <span asp-validation-for="Input.ConfirmPassword" class="validation-error"></span>
+                </div>
+
+                <button type="submit" class="submit-button">ثبت نام</button>
+            </form>
         </div>
-    }
-
-    <h1 class="ui header">@ViewData["Title"]</h1>
-
-    <form method="post" class="ui form">
-        @Html.AntiForgeryToken()
-
-        <div class="field">
-            <label asp-for="Input.Username"></label>
-            <input asp-for="Input.Username" />
-            <span asp-validation-for="Input.Username" class="ui pointing red basic label"></span>
-        </div>
-
-        <div class="field">
-            <label asp-for="Input.Password"></label>
-            <input asp-for="Input.Password" type="password" />
-            <span asp-validation-for="Input.Password" class="ui pointing red basic label"></span>
-        </div>
-
-        <div class="field">
-            <label asp-for="Input.ConfirmPassword"></label>
-            <input asp-for="Input.ConfirmPassword" type="password" />
-            <span asp-validation-for="Input.ConfirmPassword" class="ui pointing red basic label"></span>
-        </div>
-
-        <button type="submit" class="ui primary button mt-3">ثبت نام</button>
-    </form>
-
+    </div>
 </div>
+
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Fade out success modal after 3 seconds and redirect
+        window.addEventListener('DOMContentLoaded', () => {
+            const successModal = document.querySelector('.success-modal');
+            if (successModal) {
+                setTimeout(() => {
+                    successModal.classList.add('hide-success');
+
+                    // Redirect to homepage
+                    window.location.href = '/';
+                }, 3000);
+            }
+        });
+    </script>
 }
+
+<style>
+    /* Center the card vertically and horizontally */
+    body, html {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f5f5f5;
+        direction: rtl;
+    }
+
+    .ui.container {
+        width: 100% !important;
+        max-width: 480px !important; /* increased width */
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Card style for form */
+    .register-card {
+        max-width: 480px;
+        width: 100%;
+        background: #fff;
+        border-radius: 14px;
+        padding: 35px 30px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        border: 1px solid #ccc;
+    }
+
+    /* Form title */
+    .register-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2rem;
+        color: #333;
+    }
+
+    /* Individual fields */
+    .form-field {
+        margin-bottom: 22px;
+    }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-field input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+
+            .form-field input:focus {
+                border-color: #1976d2;
+                outline: none;
+            }
+
+    /* Validation errors */
+    .validation-error {
+        display: block;
+        color: #d32f2f;
+        font-size: 0.9rem;
+        margin-top: 4px;
+    }
+
+    /* Submit button */
+    .submit-button {
+        width: 100%;
+        padding: 14px;
+        background-color: #1976d2;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.05rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.1s;
+    }
+
+        .submit-button:hover {
+            background-color: #1565c0;
+            transform: translateY(-1px);
+        }
+
+        .submit-button:active {
+            transform: translateY(1px);
+        }
+
+    /* Error Alert */
+    .custom-alert.error-alert {
+        max-width: 480px;
+        margin: 0 auto 30px;
+        padding: 20px 25px;
+        border: 3px solid #d32f2f;
+        background-color: #ffebee;
+        color: #b71c1c;
+        border-radius: 10px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        font-size: 1.05rem;
+    }
+
+    /* Success Modal */
+    .success-modal {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        max-width: 480px;
+        width: 90%;
+        padding: 20px 25px;
+        border: 3px solid #43a047;
+        background-color: #e8f5e9;
+        color: #1b5e20;
+        border-radius: 10px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        font-size: 1.05rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+    }
+
+        .success-modal.show-success {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .success-modal.hide-success {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+            pointer-events: none;
+        }
+
+    /* Warning Alert */
+    .custom-alert.warning-alert {
+        max-width: 480px;
+        margin: 0 auto 30px;
+        padding: 20px 25px;
+        border: 3px solid #f57f17; /* yellowish border */
+        background-color: #fff8e1; /* light yellow background */
+        color: #f57f17; /* dark yellow text */
+        border-radius: 10px;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+        font-size: 1.05rem;
+    }
+
+</style>

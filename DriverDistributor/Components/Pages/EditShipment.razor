@@ -21,6 +21,8 @@
 
 
 <MudRTLProvider RightToLeft="true">
+    <MudPaper Elevation="5" Class="pa-5">
+
     <MudForm @ref=form @bind-IsValid=success @bind-Errors=errors>
         <MudContainer>
             <MudGrid>
@@ -38,6 +40,7 @@
                         <Columns>
                             <PropertyColumn Property="x=>x.Name" Title="مسیر راننده" />
                             <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                            <PropertyColumn Property="x=>x.VIP" Title="VIP" />
                         </Columns>
                     </MudDataGrid>
                     <br />
@@ -45,6 +48,7 @@
                         <Columns>
                             <PropertyColumn Property="x=>x.Name" Title="مسیر موزع" />
                             <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                            <PropertyColumn Property="x=>x.VIP" Title="VIP" />
                         </Columns>
                     </MudDataGrid>
                 </MudItem>
@@ -194,6 +198,7 @@
             </MudGrid>
         </MudContainer>
     </MudForm>
+    </MudPaper>
 </MudRTLProvider>
 
 <style>
@@ -354,7 +359,8 @@
             .Select(g => new RoutesCount
                 {
                     Name = g.Key,
-                    Count = g.Count()
+                    Count = g.Count(),
+                    VIP=g.Count(x=>x.HasVip)
                 })
             .ToList();
     }
@@ -363,6 +369,7 @@
     {
         public string Name { get; set; }
         public int Count { get; set; }
+        public int VIP { get; set; }
     }
 
     DateTime ResetDate() => DateTime.Today.AddDays(0);

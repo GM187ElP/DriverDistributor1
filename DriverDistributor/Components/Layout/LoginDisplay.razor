@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
+@using MudBlazor
 
 @inject NavigationManager navigation
 @inject UserManager<ApplicationUser> userManager
@@ -12,25 +13,45 @@
 @inject IAntiforgery antiforgery
 @inject IHttpContextAccessor httpContextAccessor
 
-<AuthorizeView>
-    <Authorized>
-        <a href="Identity/Account/Manage">@(personnel?.Name ?? context?.User?.Identity?.Name)</a>
-        <form method="post" action="Identity/Account/Logout">
-            <input name="__RequestVerificationToken" type="hidden" value="@_antiforgeryToken" />
-            <button class="mr-5" type="submit">خروج</button>
-        </form>
-    </Authorized>
-    <NotAuthorized>
-        <ul>
-            <a href="@($"/Identity/Account/Register?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
-                ثبت نام
-            </a>
-            <a href="@($"/Identity/Account/LogIn?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")">
-                ورود
-            </a>
-        </ul>
-    </NotAuthorized>
-</AuthorizeView>
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+    <AuthorizeView>
+        <Authorized>
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+
+                <!-- Username pill -->
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled"
+                         Style="border-radius: 50px; font-weight:500; height:40px; display:flex; align-items:center; padding:0 16px;">
+                    @(personnel?.Name ?? context?.User?.Identity?.Name)
+                </MudChip>
+
+                <!-- Logout pill -->
+                <form method="post" action="Identity/Account/Logout" style="margin:0;">
+                    <input name="__RequestVerificationToken" type="hidden" value="@_antiforgeryToken" />
+                    <MudButton Color="Color.Error" Variant="Variant.Filled"
+                               ButtonType="ButtonType.Submit"      Style="border-radius: 50px; min-width:100px; height:40px; font-weight:500;">
+                        خروج
+                    </MudButton>
+                </form>
+            </MudStack>
+        </Authorized>
+
+        <NotAuthorized>
+            <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+                <MudButton Href="@($"/Identity/Account/Register?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")"
+                           Color="Color.Success" Variant="Variant.Filled"
+                           Style="border-radius: 50px; height:40px; font-weight:500;">
+                    ثبت نام
+                </MudButton>
+
+                <MudButton Href="@($"/Identity/Account/Login?returnUrl={Uri.EscapeDataString(navigation.ToBaseRelativePath(navigation.Uri))}")"
+                           Color="Color.Primary" Variant="Variant.Filled"
+                           Style="border-radius: 50px; height:40px; font-weight:500;">
+                    ورود
+                </MudButton>
+            </MudStack>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudStack>
 
 @code {
     private Personnel? personnel;
@@ -45,7 +66,7 @@
         }
         else
         {
-            _antiforgeryToken = string.Empty; 
+            _antiforgeryToken = string.Empty;
         }
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
@@ -57,5 +78,4 @@
                 .FirstOrDefaultAsync(p => p.PersonnelCode == user.UserName);
         }
     }
-
 }

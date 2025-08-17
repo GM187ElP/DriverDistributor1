@@ -20,16 +20,15 @@
 <h2 class="mt-2 mb-2">لیست حواله ها</h2>
 
 <MudPaper Class="pa-2 mb-2" Outlined="true">
-
-    <MudStack Row="true" Class="mb-2" Style="align-items:center;">
+    <MudStack Row="true" Class="mb-2" Spacing="2" AlignItems="AlignItems.Center">
 
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-                   @bind-Value="SelectedMonth"
-                   Dense="true"
-                   FitContent="true"
-                   Clearable="false">
+        @bind-Value="SelectedMonth"
+        Dense="true"
+        FitContent="true"
+        Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -37,139 +36,181 @@
         </MudSelect>
 
         <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-                   IconColor="Color.Primary"
-                   Size="Size.Small"
-                   @onclick="Refresh">
+        IconColor="Color.Primary"
+        Size="Size.Small"
+        @onclick="Refresh">
             آپدیت
         </MudButton>
 
-        <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" @bind-Value="IsGostaresh" Color="Color.Secondary" CheckMark FixedContent>
-            <MudToggleItem T="bool?" Value="@(true)" Text="گسترش" />
-            <MudToggleItem T="bool?" Value="@(null)" Text="همه انبارها" />
-            <MudToggleItem T="bool?" Value="@(false)" Text="کوشش" />
+        <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
+        @bind-Value="IsGostaresh"
+        Color="Color.Secondary"
+        CheckMark
+        FixedContent
+        Class="toggle-group-fit"
+        Delimiters="false">
+            <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" />
+            <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" />
+            <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" />
         </MudToggleGroup>
 
-        <MudStack Row=false>
-
+        <!-- Date picker + Clear Filter inline -->
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
             <PersianDatePicker For="() => Persian" @bind-Value="Persian" Label="تاریخ خروجی" />
-            <MudButton OnClick="ClearDate">پاک کردن فیلتر</MudButton>
-            <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-                @if (Persian.DisplayDate != string.Empty)
-                {
-                    <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-                        <MudText Color="Color.Info" Typo="Typo.h6">@($"{Persian.DayOfWeek},")</MudText>
-                        <MudText Color="Color.Warning" Typo="Typo.h6">@($"{Persian.DayOfMonth}")</MudText>
-                        <MudText Color="Color.Error" Typo="Typo.h6">@($"{Persian.MonthString}")</MudText>
-                        <MudText Color="Color.Success" Typo="Typo.h6">@($"{Persian.Year}")</MudText>
-                    </MudStack>
-                }
-            </MudStack>
+
+            <!-- Display selected date info -->
+            @if (!string.IsNullOrWhiteSpace(Persian.DisplayDate))
+            {
+                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                    <MudText Color="Color.Info" Typo="Typo.h6">@($"{Persian.DayOfWeek},")</MudText>
+                    <MudText Color="Color.Warning" Typo="Typo.h6">@($"{Persian.DayOfMonth}")</MudText>
+                    <MudText Color="Color.Error" Typo="Typo.h6">@($"{Persian.MonthString}")</MudText>
+                    <MudText Color="Color.Success" Typo="Typo.h6">@($"{Persian.Year}")</MudText>
+                </MudStack>
+            }
+            <MudButton OnClick="ClearDate" Color="Color.Error" Variant="Variant.Filled">
+                <MudText Typo="Typo.h6">
+                    حذف فیلتر
+                </MudText>
+            </MudButton>
         </MudStack>
     </MudStack>
+
 </MudPaper>
 
-<div style="height: calc(100vh - 350px); overflow-y: auto;">
-    @*
+@*
+<div style="height: calc(100vh - 400px); overflow-y: auto;">
 
         *@
 
-    <MudDataGrid @ref="_mudDataGrid"
-                 T="IndexedShipment"
-                 Items="@indexedShipments"
-                 Dense="true"
-                 Bordered="true"
-                 Hover="true"
-                 RowClassFunc="@RowClassFunc"
-                 Striped="true"
-                 FixedHeader="true"
-                 Height="600px"
-                 Style="flex: 1; overflow: auto;"
-                 QuickFilter="@Filter"
-                 HeaderClass="table-header"
-                 Filterable=true>
+<MudDataGrid @ref="_mudDataGrid"
+T="IndexedShipment"
+Items="@indexedShipments"
+Dense="true"
+Bordered="true"
+Hover="true"
+RowClassFunc="@RowClassFunc"
+Striped="true"
+FixedHeader="true"
+Height="630px"
+Style="flex: 1; overflow: auto;"
+QuickFilter="@Filter"
+HeaderClass="table-header"
+Filterable=true
+ShowColumnOptions="false">
 
-        <ToolBarContent>
-            <MudTextField @bind-Value="_searchString"
-                          Placeholder="جستجو"
-                          Clearable=true
-                          ClearIcon="@Icons.Material.Filled.Clear"
-                          OnClearButtonClick="ClearDate"
-                          Adornment="Adornment.Start"
-                          Immediate="true"
-                          AdornmentIcon="@Icons.Material.Filled.Search"
-                          IconSize="Size.Medium"
-                          FullWidth=false
-                          Class="mt-0" />
-        </ToolBarContent>
+    <ToolBarContent>
+        <MudTextField @bind-Value="_searchString"
+        Placeholder="جستجو"
+        Clearable=true
+        ClearIcon="@Icons.Material.Filled.Clear"
+        OnClearButtonClick="ClearDate"
+        Adornment="Adornment.Start"
+        Immediate="true"
+        AdornmentIcon="@Icons.Material.Filled.Search"
+        IconSize="Size.Medium"
+        FullWidth=false
+        Class="mt-0" />
+    </ToolBarContent>
 
-        <Columns >
+    <Columns>
 
-            <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-
-            <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
-                <CellTemplate Context="row">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Primary"
-                                   Size="Size.Small"
-                                   Disabled="@( !isAuthorized)"
-                                   OnClick="@(() => EditItem(row.Item))" />
-                </CellTemplate>
-            </TemplateColumn>
-
-            <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
-                <CellTemplate Context="row">
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Primary"
-                                   Size="Size.Small"
-                                   Disabled="@(row.Item.IsException || !isAuthorized)"
-                                   OnClick="@(() => RegisterReturn(row.Item))" />
-                </CellTemplate>
-            </TemplateColumn>
-
-            <PropertyColumn Style="font-size:xx-small;"  CellStyle="font-size:xx-small;" Property="x => x.ShipmentDatePersian" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.Weekday" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.DriverPersonnelCode" Title="کد پرسنلی راننده" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.DriverName" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.DistributorPersonnelCode" Title="کد پرسنلی موزع" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.DistributorName" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.RouteName" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.WarehouseName" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.InvoiceCountFormatted" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.InvoiceAmountFormatted" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.ShipmentNumbersString" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.SecondServiceInvoiceCountFormatted" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.SecondServiceInvoiceAmountFormatted" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.ThirdServiceInvoiceCountFormatted" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.ThirdServiceInvoiceAmountFormatted" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.HasVipFormatted" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
-            <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Title="ریال خالص ف" HeaderClass="table-header" CellClass="table-cell" />
-        </Columns>
-    </MudDataGrid>
+        <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+        <TemplateColumn Title="حذف" Filterable="false" StickyLeft="true" HeaderClass="table-header">
+            <CellTemplate Context="row">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!isAuthorized)"
+                Color="Color.Error"
+                OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
+                </MudIconButton>
+            </CellTemplate>
+        </TemplateColumn>
 
 
-</div>
+        <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
+            <CellTemplate Context="row">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                Color="Color.Primary"
+                Size="Size.Small"
+                Disabled="@( !isAuthorized)"
+                OnClick="@(() => EditItem(row.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+
+        <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
+            <CellTemplate Context="row">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                Color="Color.Primary"
+                Size="Size.Small"
+                Disabled="@(row.Item.IsException || !isAuthorized)"
+                OnClick="@(() => RegisterReturn(row.Item))" />
+            </CellTemplate>
+        </TemplateColumn>
+
+        <PropertyColumn Property="x => x.ShipmentDatePersian" Sortable="false" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.Weekday" Sortable="false" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
+        @* <PropertyColumn Property="x => x.DriverPersonnelCode" Title="کد پرسنلی راننده" HeaderClass="table-header" CellClass="table-cell" /> *@
+        <PropertyColumn Property="x => x.DriverName" Sortable="false" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
+        @* <PropertyColumn Property="x => x.DistributorPersonnelCode" Title="کد پرسنلی موزع" HeaderClass="table-header" CellClass="table-cell" /> *@
+        <PropertyColumn Property="x => x.DistributorName" Sortable="false" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.RouteName" Sortable="false" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseName" Sortable="false" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.InvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.InvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ShipmentNumbersString" Sortable="false" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.SecondServiceInvoiceCountFormatted" Sortable="false" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.SecondServiceInvoiceAmountFormatted" Sortable="false" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ThirdServiceInvoiceCountFormatted" Sortable="false" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ThirdServiceInvoiceAmountFormatted" Sortable="false" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.HasVipFormatted" Sortable="false" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="ریال خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+    </Columns>
+</MudDataGrid>
+
+<MudMessageBox @ref="_mudMessageBox" Title=" هشدار!">
+    <TitleContent>
+        <MudAlert Severity="Severity.Warning">
+            هشدار
+        </MudAlert>
+    </TitleContent>
+    <MessageContent>
+        <MudText Typo="Typo.h6">
+            آیا از حذف ردیف مطمئن هستید!؟
+        </MudText>
+    </MessageContent>
+    <CancelButton>
+        <MudButton Style="font-weight:bold;" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.CancelPresentation">           انصراف        </MudButton>
+    </CancelButton>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever">حذف</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+@* </div> *@
 
 <style>
     .table-header {
-        background-color: #1976d2 !important;
-        color: white !important;
-        text-align: center !important padding: 4px !important;
-        vertical-align: middle !important;
-        font-weight: bold !important;
+    background-color: #1976d2 !important;
+    color: white !important;
+    text-align: center !important padding: 4px !important;
+    vertical-align: middle !important;
+    font-weight: bold !important;
     }
 
     .table-cell {
-        padding: 2px 6px !important;
-        font-size: 0.85rem;
-        text-align: center;
+    padding: 2px 6px !important;
+    font-size: small;
+    text-align: center;
     }
 </style>
 
 
 @code {
+    private readonly DialogOptions _closeOnEscape = new() { CloseOnEscapeKey = true };
+    private MudMessageBox _mudMessageBox;
+
     private PersianCalendarClass _persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
     private MudDataGrid<IndexedShipment> _mudDataGrid;
     private readonly string[] monthList = { "کلی", "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
@@ -207,6 +248,23 @@
             };
             LoadData();
         }
+    }
+
+    private async Task OpenDialogAsync(long id)
+    {
+        bool? result;
+        result = await _mudMessageBox.ShowAsync();
+
+        if (result is true)
+        {
+            var row = await dbContext.Shipments.FindAsync(id);
+            if (row is not null)
+            {
+                dbContext.Shipments.Remove(row);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+        LoadData();
     }
 
     void ClearDate()

@@ -9,8 +9,11 @@
 
 body, html {
     font-family: 'IranFont', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-   /* margin:auto;
-    width:300px;*/
+    overflow: hidden !important; /* disables scrolling */
+    height: 99% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .alert{
@@ -24,5 +27,23 @@ body, html {
   
 .text-green{
     color:green;
+    margin-top:5px;
 }
+
+
+.navbar-nav {
+    align-items: center;
+}
+
+    .navbar-nav .nav-item {
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
+.btn {
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-weight: 600;
+}
+
 

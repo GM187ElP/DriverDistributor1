@@ -7,16 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using DriverDistributor.Data;
 using DriverDistributor.Services;
 using DriverDistributor.Entities;
+using Microsoft.Data.SqlClient;
+using Microsoft.IdentityModel.Tokens;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 //-------------------------------------------------------------------
-var env = builder.Environment;
-var dbPath = Path.Combine(env.ContentRootPath, "wwwroot", "App_Data", "1404.db");
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
 
 builder.Services.AddDefaultIdentity<ApplicationUser>()
     .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.AddSingleton<SecretEncodeDecode>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
@@ -39,8 +40,44 @@ builder.Services.Configure<IdentityOptions>(options =>
     // You can also configure other options here
 });
 
+
+
+
+
 builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
+
+
+
+var env = builder.Environment;
+
+if (env.IsDevelopment())
+{
+    //var dbPath = Path.Combine(env.ContentRootPath, "wwwroot", "App_Data", "1404.db");
+    //builder.Services.AddDbContext<AppDbContext>(options =>
+    //    options.UseSqlite($"Data Source={dbPath}"));
+
+
+    var csDev = builder.Configuration["ConnectionStrings:DevelopmentConnection"];
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlServer(csDev));
+}
+else
+{
+    var dirInfo = Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Private"));
+    var path = Path.Combine(dirInfo.FullName, "secrets.json");
+
+    //var dict = builder.Configuration
+    //              .GetSection("ConnectionStrings:DefaultConnection")
+    //              .Get<Dictionary<string, string>>();
+    //SecretEncodeDecode.EncodeToJson(dict, path);
+
+
+    var connectionString = SecretEncodeDecode.DecodeToJson(path).ToString();
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+}
+
+
 //-------------------------------------------------------------------
 
 // Add MudBlazor services
@@ -52,6 +89,9 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+
+
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -60,11 +100,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 //-------------------------------------------------------------------
 app.UseAuthentication();
 app.UseAuthorization();
 //-------------------------------------------------------------------
+
+
 
 
 app.UseAntiforgery();
@@ -78,3 +121,4 @@ app.MapControllers();
 //-------------------------------------------------------------------
 
 app.Run();
+
