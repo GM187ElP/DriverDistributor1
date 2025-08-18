@@ -417,3 +417,5 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /DriverDistributor/Private/secrets.json
+/DriverDistributor/Private/secrets.Remote.Remote.json
+/DriverDistributor/Private/secrets.Remote.Local.json
