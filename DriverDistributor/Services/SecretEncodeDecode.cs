@@ -1,53 +1,56 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Collections.Generic;
-using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.Data.SqlClient;
 
 namespace DriverDistributor.Services;
 public class SecretEncodeDecode
 {
-    private static byte[] Key = Encoding.UTF8.GetBytes("6ECA56378DF2BCDCC7E0E1E90E0AA4F3");
-    private static byte[] IV = Encoding.UTF8.GetBytes("1E7C13F956A420A7");
-    private static string secretPath;
+    private readonly IConfiguration _configuration;
+    private readonly IWebHostEnvironment _env;
+    private static readonly byte[] Key = Encoding.UTF8.GetBytes("6ECA56378DF2BCDCC7E0E1E90E0AA4F3");
+    private static readonly byte[] IV = Encoding.UTF8.GetBytes("1E7C13F956A420A7");
 
-    public SecretEncodeDecode(IConfiguration configuration)
+    public SecretEncodeDecode(IConfiguration configuration, IWebHostEnvironment env)
     {
-        secretPath = configuration["secretPath"];
+        _configuration = configuration;
+        _env = env;
     }
 
-    public static void EncodeToJson(Dictionary<string, string> input, string path)
+    public void EncodeToJson()
     {
+        var dirInfo = Directory.CreateDirectory(Path.Combine(_env.ContentRootPath, "Private"));
 
+        SaveSectionToFile("ConnectionStrings:Remote:Local", Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json"));
+        SaveSectionToFile("ConnectionStrings:Remote:Remote", Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json"));
+    }
+
+    private void SaveSectionToFile(string section, string path)
+    {
+        var input = _configuration.GetSection(section).Get<Dictionary<string, string>>();
         var output = new Dictionary<string, string>();
 
         using var aes = Aes.Create();
-
         aes.Key = Key;
         aes.IV = IV;
-
         var encryptor = aes.CreateEncryptor();
 
         foreach (var item in input)
         {
-            Byte[] pByte = Encoding.UTF8.GetBytes(item.Value);
-            Byte[] cByte = encryptor.TransformFinalBlock(pByte, 0, pByte.Length);
+            var pByte = Encoding.UTF8.GetBytes(item.Value);
+            var cByte = encryptor.TransformFinalBlock(pByte, 0, pByte.Length);
             output[item.Key] = Convert.ToBase64String(cByte);
         }
 
         File.WriteAllText(path, JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = false }));
     }
 
-    public static SqlConnectionStringBuilder DecodeToJson(string path)
+    public SqlConnectionStringBuilder DecodeToJson(string path)
     {
         var encryptedContents = File.ReadAllText(path);
         using var aes = Aes.Create();
         aes.Key = Key;
         aes.IV = IV;
-
         var decryptor = aes.CreateDecryptor();
 
         var encryptedDict = JsonSerializer.Deserialize<Dictionary<string, string>>(encryptedContents);
@@ -60,16 +63,18 @@ public class SecretEncodeDecode
             output[item.Key] = Encoding.UTF8.GetString(pbyte);
         }
 
-        SqlConnectionStringBuilder connectionString = new();
+        SqlConnectionStringBuilder cstring = new()
+        {
+            DataSource = output["Data Source"],
+            InitialCatalog = output["Initial Catalog"],
+            UserID = output["User ID"],
+            Password = output["Password"],
+            MultipleActiveResultSets = bool.Parse(output["MultipleActiveResultSets"]),
+            Encrypt = bool.Parse(output["Encrypt"]),
+        };
+        if (!path.Contains(".Remote.Local.json")) 
+            cstring.TrustServerCertificate = bool.Parse(output["TrustServerCertificate"]);
 
-        connectionString.DataSource = output["Data Source"];
-        connectionString.InitialCatalog = output["Initial Catalog"];
-        connectionString.UserID = output["User ID"];
-        connectionString.Password = output["Password"];
-        connectionString.MultipleActiveResultSets =bool.Parse( output["MultipleActiveResultSets"]);
-        connectionString.TrustServerCertificate =bool.Parse( output["TrustServerCertificate"]);
-
-        return connectionString;
+        return cstring;
     }
 }
-

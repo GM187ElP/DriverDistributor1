@@ -9,7 +9,7 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using static DriverDistributor.Components.PersianDatePicker
-@inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory
 @inject ISnackbar Snackbar
 @inject NavigationManager navigationManager
 @inject AuthenticationStateProvider authenticationStateProvider
@@ -23,210 +23,213 @@
 <MudRTLProvider RightToLeft="true">
     <MudPaper Elevation="5" Class="pa-5">
 
-    <MudForm @ref=form @bind-IsValid=success @bind-Errors=errors>
-        <MudContainer>
-            <MudGrid>
-                <MudItem Class="mt-5" xs="4" sm="3" md="4">
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudCheckBox @bind-Value="IsException" />
-                        <MudText Typo="Typo.h6">حالت خاص</MudText>
-                    </MudStack>
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudCheckBox @bind-Value="dto.HasVip" Disabled="IsException" />
-                        <MudText Typo="Typo.h6">VIP</MudText>
-                    </MudStack>
-
-                    <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DriverName,false)">
-                        <Columns>
-                            <PropertyColumn Property="x=>x.Name" Title="مسیر راننده" />
-                            <PropertyColumn Property="x=>x.Count" Title="دفعات" />
-                            <PropertyColumn Property="x=>x.VIP" Title="VIP" />
-                        </Columns>
-                    </MudDataGrid>
-                    <br />
-                    <MudDataGrid Class="mt-5" Items="LoadDriverDistributorRoutesAndCount(dto.DistributorName,true)">
-                        <Columns>
-                            <PropertyColumn Property="x=>x.Name" Title="مسیر موزع" />
-                            <PropertyColumn Property="x=>x.Count" Title="دفعات" />
-                            <PropertyColumn Property="x=>x.VIP" Title="VIP" />
-                        </Columns>
-                    </MudDataGrid>
-                </MudItem>
-
-                <MudItem xs="4" sm="6" md="4">
-                    <div class="autocomplete-container">
-                        <MudAutocomplete Class="mt-5" T="string"
-                                         @bind-Value=dto.DriverName
-                                         Label="راننده"
-                                         SearchFunc="SearchDriver"
-                                         HelperText="@(string.IsNullOrWhiteSpace(dto.DriverName) ? "" : (string.IsNullOrWhiteSpace(dto.DistributorName) ? "راننده_موزع" : "راننده"))"
-                                         ToStringFunc="(x) => x"
-                                         Dense="true"
-                                         @onselectionchange="DistributorReload"
-                                         ResetValueOnEmptyText="true"
-                                         Clearable="true"
-                                         MaxItems="100"
-                                         Required=@(IsException && string.IsNullOrWhiteSpace(dto.DistributorName)||!IsException)
-                                         ErrorText=@DriverErrorText()
-                                         Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DistributorName)) />
-
-                        <MudAutocomplete Class="mt-5" T="string"
-                                         @bind-Value=dto.DistributorName
-                                         Label="موزع"
-                                         HelperText="@(string.IsNullOrWhiteSpace(dto.DistributorName) ? "" : "موزع")"
-                                         SearchFunc="SearchDistributor"
-                                         ToStringFunc="(x) => x"
-                                         Dense="true"
-                                         @onselectionchange="DriverReload"
-                                         ResetValueOnEmptyText="true"
-                                         Clearable="true"
-                                         MaxItems="100"
-                                         Required=@(string.IsNullOrWhiteSpace(dto.DriverName))
-                                         ErrorText=@DistributorErrorText()
-                                         Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DriverName)) />
-
-                        <MudAutocomplete Class="mt-5" T="string"
-                                         @bind-Value=dto.RouteName
-                                         Label="مسیر"
-                                         SearchFunc="SearchRoute"
-                                         ToStringFunc="(x) => x"
-                                         Dense="true"
-                                         ResetValueOnEmptyText="true"
-                                         Clearable="true"
-                                         MaxItems="100"
-                                         Required=true
-                                         ErrorText="لطفا مسیر را انتخاب کنید">
-                            <ItemTemplate>
-                                <div class="item-template">
-                                    @context
-                                </div>
-                            </ItemTemplate>
-                        </MudAutocomplete>
-
-                        <MudAutocomplete Class="mt-5" T="string"
-                                         @bind-Value=dto.WarehouseName
-                                         Label="انبار"
-                                         SearchFunc="SearchWarehouse"
-                                         ToStringFunc="(x) => x"
-                                         Dense="true"
-                                         ResetValueOnEmptyText="true"
-                                         Clearable="true"
-                                         MaxItems="100"
-                                         Disabled=IsException
-                                         Required=@(!IsException)
-                                         ErrorText="لطفا انبار را انتخاب کنید">
-                            <ItemTemplate>
-                                <div class="item-template">
-                                    @context
-                                </div>
-                            </ItemTemplate>
-                        </MudAutocomplete>
-                    </div>
-
-                    <MudStack Class="mt-3" Justify="Justify.Center" AlignItems="AlignItems.Center">
-                        <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
-                        <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-
-                            @if (persian.DisplayDate != string.Empty)
-                            {
-                                <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-                                    <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
-                                    <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
-                                    <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
-                                    <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
-                                </MudStack>
-                            }
-
+        <MudForm @ref=form @bind-IsValid=success @bind-Errors=errors>
+            <MudContainer>
+                <MudGrid>
+                    <MudItem Class="mt-5" xs="4" sm="3" md="4">
+                        <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudCheckBox @bind-Value="IsException" @onchange="ToggleException" />
+                            <MudText Typo="Typo.h6">حالت خاص</MudText>
                         </MudStack>
-                    </MudStack>
+                        <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudCheckBox @bind-Value="dto.HasVip" Disabled="IsException" />
+                            <MudText Typo="Typo.h6">VIP</MudText>
+                        </MudStack>
 
-                    <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=IsException Required=@(!IsException)
-                                     ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                        <MudDataGrid T="RoutesCount" Class="mt-5" Items="driverRoutes">
+                            <Columns>
+                                <PropertyColumn Property="x=>x.Name" Title="مسیر راننده" />
+                                <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                                <PropertyColumn Property="x=>x.VIP" Title="VIP" />
+                            </Columns>
+                        </MudDataGrid>
+                        <br />
+                        <MudDataGrid T="RoutesCount" Class="mt-5" Items="distributorRoutes">
+                            <Columns>
+                                <PropertyColumn Property="x=>x.Name" Title="مسیر موزع" />
+                                <PropertyColumn Property="x=>x.Count" Title="دفعات" />
+                                <PropertyColumn Property="x=>x.VIP" Title="VIP" />
+                            </Columns>
+                        </MudDataGrid>
+                    </MudItem>
 
-                    <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="0" Disabled=IsException Required=@(!IsException) ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+                    <MudItem xs="4" sm="6" md="4">
+                        <div class="autocomplete-container">
+                            <MudAutocomplete Class="mt-5" T="string"
+                                             @bind-Value=dto.DriverName
+                                             Label="راننده"
+                                             SearchFunc="SearchDriver"
+                                             HelperText="@(string.IsNullOrWhiteSpace(dto.DriverName) ? "" : (string.IsNullOrWhiteSpace(dto.DistributorName) ? "راننده_موزع" : "راننده"))"
+                                             ToStringFunc="(x) => x"
+                                             Dense="true"
+                                             @onselectionchange="DistributorReload"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             MaxItems="100"
+                                             Required=@(IsException && string.IsNullOrWhiteSpace(dto.DistributorName)||!IsException)
+                                             ErrorText=@DriverErrorText()
+                                             Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DistributorName)) />
 
-                    <div class="mt-5">
-                        @for (int i = 0; i < shipmentNumbersList.Count; i++)
-                        {
-                            var index = i;
-                            <MudGrid Class="align-center mt-2">
-                                <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
-                                    <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
-                                </MudButton>
+                            <MudAutocomplete Class="mt-5" T="string"
+                                             @bind-Value=dto.DistributorName
+                                             Label="موزع"
+                                             HelperText="@(string.IsNullOrWhiteSpace(dto.DistributorName) ? "" : "موزع")"
+                                             SearchFunc="SearchDistributor"
+                                             ToStringFunc="(x) => x"
+                                             Dense="true"
+                                             @onselectionchange="DriverReload"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             MaxItems="100"
+                                             Required=@(string.IsNullOrWhiteSpace(dto.DriverName))
+                                             ErrorText=@DistributorErrorText()
+                                             Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DriverName)) />
 
-                                <MudTextField T="int?"
-                                              @bind-Value=shipmentNumbersList[index]
-                                              Disabled=IsException
-                                              Label="@($"خروجی {index + 1}")"
-                                              Required=!IsException
-                                              ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
+                            <MudAutocomplete Class="mt-5" T="string"
+                                             @bind-Value=dto.RouteName
+                                             Label="مسیر"
+                                             SearchFunc="SearchRoute"
+                                             ToStringFunc="(x) => x"
+                                             Dense="true"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             MaxItems="100"
+                                             Required=true
+                                             ErrorText="لطفا مسیر را انتخاب کنید">
+                                <ItemTemplate>
+                                    <div class="item-template">
+                                        @context
+                                    </div>
+                                </ItemTemplate>
+                            </MudAutocomplete>
 
-                                <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
-                                    <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
-                                </MudButton>
-                            </MudGrid>
-                        }
-                    </div>
+                            <MudAutocomplete Class="mt-5" T="string"
+                                             @bind-Value=dto.WarehouseName
+                                             Label="انبار"
+                                             SearchFunc="SearchWarehouse"
+                                             ToStringFunc="(x) => x"
+                                             Dense="true"
+                                             ResetValueOnEmptyText="true"
+                                             Clearable="true"
+                                             MaxItems="100"
+                                             Disabled=IsException
+                                             Required=@(!IsException)
+                                             ErrorText="لطفا انبار را انتخاب کنید">
+                                <ItemTemplate>
+                                    <div class="item-template">
+                                        @context
+                                    </div>
+                                </ItemTemplate>
+                            </MudAutocomplete>
+                        </div>
 
-                </MudItem>
-                <MudItem xs="12" sm="6" md="4">
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudCheckBox @bind-Value="IsSecondService" Disabled=IsException />
-                        <MudText Typo="Typo.h6">سرویس دوم</MudText>
-                    </MudStack>
-                    <MudNumericField @bind-Value="dto.SecondServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsSecondService || IsException) Required=IsSecondService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
-                    <MudNumericField Class="mt-5" @bind-Value="dto.SecondServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsSecondService || IsException)
-                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
-                                     Required=IsSecondService />
+                        <MudStack Class="mt-3" Justify="Justify.Center" AlignItems="AlignItems.Center">
+                            <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
+                            <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
 
-                    <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudCheckBox @bind-Value="IsThirdService" Disabled=!IsSecondService />
-                        <MudText Typo="Typo.h6">سرویس سوم</MudText>
-                    </MudStack>
+                                @if (persian != null )
+                                {
+                                    <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                        <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
+                                        <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
+                                        <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
+                                        <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
+                                    </MudStack>
+                                }
 
-                    <MudNumericField @bind-Value="dto.ThirdServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsThirdService || IsException) Required=IsThirdService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
-                    <MudNumericField Class="mt-5" @bind-Value="dto.ThirdServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsThirdService || IsException)
-                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
-                                     Required=IsThirdService />
+                            </MudStack>
+                        </MudStack>
 
-                    <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudButton Variant="Variant.Filled" Color="Color.Error" onclick="ClearForm"><MudText Typo="Typo.h6">پاک کردن</MudText></MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick=Cancel><MudText Typo="Typo.h6">انصراف</MudText></MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=AddShipmentToList ButtonType=ButtonType.Submit><MudText Typo="Typo.h6">ذخیره</MudText></MudButton>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
-        </MudContainer>
-    </MudForm>
+                        <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=IsException Required=@(!IsException)
+                        ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+
+                        <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="0" Disabled=IsException Required=@(!IsException) ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+
+                        <div class="mt-5">
+                            @for (int i = 0; i < shipmentNumbersList.Count; i++)
+                            {
+                                var index = i;
+                                <MudGrid Class="align-center mt-2">
+                                    <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
+                                        <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
+                                    </MudButton>
+
+                                    <MudTextField T="int?"
+                                    @bind-Value=shipmentNumbersList[index]
+                                    Disabled=IsException
+                                    Label="@($"خروجی {index + 1}")"
+                                    Required=!IsException
+                                    ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
+
+                                    <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
+                                        <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
+                                    </MudButton>
+                                </MudGrid>
+                            }
+                        </div>
+
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudCheckBox @bind-Value="IsSecondService" Disabled=IsException />
+                            <MudText Typo="Typo.h6">سرویس دوم</MudText>
+                        </MudStack>
+                        <MudNumericField @bind-Value="dto.SecondServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsSecondService || IsException) Required=IsSecondService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                        <MudNumericField Class="mt-5" @bind-Value="dto.SecondServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsSecondService || IsException)
+                        ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                        Required=IsSecondService />
+
+                        <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudCheckBox @bind-Value="IsThirdService" Disabled=!IsSecondService />
+                            <MudText Typo="Typo.h6">سرویس سوم</MudText>
+                        </MudStack>
+
+                        <MudNumericField @bind-Value="dto.ThirdServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsThirdService || IsException) Required=IsThirdService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                        <MudNumericField Class="mt-5" @bind-Value="dto.ThirdServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsThirdService || IsException)
+                        ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                        Required=IsThirdService />
+
+                        <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" onclick="ClearForm"><MudText Typo="Typo.h6">پاک کردن</MudText></MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Warning" OnClick=Cancel><MudText Typo="Typo.h6">انصراف</MudText></MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick=AddShipmentToList ButtonType=ButtonType.Submit><MudText Typo="Typo.h6">ذخیره</MudText></MudButton>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </MudForm>
     </MudPaper>
 </MudRTLProvider>
 
 <style>
     .same-height {
-        height: 56px;
+    height: 56px;
     }
 
     .item-template {
-        font-size: 1.2rem;
-        padding: 8px 16px;
-        text-align: center;
-        font-family: 'Iranian Sans', sans-serif;
+    font-size: 1.2rem;
+    padding: 8px 16px;
+    text-align: center;
+    font-family: 'Iranian Sans', sans-serif;
     }
 
     .autocomplete-container, .autocomplete-container * {
-        text-align: center;
-        font-size: 1.2rem;
-        font-family: 'Iranian Sans', sans-serif;
+    text-align: center;
+    font-size: 1.2rem;
+    font-family: 'Iranian Sans', sans-serif;
     }
 
     .align-center {
-        display: flex;
-        align-items: center;
+    display: flex;
+    align-items: center;
     }
 </style>
 
 @code {
     [Parameter] public long Id { get; set; }
+    private List<RoutesCount> driverRoutes = new();
+    private List<RoutesCount> distributorRoutes = new();
+
     private MudForm form;
     private ShipmentEditDto dto = new();
     private Shipment shipment;
@@ -263,19 +266,62 @@
                 shipmentNumbersList.Add(null);
                 dto.RouteName = null;
             }
-            else
-            {
-                LoadShipment().Wait();
-            }
-            LoadData(isException);
-
-            StateHasChanged();
         }
+    }
+
+    private async Task OnDriverChanged()
+    {
+        await LoadDriverDistributorRoutesAndCount(dto.DriverName, false);
+    }
+
+    private async Task OnDistributorChanged()
+    {
+        await LoadDriverDistributorRoutesAndCount(dto.DistributorName, true);
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == 0)
+        {
+            persian = new(ResetDate(), isEmptyAtStart: true);
+            IsException = false;
+            await LoadDataAsync(IsException);
+            IsSecondService = false;
+            IsThirdService = false;
+            dto.ShipmentDateGregorian = persian.GregorianDate;
+            shipmentNumbersList.Add(null);
+        }
+        else
+        {
+            await LoadShipment();
+            persian = new(dto.ShipmentDateGregorian!.Value);
+            IsException = dto.IsException;
+            IsSecondService = dto.SecondServiceInvoiceAmount != null;
+            IsThirdService = dto.ThirdServiceInvoiceAmount != null;
+        }
+
+        await LoadDataAsync(IsException);
+    }
+
+    private async Task LoadDataAsync(bool isExc)
+    {
+        await using var dbContext = dbContextFactory.CreateDbContext();
+        drivers = await dbContext.Drivers.ToListAsync();
+        distributors = await dbContext.Distributors.ToListAsync();
+        warehouses = await dbContext.Warehouses.ToListAsync();
+
+        if (!isExc)
+            routes = await dbContext.Routes.Where(r => !r.IsExt).ToListAsync();
+        else
+            routes = await dbContext.Routes.Where(r => r.IsExt).ToListAsync();
     }
 
     private async Task LoadShipment()
     {
-        shipment = await dbContext.Shipments.Include(s => s.ShipmentNumbers).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        await using var dbContext = dbContextFactory.CreateDbContext();
+        shipment = await dbContext.Shipments.Include(s => s.ShipmentNumbers).Include(x=>x.Personnel).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        dto = new();
         Mapper.MapToDto(shipment, dto);
 
         shipmentNumbersList = new();
@@ -287,6 +333,30 @@
             }
         }
     }
+
+    async Task<IEnumerable<RoutesCount>> LoadDriverDistributorRoutesAndCount(string name, bool isDistributor)
+    {
+        if (name == null)
+            return [];
+        await using var dbContext = dbContextFactory.CreateDbContext();
+        var query = dbContext.Shipments.AsQueryable();
+
+        if (isDistributor)
+            query = query.Where(s => s.DistributorName == name);
+        else
+            query = query.Where(s => s.DriverName == name);
+
+        return await query
+            .GroupBy(s => s.RouteName)
+            .Select(g => new RoutesCount
+                {
+                    Name = g.Key,
+                    Count = g.Count(),
+                    VIP = g.Count(x => x.HasVip)
+                })
+            .ToListAsync();
+    }
+
 
     string? DriverErrorText()
     {
@@ -304,13 +374,17 @@
 
     async Task DriverReload()
     {
+        await using var dbContext = dbContextFactory.CreateDbContext();
         drivers = await dbContext.Drivers.Where(d => d.Name != dto.DistributorName).AsNoTracking().ToListAsync();
+        await OnDistributorChanged();
         StateHasChanged();
     }
 
     async Task DistributorReload()
     {
+        await using var dbContext = dbContextFactory.CreateDbContext();
         distributors = await dbContext.Distributors.Where(d => d.Name != dto.DriverName).AsNoTracking().ToListAsync();
+        await OnDriverChanged();
         StateHasChanged();
     }
 
@@ -342,28 +416,6 @@
         }
     }
 
-    List<RoutesCount> LoadDriverDistributorRoutesAndCount(string name, bool isDistributor)
-    {
-        if (name == null)
-            return [];
-
-        var query = dbContext.Shipments.AsQueryable();
-
-        if (isDistributor)
-            query = query.Where(s => s.DistributorName == name);
-        else
-            query = query.Where(s => s.DriverName == name);
-
-        return query
-            .GroupBy(s => s.RouteName)
-            .Select(g => new RoutesCount
-                {
-                    Name = g.Key,
-                    Count = g.Count(),
-                    VIP=g.Count(x=>x.HasVip)
-                })
-            .ToList();
-    }
 
     public class RoutesCount
     {
@@ -374,35 +426,17 @@
 
     DateTime ResetDate() => DateTime.Today.AddDays(0);
 
-    protected override async Task OnInitializedAsync()
-    {
-        if (Id == 0)
-        {
-            IsException = false;
-            persian = new(ResetDate(), isEmptyAtStart: true);
-            IsSecondService = false;
-            IsThirdService = false;
-            dto.ShipmentDateGregorian = persian.GregorianDate;
-            shipmentNumbersList.Add(null);
-        }
-        else
-        {
-            await LoadShipment();
-            persian = new(dto.ShipmentDateGregorian!.Value);
-            IsException = dto.IsException;
-            IsSecondService = dto.SecondServiceInvoiceAmount != null;
-            IsThirdService = dto.ThirdServiceInvoiceAmount != null;
-        }
 
-        LoadData(IsException);
+    private async Task OnIsExceptionChangedAsync()
+    {
+        await LoadDataAsync(IsException);
+        StateHasChanged();
     }
 
-    private void LoadData(bool isExc)
+    private async Task ToggleException(ChangeEventArgs e)
     {
-        drivers = dbContext.Drivers.ToList();
-        distributors = dbContext.Distributors.ToList();
-        warehouses = dbContext.Warehouses.ToList();
-        routes = !isExc ? dbContext.Routes.Where(r => !r.IsExt).ToList() : dbContext.Routes.Where(r => r.IsExt).ToList();
+        IsException = (bool)e.Value;
+        await OnIsExceptionChangedAsync();
     }
 
     private void IncrementShipmentCount()
@@ -458,6 +492,8 @@
         dto.DriverDuty = !IsException ? (string.IsNullOrEmpty(dto.DistributorName) ? "راننده_موزع" : "راننده") : null;
         dto.DistributorDuty = (!IsException && !string.IsNullOrEmpty(dto.DistributorName)) ? "موزع" : null;
 
+        await using var dbContext = dbContextFactory.CreateDbContext();
+
 
         if (dto.DriverName is not null)
         {
@@ -481,6 +517,7 @@
         dto.DistributionCenter = dto.IsException ? null : (dto.WarehouseName == "فيروز" ? "کوشش" : "گسترش");
 
         var changedRowCount = 0;
+        var shipment = new Shipment();
         Services.Mapper.MapFromDto(dto, shipment);
         shipment.ShipmentNumbers = [];
         if (Id == 0)
@@ -492,6 +529,7 @@
                     shipment.ShipmentNumbers.Add(new() { Number = number!.Value });
                 }
             }
+
             var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
             var personnel = await dbContext.Personnels.FindAsync(auth.User.Identity.Name);
 
@@ -499,13 +537,15 @@
                 shipment.UserName = personnel.Name;
 
 
-            dbContext.Shipments.Add(shipment);
+            await dbContext.Shipments.AddAsync(shipment);
             changedRowCount = await dbContext.SaveChangesAsync();
         }
         else
         {
-            var shipmentNumbersRemoveList = dbContext.ShipmentNumbers.Where(s => s.ShipmentId == Id).ToList();
+            var shipmentNumbersRemoveList = await dbContext.ShipmentNumbers.Where(s => s.ShipmentId == Id).ToListAsync();
 
+            dbContext.Entry(shipment).State = EntityState.Modified;
+            
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {
@@ -519,7 +559,7 @@
                     if (item != null)
                         shipment.ShipmentNumbers.Add(new() { ShipmentId = shipment.Id, Number = item!.Value });
                 }
-                //dbContext.Shipments.Update(shipment);
+
                 changedRowCount = await dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
@@ -531,11 +571,6 @@
         }
         if (changedRowCount > 0)
             Cancel();
-
-
-        //await Services.Mapper.MapDtoToEntityWithNavigations(dto, shipment, dbContext);
-        //dto = new();
-        //StateHasChanged();
     }
 
     private Task<IEnumerable<string>> SearchDriver(string text, CancellationToken cancellationToken = default)
@@ -576,58 +611,4 @@
             .Select(d => $"{d.Name}");
         return Task.FromResult(results);
     }
-
-    @*
-    void MapFromDto2(ShipmentAddDto dto, Shipment shipment)
-    {
-        shipment.Driver = dbContext.Drivers.FirstOrDefault(d => d.Name == dto.DistributorName);
-        shipment.Distributor = dbContext.Distributors.FirstOrDefault(d => d.Name == dto.DriverName);
-        shipment.Route = dbContext.Routes.FirstOrDefault(r => r.Name == dto.RouteName);
-        shipment.Warehouse = dbContext.Warehouses.FirstOrDefault(w => w.Name == dto.WarehouseName);
-
-
-        shipment.DistributorPersonnelCode = dto.DistributorPersonnelCode;
-        shipment.DriverPersonnelCode = dto.DriverPersonnelCode;
-        shipment.HasVip = dto.HasVip;
-        shipment.InvoiceAmount = dto.InvoiceAmount;
-        shipment.InvoiceCount = dto.InvoiceCount;
-        shipment.IsException = shipment.IsException;
-        shipment.SecondServiceInvoiceAmount = dto.SecondServiceInvoiceAmount;
-        shipment.SecondServiceInvoiceCount = dto.SecondServiceInvoiceCount;
-        shipment.ThirdServiceInvoiceAmount = dto.ThirdServiceInvoiceAmount;
-        shipment.ThirdServiceInvoiceCount = dto.ThirdServiceInvoiceCount;
-        shipment.ShipmentDateGregorian = dto.ShipmentDateGregorian;
-        shipment.ShipmentDatePersian = dto.ShipmentDatePersian;
-        shipment.Weekday = dto.Weekday;
-    }
-
-    private bool IsSuccess()
-    {
-        if (isException)
-        {
-            if (string.IsNullOrWhiteSpace(dto.DistributorName))
-                return !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
-
-            else if (string.IsNullOrWhiteSpace(dto.DriverName))
-                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
-
-            else
-                return false;
-        }
-        else
-        {
-            if (IsSecondService && !IsThirdService)
-                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.SecondServiceInvoiceAmount != 0 && dto.SecondServiceInvoiceCount != 0 && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
-
-            if (IsThirdService)
-                return !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.SecondServiceInvoiceAmount != 0 && dto.SecondServiceInvoiceCount != 0 && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && dto.ThirdServiceInvoiceCount != 0 && dto.ThirdServiceInvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
-
-            else
-            {
-                var msdsd = !string.IsNullOrWhiteSpace(dto.DistributorName) && !string.IsNullOrWhiteSpace(dto.DriverName) && !string.IsNullOrWhiteSpace(dto.RouteName) && !string.IsNullOrWhiteSpace(dto.WarehouseName) && dto.InvoiceCount != 0 && dto.InvoiceAmount != 0 && !string.IsNullOrWhiteSpace(dto.ShipmentDatePersian);
-                return msdsd;
-            }
-        }
-    }
-    *@
 }

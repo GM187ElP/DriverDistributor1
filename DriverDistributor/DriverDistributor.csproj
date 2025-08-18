@@ -30,6 +30,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Pages\Reports\" />
+    <Folder Include="Private\" />
   </ItemGroup>
 
 

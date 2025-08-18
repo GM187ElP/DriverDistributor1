@@ -4,7 +4,7 @@
 @using DriverDistributor.Entities
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager navigationManager
-@inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory
 @inject ISnackbar Snackbar
 
 <PageTitle>ویرایش خروجی</PageTitle>
@@ -39,7 +39,7 @@
                 <MudItem xs="12" sm="6" md="4">
 
                     <MudNumericField Class="mt-5" @bind-Value="returnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.InvoiceCount"
-                                     ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled="shipment.InvoiceCount==null" Required=@(returnInvoiceAmount>0) />
+                    ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled="shipment.InvoiceCount==null" Required=@(returnInvoiceAmount>0) />
 
                     <MudNumericField Class="mt-5" @bind-Value="returnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="null" Max="shipment.InvoiceAmount" ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" Disabled="shipment.InvoiceCount==null" Required=@(returnInvoiceCount>0) />
 
@@ -50,7 +50,7 @@
                     <MudNumericField @bind-Value="secondReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.SecondServiceInvoiceCount??0" ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled="shipment.SecondServiceInvoiceCount==null" Required=@(secondReturnInvoiceAmount>0) />
 
                     <MudNumericField Class="mt-5" @bind-Value="secondReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" Immediate=true Min="null" Max="shipment.SecondServiceInvoiceAmount??0" Disabled=@(shipment.SecondServiceInvoiceCount==null) Required=@(secondReturnInvoiceCount>0)
-                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+                    ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
 
                     <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
                         <MudText Typo="Typo.h6">سرویس سوم</MudText>
@@ -59,7 +59,7 @@
                     <MudNumericField @bind-Value="thirdReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.ThirdServiceInvoiceCount??0" ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled=@(shipment.ThirdServiceInvoiceCount==null) Required=@(thirdReturnInvoiceAmount>0) />
 
                     <MudNumericField Class="mt-5" @bind-Value="thirdReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" Immediate=true Min="null" Max="shipment.ThirdServiceInvoiceAmount??0" Disabled=@(shipment.ThirdServiceInvoiceCount==null ) Required=@(thirdReturnInvoiceCount>0)
-                                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+                    ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6" md="4">
@@ -102,32 +102,32 @@
 
 <style>
     .same-height {
-        height: 56px;
+    height: 56px;
     }
 
     .item-template {
-        font-size: 1.2rem;
-        padding: 8px 16px;
-        text-align: center;
-        font-family: 'Iranian Sans', sans-serif;
+    font-size: 1.2rem;
+    padding: 8px 16px;
+    text-align: center;
+    font-family: 'Iranian Sans', sans-serif;
     }
 
     .autocomplete-container, .autocomplete-container * {
-        text-align: center;
-        font-size: 1.2rem;
-        font-family: 'Iranian Sans', sans-serif;
+    text-align: center;
+    font-size: 1.2rem;
+    font-family: 'Iranian Sans', sans-serif;
     }
 
     .align-center {
-        display: flex;
-        align-items: center;
+    display: flex;
+    align-items: center;
     }
 </style>
 
 @code {
     [Parameter] public long Id { get; set; }
     private MudForm form;
-    private Shipment shipment;
+    private Shipment shipment=new();
     private bool success = false;
     private string[] errors = [];
 
@@ -150,7 +150,8 @@
 
     private async Task LoadShipment()
     {
-        shipment = await dbContext.Shipments.FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        using var dbContext = dbContextFactory.CreateDbContext();
+        shipment = await dbContext.Shipments.Include(x=>x.ShipmentNumbers).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
     }
 
     protected override async Task OnInitializedAsync()
@@ -193,6 +194,10 @@
         if (shipment.ReturnInvoiceAmount == 0)
             shipment.ReturnInvoiceAmount = null;
 
+        using var dbContext = dbContextFactory.CreateDbContext();
+        dbContext.Entry(shipment).State = EntityState.Modified;
+        // dbContext.Entry(shipment.ShipmentNumbers).State = EntityState.Modified;
+        //shipment.Id = 0;
         var changedRowCount = await dbContext.SaveChangesAsync();
 
         if (changedRowCount > 0)

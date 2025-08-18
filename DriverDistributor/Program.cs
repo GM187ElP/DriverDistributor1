@@ -40,41 +40,39 @@ builder.Services.Configure<IdentityOptions>(options =>
     // You can also configure other options here
 });
 
-
-
-
-
 builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
 
 
+var secretService = new SecretEncodeDecode(builder.Configuration, builder.Environment);
+var dirInfo = Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Private"));
+string path;
 
-var env = builder.Environment;
-
-if (env.IsDevelopment())
+if (builder.Environment.IsDevelopment())
 {
-    //var dbPath = Path.Combine(env.ContentRootPath, "wwwroot", "App_Data", "1404.db");
+    //--------------------------sqlite------------------------------------------
+    //var dbPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "App_Data", "1404.db");
     //builder.Services.AddDbContext<AppDbContext>(options =>
     //    options.UseSqlite($"Data Source={dbPath}"));
 
+    //--------------------------sqlserver------------------------------------------
+    //var connectionString = builder.Configuration["ConnectionStrings:Local"];
+    //builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
 
-    var csDev = builder.Configuration["ConnectionStrings:DevelopmentConnection"];
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(csDev));
+    //--------------------------encryption------------------------------------
+    //SecretEncodeDecode.EncodeToJson();
+
+    //--------------------------decryption--------------------------------------------
+    path = Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json");   // using remote database for local project
+    var connectionString = secretService.DecodeToJson(path).ToString();
+    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
 }
 else
 {
-    var dirInfo = Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Private"));
-    var path = Path.Combine(dirInfo.FullName, "secrets.json");
-
-    //var dict = builder.Configuration
-    //              .GetSection("ConnectionStrings:DefaultConnection")
-    //              .Get<Dictionary<string, string>>();
-    //SecretEncodeDecode.EncodeToJson(dict, path);
-
-
-    var connectionString = SecretEncodeDecode.DecodeToJson(path).ToString();
-    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+    //--------------------------decryption--------------------------------------------
+    path = Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json");    // using in hosted env
+    var connectionString = secretService.DecodeToJson(path).ToString();
+    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
 }
 
 
@@ -88,9 +86,6 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 var app = builder.Build();
-
-
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -116,6 +111,8 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 //-------------------------------------------------------------------
+
+
 app.MapRazorPages(); // this makes /Identity/Account/Login work
 app.MapControllers();
 //-------------------------------------------------------------------

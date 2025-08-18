@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace BlazorApp1.Migrations
+namespace DriverDistributor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250817144958_InitSqlServer")]
-    partial class InitSqlServer
+    [Migration("20250818080617_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -93,7 +93,8 @@ namespace BlazorApp1.Migrations
             modelBuilder.Entity("DriverDistributor.Entities.Distributor", b =>
                 {
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("PersonnelCode")
                         .HasColumnType("int");
@@ -106,7 +107,7 @@ namespace BlazorApp1.Migrations
             modelBuilder.Entity("DriverDistributor.Entities.Driver", b =>
                 {
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("PersonnelCode")
                         .HasColumnType("int");
@@ -168,7 +169,7 @@ namespace BlazorApp1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DistributorName")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("DistributorPersonnelCode")
                         .HasColumnType("int");
@@ -177,7 +178,7 @@ namespace BlazorApp1.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DriverName")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int?>("DriverPersonnelCode")
                         .HasColumnType("int");

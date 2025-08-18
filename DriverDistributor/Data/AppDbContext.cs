@@ -29,7 +29,21 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             .HasForeignKey(x => x.UserName)
             .HasPrincipalKey(x => x.Name)
             .OnDelete(DeleteBehavior.Cascade);
-            
+
+        builder.Entity<Driver>()
+           .Property(x => x.Name)
+            .HasColumnType("nvarchar(100)");
+
+        builder.Entity<Driver>()
+          .HasKey(x => x.Name);
+
+        builder.Entity<Distributor>()
+          .HasKey(x => x.Name);
+
+        builder.Entity<Distributor>()
+            .Property(x => x.Name)
+            .HasColumnType("nvarchar(100)");
+
         base.OnModelCreating(builder);
     }
 }
