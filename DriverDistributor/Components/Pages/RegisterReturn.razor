@@ -17,77 +17,22 @@
             <MudGrid>
                 <MudItem xs="4" sm="6" md="4">
 
-                    <MudNumericField Class="mt-5" @bind-Value="shipment.InvoiceCount" Label="تعداد فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-                    <MudNumericField Class="mt-5" @bind-Value="shipment.InvoiceAmount" Label="جمع ریال فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس دوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField @bind-Value="shipment.SecondServiceInvoiceCount" Label="تعداد فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-                    <MudNumericField Class="mt-5" @bind-Value="shipment.SecondServiceInvoiceAmount" Label="جمع ریال فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس سوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField @bind-Value="shipment.ThirdServiceInvoiceCount" Label="تعداد فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-                    <MudNumericField Class="mt-5" @bind-Value="shipment.ThirdServiceInvoiceAmount" Label="جمع ریال فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
+                    <MudNumericField Class="mt-5" @bind-Value="InvoiceCount" Label="تعداد فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
+                    <MudNumericField Class="mt-5" @bind-Value="InvoiceAmount" Label="جمع ریال فاکتورها" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6" md="4">
 
-                    <MudNumericField Class="mt-5" @bind-Value="returnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.InvoiceCount"
-                    ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled="shipment.InvoiceCount==null" Required=@(returnInvoiceAmount>0) />
+                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="shipment.InvoiceCount"
+                    ErrorText="لطفا تعداد فاکتورها را وارد کنید" Required=@(ReturnInvoiceAmount>0) />
 
-                    <MudNumericField Class="mt-5" @bind-Value="returnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="null" Max="shipment.InvoiceAmount" ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" Disabled="shipment.InvoiceCount==null" Required=@(returnInvoiceCount>0) />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس دوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField @bind-Value="secondReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.SecondServiceInvoiceCount??0" ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled="shipment.SecondServiceInvoiceCount==null" Required=@(secondReturnInvoiceAmount>0) />
-
-                    <MudNumericField Class="mt-5" @bind-Value="secondReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" Immediate=true Min="null" Max="shipment.SecondServiceInvoiceAmount??0" Disabled=@(shipment.SecondServiceInvoiceCount==null) Required=@(secondReturnInvoiceCount>0)
-                    ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس سوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField @bind-Value="thirdReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="null" Max="shipment.ThirdServiceInvoiceCount??0" ErrorText="لطفا تعداد فاکتورها را وارد کنید" Disabled=@(shipment.ThirdServiceInvoiceCount==null) Required=@(thirdReturnInvoiceAmount>0) />
-
-                    <MudNumericField Class="mt-5" @bind-Value="thirdReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Format="N0" Immediate=true Min="null" Max="shipment.ThirdServiceInvoiceAmount??0" Disabled=@(shipment.ThirdServiceInvoiceCount==null ) Required=@(thirdReturnInvoiceCount>0)
-                    ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
+                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="shipment.InvoiceAmount"
+                    ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" Required=@(ReturnInvoiceCount>0) Format="N0" />
                 </MudItem>
 
                 <MudItem xs="12" sm="6" md="4">
-
                     <MudNumericField Class="mt-5" Value="NetInvoiceCount" Label="تعداد خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-
                     <MudNumericField Class="mt-5" Value="NetInvoiceAmount" Label="ریال خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس دوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField Value="SecondServiceNetInvoiceCount" Label="تعداد خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-
-                    <MudNumericField Class="mt-5" Value="SecondServiceNetInvoiceAmount" Label="ریال خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
-                    <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                        <MudText Typo="Typo.h6">سرویس سوم</MudText>
-                    </MudStack>
-
-                    <MudNumericField Value="ThirdServiceNetInvoiceCount" Label="تعداد خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-
-                    <MudNumericField Class="mt-5" Value="ThirdServiceNetInvoiceAmount" Label="ریال خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
-                    <MudNumericField Class="mt-5" Value="TotalNetInvoiceCount" Label="تعداد خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" />
-
-                    <MudNumericField Class="mt-5" Value="TotalNetInvoiceAmount" Label="ریال خالص" Disabled=true ReadOnly=true Variant="Variant.Outlined" Format="N0" />
-
                 </MudItem>
 
                 <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
@@ -127,55 +72,38 @@
 @code {
     [Parameter] public long Id { get; set; }
     private MudForm form;
-    private Shipment shipment=new();
+    private Shipment shipment = new();
     private bool success = false;
     private string[] errors = [];
 
-    private int? returnInvoiceCount { get; set; }
-    private long? returnInvoiceAmount { get; set; }
-    private int? secondReturnInvoiceCount { get; set; }
-    private int? thirdReturnInvoiceCount { get; set; }
-    private long? secondReturnInvoiceAmount { get; set; }
-    private long? thirdReturnInvoiceAmount { get; set; }
+    private int? InvoiceCount { get; set; }
+    private long? InvoiceAmount { get; set; }
+    private int? ReturnInvoiceCount { get; set; }
+    private long? ReturnInvoiceAmount { get; set; }
 
-    public int? NetInvoiceCount => (shipment.InvoiceCount ?? 0) - (returnInvoiceCount ?? 0);
-    public int? SecondServiceNetInvoiceCount => (shipment.SecondServiceInvoiceCount ?? 0) - (secondReturnInvoiceCount ?? 0);
-    public int? ThirdServiceNetInvoiceCount => (shipment.ThirdServiceInvoiceCount ?? 0) - (thirdReturnInvoiceCount ?? 0);
-    public long? NetInvoiceAmount => (shipment.InvoiceAmount ?? 0) - (returnInvoiceAmount ?? 0);
-    public long? SecondServiceNetInvoiceAmount => (shipment.SecondServiceInvoiceAmount ?? 0) - (secondReturnInvoiceAmount ?? 0);
-    public long? ThirdServiceNetInvoiceAmount => (shipment.ThirdServiceInvoiceAmount ?? 0) - (thirdReturnInvoiceAmount ?? 0);
-
-    public long TotalNetInvoiceCount => NetInvoiceCount ?? 0 + SecondServiceNetInvoiceCount ?? 0 + ThirdServiceNetInvoiceCount ?? 0;
-    public long TotalNetInvoiceAmount => NetInvoiceAmount ?? 0 + SecondServiceNetInvoiceAmount ?? 0 + ThirdServiceNetInvoiceAmount ?? 0;
+    public int? NetInvoiceCount => (InvoiceCount ?? 0) - (ReturnInvoiceCount ?? 0);
+    public long? NetInvoiceAmount => (InvoiceAmount ?? 0) - (ReturnInvoiceAmount ?? 0);
 
     private async Task LoadShipment()
     {
         using var dbContext = dbContextFactory.CreateDbContext();
-        shipment = await dbContext.Shipments.Include(x=>x.ShipmentNumbers).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        shipment = await dbContext.Shipments.Include(x => x.ShipmentNumbers).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
     }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadShipment();
 
-        secondReturnInvoiceCount = shipment.SecondServiceInvoiceCount == null ? null : 0;
-        thirdReturnInvoiceCount = shipment.ThirdServiceInvoiceCount == null ? null : 0;
-        secondReturnInvoiceAmount = shipment.SecondServiceInvoiceAmount == null ? null : 0;
-        thirdReturnInvoiceAmount = shipment.ThirdServiceInvoiceAmount == null ? null : 0;
+        InvoiceCount = (shipment.InvoiceCount ?? 0) + (shipment.SecondServiceInvoiceCount ?? 0) + (shipment.ThirdServiceInvoiceCount ?? 0);
+        InvoiceAmount = (shipment.InvoiceAmount ?? 0) + (shipment.SecondServiceInvoiceAmount ?? 0) + (shipment.ThirdServiceInvoiceAmount ?? 0);
+        ReturnInvoiceCount = shipment.ReturnInvoiceCount;
+        ReturnInvoiceAmount = shipment.ReturnInvoiceAmount;
         StateHasChanged();
     }
 
-    private void Cancel() => navigationManager.NavigateTo("/");
+    private void Cancel() => navigationManager.NavigateTo("/",true);
 
-    private async Task ClearForm()
-    {
-        returnInvoiceCount = null;
-        returnInvoiceAmount = null;
-        secondReturnInvoiceCount = null;
-        thirdReturnInvoiceCount = null;
-        secondReturnInvoiceAmount = null;
-        thirdReturnInvoiceAmount = null;
-    }
+    private async Task ClearForm() => await OnInitializedAsync();
 
     private async Task AddShipmentToList()
     {
@@ -185,22 +113,17 @@
         if (!form!.IsValid)
             return;
 
-        shipment.ReturnInvoiceCount = returnInvoiceCount ?? 0 + secondReturnInvoiceCount ?? 0 + thirdReturnInvoiceCount ?? 0;
-        shipment.ReturnInvoiceAmount = returnInvoiceAmount ?? 0 + secondReturnInvoiceAmount ?? 0 + thirdReturnInvoiceAmount ?? 0;
+        shipment.ReturnInvoiceCount = ReturnInvoiceCount == 0 ? null : ReturnInvoiceCount;
+        shipment.ReturnInvoiceAmount = ReturnInvoiceAmount == 0 ? null : ReturnInvoiceAmount;
 
-        if (shipment.ReturnInvoiceCount == 0)
-            shipment.ReturnInvoiceCount = null;
-
-        if (shipment.ReturnInvoiceAmount == 0)
-            shipment.ReturnInvoiceAmount = null;
-
-        using var dbContext = dbContextFactory.CreateDbContext();
-        dbContext.Entry(shipment).State = EntityState.Modified;
-        // dbContext.Entry(shipment.ShipmentNumbers).State = EntityState.Modified;
-        //shipment.Id = 0;
-        var changedRowCount = await dbContext.SaveChangesAsync();
+        var changedRowCount = 0;
+        using (var dbContext = dbContextFactory.CreateDbContext())
+        {
+            dbContext.Entry(shipment).State = EntityState.Modified;
+            changedRowCount = await dbContext.SaveChangesAsync();
+        }
 
         if (changedRowCount > 0)
-            Cancel();
+            navigationManager.NavigateTo("/",true);
     }
 }

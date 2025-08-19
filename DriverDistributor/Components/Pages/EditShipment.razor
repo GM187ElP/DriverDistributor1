@@ -127,14 +127,14 @@
                             <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
                             <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
 
-                                @if (persian != null )
+                                @if (persian != null)
                                 {
-                                    <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-                                        <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
-                                        <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
-                                        <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
-                                        <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
-                                    </MudStack>
+                                        <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                            <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
+                                            <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
+                                            <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
+                                            <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
+                                        </MudStack>
                                 }
 
                             </MudStack>
@@ -149,22 +149,22 @@
                             @for (int i = 0; i < shipmentNumbersList.Count; i++)
                             {
                                 var index = i;
-                                <MudGrid Class="align-center mt-2">
-                                    <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
-                                        <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
-                                    </MudButton>
+                                    <MudGrid Class="align-center mt-2">
+                                        <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
+                                            <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
+                                        </MudButton>
 
-                                    <MudTextField T="int?"
-                                    @bind-Value=shipmentNumbersList[index]
-                                    Disabled=IsException
-                                    Label="@($"خروجی {index + 1}")"
-                                    Required=!IsException
-                                    ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
+                                        <MudTextField T="int?"
+                                        @bind-Value=shipmentNumbersList[index]
+                                        Disabled=IsException
+                                        Label="@($"خروجی {index + 1}")"
+                                        Required=!IsException
+                                        ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
 
-                                    <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
-                                        <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
-                                    </MudButton>
-                                </MudGrid>
+                                        <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
+                                            <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
+                                        </MudButton>
+                                    </MudGrid>
                             }
                         </div>
 
@@ -320,7 +320,7 @@
     private async Task LoadShipment()
     {
         await using var dbContext = dbContextFactory.CreateDbContext();
-        shipment = await dbContext.Shipments.Include(s => s.ShipmentNumbers).Include(x=>x.Personnel).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
+        shipment = await dbContext.Shipments.Include(s => s.ShipmentNumbers).Include(x => x.Personnel).FirstOrDefaultAsync(s => s.Id == Id) ?? new();
         dto = new();
         Mapper.MapToDto(shipment, dto);
 
@@ -545,7 +545,7 @@
             var shipmentNumbersRemoveList = await dbContext.ShipmentNumbers.Where(s => s.ShipmentId == Id).ToListAsync();
 
             dbContext.Entry(shipment).State = EntityState.Modified;
-            
+
             await using var transaction = await dbContext.Database.BeginTransactionAsync();
             try
             {

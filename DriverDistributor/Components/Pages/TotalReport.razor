@@ -1,4 +1,4 @@
-﻿@page "/"
+﻿@page "/total-report"
 @using System.Globalization
 @using ClosedXML.Excel
 @using DriverDistributor.Data
@@ -11,6 +11,7 @@
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
 @inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory
 
 
 <PageTitle>لیست حواله ها</PageTitle>
@@ -25,10 +26,10 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-        @bind-Value="SelectedMonth"
-        Dense="true"
-        FitContent="true"
-        Clearable="false">
+                   @bind-Value="SelectedMonth"
+                   Dense="true"
+                   FitContent="true"
+                   Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -36,19 +37,19 @@
         </MudSelect>
 
         <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-        IconColor="Color.Primary"
-        Size="Size.Small"
-        @onclick="Refresh">
+                   IconColor="Color.Primary"
+                   Size="Size.Small"
+                   @onclick="Refresh">
             آپدیت
         </MudButton>
 
         <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
-        @bind-Value="IsGostaresh"
-        Color="Color.Secondary"
-        CheckMark
-        FixedContent
-        Class="toggle-group-fit"
-        Delimiters="false">
+                        @bind-Value="IsGostaresh"
+                        Color="Color.Secondary"
+                        CheckMark
+                        FixedContent
+                        Class="toggle-group-fit"
+                        Delimiters="false">
             <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" />
@@ -84,33 +85,33 @@
         *@
 
 <MudDataGrid @ref="_mudDataGrid"
-T="IndexedShipment"
-Items="@indexedShipments"
-Dense="true"
-Bordered="true"
-Hover="true"
-RowClassFunc="@RowClassFunc"
-Striped="true"
-FixedHeader="true"
-Height="630px"
-Style="flex: 1; overflow: auto;"
-QuickFilter="@Filter"
-HeaderClass="table-header"
-Filterable=true
-ShowColumnOptions="false">
+             T="IndexedShipment"
+             Items="@indexedShipments"
+             Dense="true"
+             Bordered="true"
+             Hover="true"
+             RowClassFunc="@RowClassFunc"
+             Striped="true"
+             FixedHeader="true"
+             Height="630px"
+             Style="flex: 1; overflow: auto;"
+             QuickFilter="@Filter"
+             HeaderClass="table-header"
+             Filterable=true
+             ShowColumnOptions="false">
 
     <ToolBarContent>
         <MudTextField @bind-Value="_searchString"
-        Placeholder="جستجو"
-        Clearable=true
-        ClearIcon="@Icons.Material.Filled.Clear"
-        OnClearButtonClick="ClearDate"
-        Adornment="Adornment.Start"
-        Immediate="true"
-        AdornmentIcon="@Icons.Material.Filled.Search"
-        IconSize="Size.Medium"
-        FullWidth=false
-        Class="mt-0" />
+                      Placeholder="جستجو"
+                      Clearable=true
+                      ClearIcon="@Icons.Material.Filled.Clear"
+                      OnClearButtonClick="ClearDate"
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      FullWidth=false
+                      Class="mt-0" />
     </ToolBarContent>
 
     <Columns>
@@ -119,8 +120,8 @@ ShowColumnOptions="false">
         <TemplateColumn Title="حذف" Filterable="false" StickyLeft="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!isAuthorized)"
-                Color="Color.Error"
-                OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
+                               Color="Color.Error"
+                               OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
                 </MudIconButton>
             </CellTemplate>
         </TemplateColumn>
@@ -129,20 +130,20 @@ ShowColumnOptions="false">
         <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                Color="Color.Primary"
-                Size="Size.Small"
-                Disabled="@( !isAuthorized)"
-                OnClick="@(() => EditItem(row.Item))" />
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Disabled="@( !isAuthorized)"
+                               OnClick="@(() => EditItem(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
 
         <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                Color="Color.Primary"
-                Size="Size.Small"
-                Disabled="@(row.Item.IsException || !isAuthorized)"
-                OnClick="@(() => RegisterReturn(row.Item))" />
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Disabled="@(row.Item.IsException || !isAuthorized)"
+                               OnClick="@(() => RegisterReturn(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
 
@@ -192,15 +193,15 @@ ShowColumnOptions="false">
 
 <style>
     .table-header {
-    background-color: #1976d2 !important;
-    color: white !important;
-    text-align: center !important padding: 4px !important;
-    vertical-align: middle !important;
-    font-weight: bold !important;
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
     }
 
     body, html {
-        overflow: hidden !important; 
+        overflow: hidden !important;
         height: 99% !important;
         width: 100% !important;
         margin: 0 !important;
@@ -208,9 +209,9 @@ ShowColumnOptions="false">
     }
 
     .table-cell {
-    padding: 2px 6px !important;
-    font-size: small;
-    text-align: center;
+        padding: 2px 6px !important;
+        font-size: small;
+        text-align: center;
     }
 </style>
 
@@ -256,6 +257,75 @@ ShowColumnOptions="false">
             };
             LoadData();
         }
+    }
+
+    private async void LoadDataAsync()
+    {
+        Dictionary<string, TotalReportDto> fetchedData;
+        var dbContext = dbContextFactory.CreateDbContext();
+        var mainQuery = dbContext.Shipments.AsQueryable();
+        IQueryable<Shipment>? query;
+
+        if (_selectedMonth != "کلی")
+            query = mainQuery.Where(s => s.MonthName == _selectedMonth);
+        else
+            query = mainQuery;
+
+        var allNames = await query
+            .Select(s => new[] { s.DriverName, s.DistributorName })
+            .SelectMany(x => x)
+            .ToHashSetAsync();
+
+        List<TotalReportDto> dtos = [];
+
+        foreach (var name in allNames)
+        {
+            var shipmentsForName = query
+                .Where(s => s.DriverName == name || s.DistributorName == name);
+
+            var notExc = shipmentsForName.Where(sh => !sh.IsException);
+            var exc = shipmentsForName.Where(sh => sh.IsException);
+
+            var dto = new TotalReportDto
+                {
+                    Name = name,
+                    InvoiceCount = await notExc.SumAsync(sh => (sh.InvoiceCount ?? 0) + (sh.SecondServiceInvoiceCount ?? 0) + (sh.ThirdServiceInvoiceCount ?? 0)),
+                    InvoiceAmount = await notExc.SumAsync(sh => sh.InvoiceAmount ?? 0),
+                    ReturnInvoiceCount = await notExc.SumAsync(sh => sh.ReturnInvoiceCount ?? 0),
+                    ReturnInvoiceAmount = await notExc.SumAsync(sh => sh.ReturnInvoiceAmount ?? 0),
+                    VIPCount = await notExc.CountAsync(sh => sh.HasVip),
+                    CapitalCityCount = await notExc.CountAsync(sh => sh.RouteName == "شیراز"),
+                    NonCapitalCityCount = await notExc.CountAsync(sh => sh.RouteName != "شیراز"),
+                    ExceptionCount = await exc.CountAsync(sh => sh.IsException),
+                    AtWarehouseCount = await exc.CountAsync(sh => sh.RouteName == "انبار"),
+                    OffCount = await exc.CountAsync(sh => sh.RouteName == "مرخصی"),
+                    AtAutoMechCount = await exc.CountAsync(sh => sh.RouteName == "تعمیرگاه"),
+                    OtherCount = await exc.CountAsync(sh => sh.RouteName == "متفرقه"),
+                    AbsentCount = await exc.CountAsync(sh => sh.RouteName == "غیبت")
+                };
+
+            dtos.Add(dto);
+        }
+    }
+
+    public class TotalReportDto
+    {
+        public string Name { get; set; }
+        public int? InvoiceCount { get; set; }
+        public long? InvoiceAmount { get; set; }
+        public int? ReturnInvoiceCount { get; set; }
+        public long? ReturnInvoiceAmount { get; set; }
+        public int VIPCount { get; set; }
+        public int CapitalCityCount { get; set; }
+        public int NonCapitalCityCount { get; set; }
+        public int NetCount => (InvoiceCount ?? 0) - (ReturnInvoiceCount ?? 0);
+        public long NetAmount => (InvoiceAmount ?? 0) - (ReturnInvoiceAmount ?? 0);
+        public int ExceptionCount { get; set; }
+        public int AtWarehouseCount { get; set; }
+        public int OffCount { get; set; }
+        public int AtAutoMechCount { get; set; }
+        public int OtherCount { get; set; }
+        public int AbsentCount { get; set; }
     }
 
     private async Task OpenDialogAsync(long id)
