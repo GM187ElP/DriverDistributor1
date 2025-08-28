@@ -23,10 +23,10 @@
 
                 <MudItem xs="12" sm="6" md="4">
 
-                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="shipment.InvoiceCount"
+                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceCount" Label="تعداد فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="InvoiceCount"
                     ErrorText="لطفا تعداد فاکتورها را وارد کنید" Required=@(ReturnInvoiceAmount>0) />
 
-                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="shipment.InvoiceAmount"
+                    <MudNumericField Class="mt-5" @bind-Value="ReturnInvoiceAmount" Label="جمع ریال فاکتورهای مرجوعی" Variant="Variant.Outlined" Immediate=true Min="0" Max="InvoiceAmount"
                     ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" Required=@(ReturnInvoiceCount>0) Format="N0" />
                 </MudItem>
 

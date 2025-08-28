@@ -14,6 +14,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Route> Routes { get; set; }
     public DbSet<Personnel> Personnels { get; set; }
     public DbSet<ShipmentNumber> ShipmentNumbers { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<Customer> Customers { get; set; }
+    public DbSet<Producer> Producers { get; set; }
+    public DbSet<SellerRoute> SellerRoutes { get; set; }
+    public DbSet<Seller> Sellers { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -43,6 +48,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Distributor>()
             .Property(x => x.Name)
             .HasColumnType("nvarchar(100)");
+
+        builder.Entity<Customer>()
+            .HasMany(x => x.Invoices)
+            .WithOne(x => x.Customer)
+            .HasForeignKey(x=>x.CustomerCode);
+
+        builder.Entity<Producer>()
+            .HasMany(x => x.Invoices)
+            .WithOne(x => x.Producer)
+            .HasForeignKey(x => x.ProducerCode);
 
         base.OnModelCreating(builder);
     }

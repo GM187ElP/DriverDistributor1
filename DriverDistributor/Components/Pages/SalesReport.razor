@@ -1,0 +1,435 @@
+﻿@page "/no-sales-customer-report"
+@using ClosedXML.Excel
+@using DriverDistributor.Data
+@using DriverDistributor.Entities
+@using Microsoft.EntityFrameworkCore
+@using System.Globalization
+@using static DriverDistributor.Components.PersianDatePicker
+@inject IDbContextFactory<AppDbContext> dbContextFactory
+@inject Services services
+
+<MudCheckBox @bind-Value=UseOldSellerData Label="غیر فعال"></MudCheckBox>
+<MudFileUpload MaximumFileCount=1 T="IBrowserFile" FilesChanged="UploadSellersFile" Disabled=disableSellers>
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            آپلود لیست فروشنده ها
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudCheckBox @bind-Value=UseOldRoutesData Label="غیر فعال"></MudCheckBox>
+<MudFileUpload MaximumFileCount=1 T="IBrowserFile" FilesChanged="UploadRoutesFile" Disabled=disableRoutes>
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            آپلود لیست مسیرها
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudCheckBox @bind-Value=UseOldCustomersData Label="غیر فعال"></MudCheckBox>
+<MudFileUpload MaximumFileCount=1 T="IBrowserFile" FilesChanged="UploadCustomersFile" Disabled=disableCustomers>
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            آپلود مشتری
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudCheckBox @bind-Value=UseOldInvoicesData Label="غیر فعال"></MudCheckBox>
+<MudFileUpload MaximumFileCount=1 T="IBrowserFile" FilesChanged="UploadInvoicesFile" Disabled=disableInvoices>
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Success"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            آپلود فاکتورها
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+<MudSelect T="Producer" @bind-Value="@producer" Label="انتخاب تولیدکننده">
+    @foreach (var item in producers)
+    {
+        <MudSelectItem Value="item">@item.ProducerName</MudSelectItem>
+    }
+</MudSelect>
+
+<PersianDatePicker Value="startDate" Label="از" />
+<PersianDatePicker Value="endDate" Label="تا" />
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" @onclick="ExportExcel">
+    خروجی اکسل
+</MudButton>
+
+<Excel FileName="مشتری خرید نکرده" @onclick="ExportExcel" />
+
+@code {
+    Producer producer = new() { ProducerCode = 0, ProducerName = "کلی" };
+    Excel excel;
+    List<Customer> noSalesCustomers;
+    PersianCalendarClass startDate;
+    PersianCalendarClass endDate;
+    List<Producer> producers = new();
+    IList<IBrowserFile> _customerFiles = new List<IBrowserFile>();
+    IList<IBrowserFile> _invoiceFiles = new List<IBrowserFile>();
+
+    bool disableSellers = false;
+    bool disableRoutes = true;
+    bool disableCustomers = true;
+    bool disableInvoices = true;
+
+    bool useOldSellersData = false;
+    bool useOldRoutesData = false;
+    bool useOldCustomersData = false;
+    bool useOldInvoicesData = false;
+
+    public bool UseOldSellerData
+    {
+        get => useOldSellersData;
+        set
+        {
+            useOldSellersData = value;
+            if (value)
+            {
+                disableSellers = true;
+                disableRoutes = false;
+            }
+            else
+            {
+                disableSellers = false;
+                disableRoutes = true;
+            }
+        }
+    }
+
+    public bool UseOldRoutesData
+    {
+        get => useOldRoutesData;
+        set
+        {
+            useOldRoutesData = value;
+            if (value)
+            {
+                disableRoutes = true;
+                disableCustomers = false;
+            }
+            else
+            {
+                disableRoutes = false;
+                disableCustomers = true;
+            }
+        }
+    }
+
+    public bool UseOldCustomersData
+    {
+        get => useOldCustomersData;
+        set
+        {
+            useOldCustomersData = value;
+            if (value)
+            {
+                disableCustomers = true;
+                disableInvoices = false;
+            }
+            else
+            {
+                disableCustomers = false;
+                disableInvoices = true;
+            }
+        }
+    }
+
+    public bool UseOldInvoicesData
+    {
+        get => useOldInvoicesData;
+        set
+        {
+            useOldInvoicesData = value;
+            disableInvoices = value;
+        }
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        startDate = new(DateTime.Today);
+        endDate = new(DateTime.Today);
+
+        await LoadProducers();
+    }
+
+    async Task LoadProducers()
+    {
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+        producers = await dbContext.Producers.ToListAsync();
+        producers.Add(new Producer { ProducerCode = 0, ProducerName = "کلی" });
+        producer = producers.FirstOrDefault();
+    }
+
+    private async Task UploadSellersFile(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+        var rows = worksheet.RangeUsed().RowsUsed();
+
+        var sellers = new List<Seller>();
+
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        foreach (var row in rows.Skip(1))
+        {
+            var seller = new Seller
+                {
+                    Id = row.Cell(1).GetValue<int>(),
+                    SellerName = row.Cell(2).GetValue<string>()
+                };
+
+            sellers.Add(seller);
+        }
+
+        dbContext.Sellers.RemoveRange(dbContext.Sellers);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.Sellers.AddRangeAsync(sellers);
+        var result = await dbContext.SaveChangesAsync();
+
+        if (result > 0)
+            disableRoutes = false;
+    }
+
+    private async Task UploadRoutesFile(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+        var rows = worksheet.RangeUsed().RowsUsed();
+
+        var sellerRoutes = new List<SellerRoute>();
+
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var sellersDict = await dbContext.Sellers.ToDictionaryAsync(s => s.Id);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var sellerRoute = new SellerRoute
+                {
+                    Id = row.Cell(1).GetValue<int>(),
+                    RouteName = row.Cell(2).GetValue<string>(),
+                    SellerId = row.Cell(3).GetValue<int>()
+                };
+
+            if (sellerRoute.SellerId.HasValue)
+            {
+                sellersDict.TryGetValue(sellerRoute.SellerId.Value, out var seller);
+                sellerRoute.Seller = seller;
+            }
+        }
+
+        dbContext.SellerRoutes.RemoveRange(dbContext.SellerRoutes);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.SellerRoutes.AddRangeAsync(sellerRoutes);
+        var result = await dbContext.SaveChangesAsync();
+
+        if (result > 0)
+            disableCustomers = false;
+    }
+
+    private async Task UploadCustomersFile(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+        var rows = worksheet.RangeUsed().RowsUsed();
+
+        var customers = new List<Customer>();
+
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var sellerRoutes = dbContext.SellerRoutes.Include(r => r.Seller).ToDictionary(r => r.Id);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var customer = new Customer
+                {
+                    CustomerCode = row.Cell(1).GetValue<int>(),
+                    CustomerName = row.Cell(2).GetValue<string>(),
+                    ShenaseMelli = row.Cell(3).GetValue<string>(),
+                    SellerRouteId = row.Cell(4).GetValue<int>(),
+                    Address = row.Cell(5).GetValue<string>(),
+                    Mobile = row.Cell(6).GetValue<string>(),
+                    Status = row.Cell(7).GetValue<string>(),
+                    Title = row.Cell(8).GetValue<string>(),
+                    PurchaseStatus = row.Cell(9).GetValue<string>(),
+                    TaxingCode = row.Cell(10).GetValue<string>(),
+                    CountyName = row.Cell(11).GetValue<string>(),
+                    RoleCode = row.Cell(12).GetValue<long>(),
+                    MojavezSamane = row.Cell(13).GetValue<string>(),
+                    NationalId = row.Cell(14).GetValue<string>(),
+                    PostalCode = row.Cell(15).GetValue<string>(),
+                    Latitude = row.Cell(16).GetValue<double>(),
+                    Longitude = row.Cell(17).GetValue<double>()
+                };
+
+            if (customer.SellerRouteId.HasValue)
+            {
+                if (sellerRoutes.TryGetValue(customer.SellerRouteId.Value, out var sellerRoute))
+                {
+                    customer.SellerRoute = sellerRoute;
+                    customer.SellerCode = sellerRoute.Seller.Id;
+                    customer.SellerName = sellerRoute.Seller.SellerName;
+                }
+            }
+
+            customers.Add(customer);
+        }
+
+        dbContext.Customers.RemoveRange(dbContext.Customers);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.Customers.AddRangeAsync(customers);
+        var result = await dbContext.SaveChangesAsync();
+
+        if (result > 0)
+            disableInvoices = false;
+    }
+
+
+    private async Task UploadInvoicesFile(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream();
+        using var workbook = new XLWorkbook(stream);
+        var worksheet = workbook.Worksheet(1);
+        var rows = worksheet.RangeUsed().RowsUsed();
+
+        PersianCalendar persianCalendar = new();
+        var invoices = new List<Invoice>();
+
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        var customersDict = dbContext.Customers.ToDictionary(c => c.CustomerCode);
+        var producersDict = dbContext.Producers.ToDictionary(p => p.ProducerCode);
+
+        foreach (var row in rows.Skip(1))
+        {
+            var invoice = new Invoice
+                {
+                    Id = row.Cell(1).GetValue<long>(),
+                    InvoiceNumber = row.Cell(2).GetValue<int>(),
+                    InvoiceDate = row.Cell(3).GetValue<string>(),
+                    CustomerCode = row.Cell(4).GetValue<int>(),
+                    InvoiceType = row.Cell(5).GetValue<string>()[0],
+                    ProducerCode = row.Cell(6).GetValue<int>(),
+                    ProductCode = row.Cell(7).GetValue<int>(),
+                    ProductName = row.Cell(8).GetValue<string>(),
+                    CartonQuantity = row.Cell(9).GetValue<int>(),
+                    UnitQuantity = row.Cell(10).GetValue<int>(),
+                    TotalQuantity = row.Cell(11).GetValue<int>(),
+                    UnitPrice = row.Cell(12).GetValue<int>(),
+                    GrossAmount = row.Cell(13).GetValue<int>(),
+                    DiscountAmount = row.Cell(14).GetValue<int>(),
+                    NetAmountAfterDiscount = row.Cell(15).GetValue<int>(),
+                    Tax = row.Cell(16).GetValue<int>(),
+                    NetAmount = row.Cell(17).GetValue<int>(),
+                    Weight = row.Cell(18).GetValue<double>(),
+                    ProductGroupCode = row.Cell(19).GetValue<int>(),
+                    ProductGroupName = row.Cell(20).GetValue<string>(),
+                    DriverCode = row.Cell(21).GetValue<int>(),
+                    DriverName = row.Cell(22).GetValue<string>(),
+                    DistributorCode = row.Cell(23).GetValue<int>(),
+                    DistributorName = row.Cell(24).GetValue<string>(),
+                    ShipmentNumber = row.Cell(25).GetValue<int>(),
+                    ReturnReferenceNumber = row.Cell(26).GetValue<int>(),
+                    JameTejaratNumber = row.Cell(27).GetValue<string>(),
+                    MeasurementName = row.Cell(28).GetValue<string>(),
+                    Description = row.Cell(29).GetValue<string>()
+                };
+
+            invoice.Customer = customersDict.GetValueOrDefault(invoice.CustomerCode);
+            invoice.Producer = producersDict.GetValueOrDefault(invoice.ProducerCode);
+
+            var year = int.Parse(invoice.InvoiceDate.Substring(0, 4));
+            var month = int.Parse(invoice.InvoiceDate.Substring(5, 2));
+            var day = int.Parse(invoice.InvoiceDate.Substring(8, 2));
+            invoice.GregorianInvoiceDate = persianCalendar.ToDateTime(year, month, day, 0, 0, 0, 0);
+
+            invoices.Add(invoice);
+        }
+
+        dbContext.Invoices.RemoveRange(dbContext.Invoices);
+        await dbContext.SaveChangesAsync();
+
+        await dbContext.Invoices.AddRangeAsync(invoices);
+        await dbContext.SaveChangesAsync();
+    }
+
+    async Task ExportExcel()
+    {
+        using var dbContext = await dbContextFactory.CreateDbContextAsync();
+
+        if (producer.ProducerName != "کلی")
+        {
+            noSalesCustomers = await dbContext.Customers
+                .FromSqlInterpolated($@"""
+                    ;WITH Agg AS (
+                        SELECT
+                            C.CustomerCode,
+                            COALESCE(SUM(I.GrossAmount), 0) AS TotalGross
+                        FROM Customers AS C
+                        LEFT JOIN Invoices AS I
+                            ON C.CustomerCode = I.CustomerCode
+                            AND I.GregorianInvoiceDate BETWEEN {startDate.GregorianDate} AND {endDate.GregorianDate}
+                            AND I.ProducerCode = {producer.ProducerCode}
+                        GROUP BY C.CustomerCode
+                        HAVING COALESCE(SUM(I.GrossAmount), 0) <= 0
+                    )
+                    SELECT C.*
+                    FROM Customers C
+                    JOIN Agg A ON C.CustomerCode = A.CustomerCode;
+                    """)
+                .ToListAsync();
+        }
+        else
+        {
+            noSalesCustomers = await dbContext.Customers
+                .FromSqlInterpolated($@"""
+                    ;WITH Agg AS (
+                        SELECT
+                            C.CustomerCode,
+                            COALESCE(SUM(I.GrossAmount), 0) AS TotalGross
+                        FROM Customers AS C
+                        LEFT JOIN Invoices AS I
+                            ON C.CustomerCode = I.CustomerCode
+                            AND I.GregorianInvoiceDate BETWEEN {startDate.GregorianDate} AND {endDate.GregorianDate}
+                        GROUP BY C.CustomerCode
+                        HAVING COALESCE(SUM(I.GrossAmount), 0) <= 0
+                    )
+                    SELECT C.*
+                    FROM Customers C
+                    JOIN Agg A ON C.CustomerCode = A.CustomerCode;
+                    """)
+                .ToListAsync();
+        }
+
+        await OnExportRequested();
+    }
+
+    private async Task OnExportRequested()
+    {
+        var workbook = new XLWorkbook();
+        var producerName = producer.ProducerName;
+        var worksheet = workbook.AddWorksheet($"مشتری خرید نکرده {producerName}");
+
+        var columnsdsfs = excel.SetData(noSalesCustomers, worksheet, 1, 2, null);
+
+        await excel.Export(workbook);
+    }
+}

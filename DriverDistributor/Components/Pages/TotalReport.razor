@@ -26,10 +26,10 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-                   @bind-Value="SelectedMonth"
-                   Dense="true"
-                   FitContent="true"
-                   Clearable="false">
+        @bind-Value="SelectedMonth"
+        Dense="true"
+        FitContent="true"
+        Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -37,19 +37,19 @@
         </MudSelect>
 
         <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-                   IconColor="Color.Primary"
-                   Size="Size.Small"
-                   @onclick="Refresh">
+        IconColor="Color.Primary"
+        Size="Size.Small"
+        @onclick="Refresh">
             آپدیت
         </MudButton>
 
         <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
-                        @bind-Value="IsGostaresh"
-                        Color="Color.Secondary"
-                        CheckMark
-                        FixedContent
-                        Class="toggle-group-fit"
-                        Delimiters="false">
+        @bind-Value="IsGostaresh"
+        Color="Color.Secondary"
+        CheckMark
+        FixedContent
+        Class="toggle-group-fit"
+        Delimiters="false">
             <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" />
@@ -85,88 +85,57 @@
         *@
 
 <MudDataGrid @ref="_mudDataGrid"
-             T="IndexedShipment"
-             Items="@indexedShipments"
-             Dense="true"
-             Bordered="true"
-             Hover="true"
-             RowClassFunc="@RowClassFunc"
-             Striped="true"
-             FixedHeader="true"
-             Height="630px"
-             Style="flex: 1; overflow: auto;"
-             QuickFilter="@Filter"
-             HeaderClass="table-header"
-             Filterable=true
-             ShowColumnOptions="false">
+T="TotalReportDto"
+             Items="@totalReportDtos"
+Dense="true"
+Bordered="true"
+Hover="true"
+RowClassFunc="@RowClassFunc"
+Striped="true"
+FixedHeader="true"
+Height="630px"
+Style="flex: 1; overflow: auto;"
+@* QuickFilter="@Filter" *@
+HeaderClass="table-header"
+Filterable=true
+ShowColumnOptions="false">
 
     <ToolBarContent>
         <MudTextField @bind-Value="_searchString"
-                      Placeholder="جستجو"
-                      Clearable=true
-                      ClearIcon="@Icons.Material.Filled.Clear"
-                      OnClearButtonClick="ClearDate"
-                      Adornment="Adornment.Start"
-                      Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search"
-                      IconSize="Size.Medium"
-                      FullWidth=false
-                      Class="mt-0" />
+        Placeholder="جستجو"
+        Clearable=true
+        ClearIcon="@Icons.Material.Filled.Clear"
+        OnClearButtonClick="ClearDate"
+        Adornment="Adornment.Start"
+        Immediate="true"
+        AdornmentIcon="@Icons.Material.Filled.Search"
+        IconSize="Size.Medium"
+        FullWidth=false
+        Class="mt-0" />
     </ToolBarContent>
 
     <Columns>
 
         <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-        <TemplateColumn Title="حذف" Filterable="false" StickyLeft="true" HeaderClass="table-header">
-            <CellTemplate Context="row">
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!isAuthorized)"
-                               Color="Color.Error"
-                               OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
-                </MudIconButton>
-            </CellTemplate>
-        </TemplateColumn>
+        
+        <PropertyColumn Property="x => x.Name" Sortable="false" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.PersonnelCode" Sortable="false" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.InvoiceCountFormatted" Sortable="false" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.InvoiceAmountFormatted" Sortable="false" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Sortable="false" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Sortable="false" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
 
-
-        <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
-            <CellTemplate Context="row">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                               Color="Color.Primary"
-                               Size="Size.Small"
-                               Disabled="@( !isAuthorized)"
-                               OnClick="@(() => EditItem(row.Item))" />
-            </CellTemplate>
-        </TemplateColumn>
-
-        <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
-            <CellTemplate Context="row">
-                <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                               Color="Color.Primary"
-                               Size="Size.Small"
-                               Disabled="@(row.Item.IsException || !isAuthorized)"
-                               OnClick="@(() => RegisterReturn(row.Item))" />
-            </CellTemplate>
-        </TemplateColumn>
-
-        <PropertyColumn Property="x => x.ShipmentDatePersian" Sortable="false" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.Weekday" Sortable="false" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
-        @* <PropertyColumn Property="x => x.DriverPersonnelCode" Title="کد پرسنلی راننده" HeaderClass="table-header" CellClass="table-cell" /> *@
-        <PropertyColumn Property="x => x.DriverName" Sortable="false" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
-        @* <PropertyColumn Property="x => x.DistributorPersonnelCode" Title="کد پرسنلی موزع" HeaderClass="table-header" CellClass="table-cell" /> *@
-        <PropertyColumn Property="x => x.DistributorName" Sortable="false" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.RouteName" Sortable="false" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.WarehouseName" Sortable="false" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.InvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.InvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ShipmentNumbersString" Sortable="false" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.SecondServiceInvoiceCountFormatted" Sortable="false" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.SecondServiceInvoiceAmountFormatted" Sortable="false" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ThirdServiceInvoiceCountFormatted" Sortable="false" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ThirdServiceInvoiceAmountFormatted" Sortable="false" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.HasVipFormatted" Sortable="false" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="ریال خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.VIPCount" Sortable="false" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ExceptionCount" Sortable="false" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AbsentCount" Sortable="false" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AtAutoMechCount" Sortable="false" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AtWarehouseCount" Sortable="false" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.CapitalCityCount" Sortable="false" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NonCapitalCityCount" Sortable="false" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.OtherCount" Sortable="false" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.OffCount" Sortable="false" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
     </Columns>
 </MudDataGrid>
 
@@ -193,25 +162,25 @@
 
 <style>
     .table-header {
-        background-color: #1976d2 !important;
-        color: white !important;
-        text-align: center !important padding: 4px !important;
-        vertical-align: middle !important;
-        font-weight: bold !important;
+    background-color: #1976d2 !important;
+    color: white !important;
+    text-align: center !important padding: 4px !important;
+    vertical-align: middle !important;
+    font-weight: bold !important;
     }
 
     body, html {
-        overflow: hidden !important;
-        height: 99% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
+    overflow: hidden !important;
+    height: 99% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     }
 
     .table-cell {
-        padding: 2px 6px !important;
-        font-size: small;
-        text-align: center;
+    padding: 2px 6px !important;
+    font-size: small;
+    text-align: center;
     }
 </style>
 
@@ -221,16 +190,17 @@
     private MudMessageBox _mudMessageBox;
 
     private PersianCalendarClass _persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
-    private MudDataGrid<IndexedShipment> _mudDataGrid;
+    private MudDataGrid<TotalReportDto> _mudDataGrid;
     private readonly string[] monthList = { "کلی", "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
     private string? _selectedMonth = "کلی";
     private bool isAuthorized;
-    private List<IndexedShipment> indexedShipments = [];
     private bool? _isGostaresh = null;
     private string? _distributionCenter = null;
     private string _searchString;
-    private List<IndexedShipment> reportToExcel;
+    private List<TotalReportDto> reportToExcel;
     private Excel excel;
+    private AppDbContext dbc;
+    private List<TotalReportDto> totalReportDtos;
 
     private PersianCalendarClass Persian
     {
@@ -239,7 +209,7 @@
         {
             _persian = value;
             _searchString = value.DisplayDate;
-            indexedShipments.Where(Filter);
+            totalReportDtos.Where(Filter);
         }
     }
 
@@ -259,73 +229,116 @@
         }
     }
 
-    private async void LoadDataAsync()
+    private async Task LoadDataAsync()
     {
-        Dictionary<string, TotalReportDto> fetchedData;
-        var dbContext = dbContextFactory.CreateDbContext();
-        var mainQuery = dbContext.Shipments.AsQueryable();
-        IQueryable<Shipment>? query;
-
-        if (_selectedMonth != "کلی")
-            query = mainQuery.Where(s => s.MonthName == _selectedMonth);
-        else
-            query = mainQuery;
-
-        var allNames = await query
-            .Select(s => new[] { s.DriverName, s.DistributorName })
-            .SelectMany(x => x)
-            .ToHashSetAsync();
-
-        List<TotalReportDto> dtos = [];
-
-        foreach (var name in allNames)
-        {
-            var shipmentsForName = query
-                .Where(s => s.DriverName == name || s.DistributorName == name);
-
-            var notExc = shipmentsForName.Where(sh => !sh.IsException);
-            var exc = shipmentsForName.Where(sh => sh.IsException);
-
-            var dto = new TotalReportDto
-                {
-                    Name = name,
-                    InvoiceCount = await notExc.SumAsync(sh => (sh.InvoiceCount ?? 0) + (sh.SecondServiceInvoiceCount ?? 0) + (sh.ThirdServiceInvoiceCount ?? 0)),
-                    InvoiceAmount = await notExc.SumAsync(sh => sh.InvoiceAmount ?? 0),
-                    ReturnInvoiceCount = await notExc.SumAsync(sh => sh.ReturnInvoiceCount ?? 0),
-                    ReturnInvoiceAmount = await notExc.SumAsync(sh => sh.ReturnInvoiceAmount ?? 0),
-                    VIPCount = await notExc.CountAsync(sh => sh.HasVip),
-                    CapitalCityCount = await notExc.CountAsync(sh => sh.RouteName == "شیراز"),
-                    NonCapitalCityCount = await notExc.CountAsync(sh => sh.RouteName != "شیراز"),
-                    ExceptionCount = await exc.CountAsync(sh => sh.IsException),
-                    AtWarehouseCount = await exc.CountAsync(sh => sh.RouteName == "انبار"),
-                    OffCount = await exc.CountAsync(sh => sh.RouteName == "مرخصی"),
-                    AtAutoMechCount = await exc.CountAsync(sh => sh.RouteName == "تعمیرگاه"),
-                    OtherCount = await exc.CountAsync(sh => sh.RouteName == "متفرقه"),
-                    AbsentCount = await exc.CountAsync(sh => sh.RouteName == "غیبت")
-                };
-
-            dtos.Add(dto);
-        }
+        var dbContext =await dbContextFactory.CreateDbContextAsync();
+        totalReportDtos= await LoadDataQueryAsync(dbContext).ToListAsync()?? new();
     }
+
+    private IQueryable<TotalReportDto> LoadDataQueryAsync(AppDbContext? dbContext)
+    {
+        var mainQuery = dbContext.Shipments.AsQueryable();
+
+        var query = _selectedMonth != "کلی"
+            ? mainQuery.Where(s => s.MonthName == _selectedMonth)
+            : mainQuery;
+
+        return query
+            .SelectMany(s => new[] { new { Name = s.DriverName, Shipment = s }, new { Name = s.DistributorName, Shipment = s } })
+            .GroupBy(x => x.Name)
+            .Select(g => new TotalReportDto
+                {
+                    Name = g.Key,
+                    PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ? g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty : g.Where(x => x.Shipment.DistributorName == g.Key)
+                        .Select(x => x.Shipment.DistributorPersonnelCode)
+                        .FirstOrDefault().ToString() ?? string.Empty,
+
+                    InvoiceCount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
+                    InvoiceAmount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
+                    ReturnInvoiceCount = g.Where(x => !x.Shipment.IsException).Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+                    ReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException).Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+
+                    VIPCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.HasVip) ? 1 : 0),
+                    CapitalCityCount = g.Sum(x => (x.Shipment.RouteName == "شیراز") ? 1 : 0),
+                    NonCapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName != "شیراز") ? 1 : 0),
+                    ExceptionCount = g.Count(x => x.Shipment.IsException),
+                    AtWarehouseCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "انبار") ? 1 : 0),
+                    OffCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "مرخصی") ? 1 : 0),
+                    AtAutoMechCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "تعمیرگاه") ? 1 : 0),
+                    OtherCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "متفرقه") ? 1 : 0),
+                    AbsentCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "غیبت") ? 1 : 0),
+                });
+    }
+
 
     public class TotalReportDto
     {
+        [PropertyInfo(1, "ردیف", true, ColumnType.Number)]
+        public long Index { get; set; }
+
+        [PropertyInfo(1, "نام", true, ColumnType.Text)]
         public string Name { get; set; }
-        public int? InvoiceCount { get; set; }
-        public long? InvoiceAmount { get; set; }
-        public int? ReturnInvoiceCount { get; set; }
-        public long? ReturnInvoiceAmount { get; set; }
+
+        [PropertyInfo(2, "کد پرسنلی", true, ColumnType.Text)]
+        public string PersonnelCode { get; set; }
+
+        [PropertyInfo(3, "تعداد فاکتور", true, ColumnType.Number)]
+        public int InvoiceCount { get; set; }
+
+        [PropertyInfo(4, "مبلغ فاکتور", true, ColumnType.Number)]
+        public long InvoiceAmount { get; set; }
+
+        [PropertyInfo(5, "تعداد مرجوعی", true, ColumnType.Number)]
+        public int ReturnInvoiceCount { get; set; }
+
+        [PropertyInfo(6, "مبلغ مرجوعی", true, ColumnType.Number)]
+        public long ReturnInvoiceAmount { get; set; }
+
+        [PropertyInfo(7, "ویژه", true, ColumnType.Number)]
         public int VIPCount { get; set; }
+
+        [PropertyInfo(8, "شیراز", true, ColumnType.Number)]
         public int CapitalCityCount { get; set; }
+
+        [PropertyInfo(9, "غیر شیراز", true, ColumnType.Number)]
         public int NonCapitalCityCount { get; set; }
-        public int NetCount => (InvoiceCount ?? 0) - (ReturnInvoiceCount ?? 0);
-        public long NetAmount => (InvoiceAmount ?? 0) - (ReturnInvoiceAmount ?? 0);
+
+        [PropertyInfo(10, "تعداد استثنا", true, ColumnType.Number)]
         public int ExceptionCount { get; set; }
+
+        [PropertyInfo(11, "انبار", true, ColumnType.Number)]
         public int AtWarehouseCount { get; set; }
+
+        [PropertyInfo(12, "مرخصی", true, ColumnType.Number)]
         public int OffCount { get; set; }
+
+        [PropertyInfo(13, "تعمیرگاه", true, ColumnType.Number)]
         public int AtAutoMechCount { get; set; }
+
+        [PropertyInfo(14, "متفرقه", true, ColumnType.Number)]
         public int OtherCount { get; set; }
+
+        [PropertyInfo(15, "غیبت", true, ColumnType.Number)]
         public int AbsentCount { get; set; }
+
+        [PropertyInfo(16, "خالص تعداد", true, ColumnType.Number)]
+        public int NetInvoiceCount => InvoiceCount - ReturnInvoiceCount;
+
+        [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
+        public long NetInvoiceAmount => InvoiceAmount - ReturnInvoiceAmount;
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string InvoiceCountFormatted => InvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string InvoiceAmountFormatted => InvoiceAmount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string ReturnInvoiceCountFormatted => ReturnInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string ReturnInvoiceAmountFormatted => ReturnInvoiceAmount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string NetInvoiceCountFormatted => NetInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string NetInvoiceAmountFormatted => NetInvoiceAmount.ToString("N0");
     }
 
     private async Task OpenDialogAsync(long id)
@@ -355,118 +368,6 @@
         IsGostaresh = null;
     }
 
-    public class IndexedShipment
-    {
-        [PropertyInfo(1, "ردیف", true, ColumnType.Number)]
-        public long Index { get; set; }
-
-        [PropertyInfo(2, "آیدی", false, ColumnType.Number)]
-        public long Id { get; set; }
-
-        [PropertyInfo(3, "تاریخ", true, ColumnType.Text)]
-        public string MonthName { get; set; }
-
-        [PropertyInfo(4, "تاریخ", true, ColumnType.Text)]
-        public string ShipmentDatePersian { get; set; }
-
-        [PropertyInfo(5, "روز", true, ColumnType.Text)]
-        public string Weekday { get; set; }
-
-        [PropertyInfo(6, "کد پرسنلی راننده", true, ColumnType.Number)]
-        public int? DriverPersonnelCode { get; set; }
-
-        [PropertyInfo(7, "راننده", true, ColumnType.Text)]
-        public string? DriverName { get; set; }
-
-        [PropertyInfo(8, "ماهیت راننده", true, ColumnType.Text)]
-        public string? DriverDuty { get; set; } = null;
-
-        [PropertyInfo(9, "کد پرسنلی موزع", true, ColumnType.Number)]
-        public int? DistributorPersonnelCode { get; set; }
-
-        [PropertyInfo(10, "موزع", true, ColumnType.Text)]
-        public string? DistributorName { get; set; }
-
-        [PropertyInfo(11, "ماهیت موزع", true, ColumnType.Text)]
-        public string? DistributorDuty { get; set; } = null;
-
-        [PropertyInfo(12, "مسیر", true, ColumnType.Text)]
-        public string RouteName { get; set; }
-
-        [PropertyInfo(13, "انبار", true, ColumnType.Text)]
-        public string? WarehouseName { get; set; }
-
-        [PropertyInfo(14, "تعداد فاکتور", true, ColumnType.Number)]
-        public int? InvoiceCount { get; set; }
-
-        [PropertyInfo(15, "ریال فاکتور", true, ColumnType.Number)]
-        public long? InvoiceAmount { get; set; }
-
-        [PropertyInfo(16, "خروجی", true, ColumnType.Text)]
-        public string? ShipmentNumbersString { get; set; }
-
-        [PropertyInfo(17, "تعداد فاکتور مرجوعی", true, ColumnType.Number)]
-        public int? ReturnInvoiceCount { get; set; }
-
-        [PropertyInfo(18, "ریال فاکتور مرجوعی", true, ColumnType.Number)]
-        public long? ReturnInvoiceAmount { get; set; }
-
-        [PropertyInfo(19, "تعداد ف سرویس دوم", true, ColumnType.Number)]
-        public int? SecondServiceInvoiceCount { get; set; }
-
-        [PropertyInfo(20, "ریال ف سرویس دوم", true, ColumnType.Number)]
-        public long? SecondServiceInvoiceAmount { get; set; }
-
-        [PropertyInfo(21, "تعداد ف سرویس سوم", true, ColumnType.Number)]
-        public int? ThirdServiceInvoiceCount { get; set; }
-
-        [PropertyInfo(22, "ریال ف سرویس سوم", true, ColumnType.Number)]
-        public long? ThirdServiceInvoiceAmount { get; set; }
-
-        [PropertyInfo(23, "VIP", true, ColumnType.Boolean)]
-        public string? HasVipFormatted => HasVip ? "دارد" : null;
-
-        [PropertyInfo(24, "تعداد خلص ف", true, ColumnType.Number)]
-        public int? NetInvoiceCount => !IsException ? (InvoiceCount ?? 0) + (SecondServiceInvoiceCount ?? 0) + (ThirdServiceInvoiceCount ?? 0) - (ReturnInvoiceCount ?? 0) : null;
-
-        [PropertyInfo(25, "ریال خالص ف", true, ColumnType.Number)]
-        public long? NetInvoiceAmount => !IsException ? (InvoiceAmount ?? 0) + (SecondServiceInvoiceAmount ?? 0) + (ThirdServiceInvoiceAmount ?? 0) - (ReturnInvoiceAmount ?? 0) : null;
-
-        [PropertyInfo(26, "نام کاربر", true, ColumnType.Text)]
-        public string UserName { get; set; }
-
-        [PropertyInfo(100, "-", false, ColumnType.Boolean)]
-        public bool IsException { get; set; } = false;
-
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string InvoiceCountFormatted => InvoiceCount.HasValue ? InvoiceCount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string InvoiceAmountFormatted => InvoiceAmount.HasValue ? InvoiceAmount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ReturnInvoiceCountFormatted => ReturnInvoiceCount.HasValue ? ReturnInvoiceCount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ReturnInvoiceAmountFormatted => ReturnInvoiceAmount.HasValue ? ReturnInvoiceAmount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string SecondServiceInvoiceCountFormatted => SecondServiceInvoiceCount.HasValue ? SecondServiceInvoiceCount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ThirdServiceInvoiceCountFormatted => ThirdServiceInvoiceCount.HasValue ? ThirdServiceInvoiceCount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string SecondServiceInvoiceAmountFormatted => SecondServiceInvoiceAmount.HasValue ? SecondServiceInvoiceAmount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ThirdServiceInvoiceAmountFormatted => ThirdServiceInvoiceAmount.HasValue ? ThirdServiceInvoiceAmount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string NetInvoiceCountFormatted => NetInvoiceCount.HasValue ? NetInvoiceCount.Value.ToString("N0") : string.Empty;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string NetInvoiceAmountFormatted => NetInvoiceAmount.HasValue ? NetInvoiceAmount.Value.ToString("N0") : string.Empty;
-
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public bool HasVip { get; set; } = false;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string? IsExceptionFormatted => IsException ? "حالت خاص" : null;
-        [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string? DistributionCenter { get; set; }
-    }
-
     private List<T> SafeFilteredItems<T>(MudDataGrid<T> grid)
     {
         if (grid == null)
@@ -482,10 +383,10 @@
         }
     }
 
-    private async Task PrepareExportData()
-    {
-        reportToExcel = SafeFilteredItems(_mudDataGrid);
-    }
+    // private async Task PrepareExportData()
+    // {
+    //     reportToExcel = SafeFilteredItems(_mudDataGrid);
+    // }
 
     void SetMonth()
     {
@@ -508,6 +409,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        dbc = await dbContextFactory.CreateDbContextAsync();
+        LoadDataQueryAsync(dbc);
         SetMonth();
         Persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
         await base.OnInitializedAsync();
@@ -520,37 +423,13 @@
     }
 
 
-    private string RowClassFunc(IndexedShipment element, int rowNumber)
+    private string RowClassFunc(TotalReportDto element, int rowNumber)
     {
         element.Index = 1 + rowNumber + (_mudDataGrid?.CurrentPage ?? 0) * (_mudDataGrid?.RowsPerPage ?? 0);
         return string.Empty;
     }
 
-    void LoadData()
-    {
-        var query = dbContext.Shipments.Include(x => x.ShipmentNumbers).AsNoTracking();
-
-        if (_selectedMonth != "کلی")
-            query = query.Where(x => x.MonthName == _selectedMonth);
-
-        if (_distributionCenter != null)
-            query = query.Where(x => (x.DistributionCenter == _distributionCenter || x.DistributionCenter == null));
-
-        var shipments = query.ToList();
-
-        indexedShipments = [];
-        foreach (var shipment in shipments)
-        {
-            IndexedShipment indexedShipment = new();
-            var numbers = shipment.ShipmentNumbers.Select(x => x.Number);
-            Services.Mapper.MapToDto(shipment, indexedShipment);
-            indexedShipment.ShipmentNumbersString = string.Join('-', numbers) ?? null;
-            indexedShipments.Add(indexedShipment);
-        }
-        StateHasChanged();
-    }
-
-    private Func<IndexedShipment, bool> Filter => s =>
+    private Func<TotalReportDto, bool> Filter => s =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
@@ -560,7 +439,7 @@
         bool ContainsIgnoreCase(string? source) => source?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
 
         bool matchesSearch =
-        (s.ShipmentDatePersian?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        (s.Name?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
         (s.Weekday?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
         (s.MonthName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
 
@@ -627,7 +506,7 @@
 
     private async Task OnExportRequested()
     {
-        await PrepareExportData();
+       // await PrepareExportData();
 
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش کلی");

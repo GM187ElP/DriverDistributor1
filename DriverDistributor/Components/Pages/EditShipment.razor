@@ -127,7 +127,7 @@
                             <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
                             <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
 
-                                @if (persian != null)
+                                @if (persian!=null)
                                 {
                                         <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
                                             <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
