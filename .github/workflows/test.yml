@@ -18,7 +18,7 @@ jobs:
       - name: Prepare project folder
         run: |
           mkdir -p /home/ubuntu/DriverDistributor
-          rsync -av --exclude='.vs' ./ /home/ubuntu/DriverDistributor/
+          rsync -av --delete --exclude='.vs' ./ /home/ubuntu/DriverDistributor/
 
       # 3. Stop existing containers
       - name: Stop old containers
