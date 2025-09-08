@@ -1,23 +1,49 @@
-name: SSH to Windows PC
+name: Deploy DriverDistributor
 
 on:
-  push
+  push:
+    branches:
+      - main
 
 jobs:
-  ssh-windows:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: self-hosted
 
     steps:
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY2" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H serveo.net >> ~/.ssh/known_hosts
-          ssh-keyscan -H taksunpars2 >> ~/.ssh/known_hosts
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY2 }}
+      # 1. Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: SSH into Windows
+      # 2. Prepare folder
+      - name: Prepare project folder
         run: |
-          ssh -o StrictHostKeyChecking=no -J serveo.net a.rahmanian@taksunpars2 "powershell -Command 'Write-Output \"Hello from GitHub Actions!\"'"
+          mkdir -p /home/ubuntu/DriverDistributor
+          rsync -av --exclude='.vs' ./ /home/ubuntu/DriverDistributor/
+
+      # 3. Stop existing containers
+      - name: Stop old containers
+        run: |
+          docker stop driverdistributor 2>/dev/null || true
+          docker rm driverdistributor 2>/dev/null || true
+          docker rmi driverdistributor 2>/dev/null || true
+
+      # 4. Ensure SQL Server container is running
+      - name: Ensure SQL Server container
+        run: |
+          if ! docker ps --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
+              docker start sqlserver
+          fi
+
+      # 5. Build new Docker image
+      - name: Build Docker image
+        run: |
+          cd /home/ubuntu/DriverDistributor
+          docker build -t driverdistributor .
+
+      # 6. Run new container
+      - name: Run DriverDistributor container
+        run: |
+          docker run -d --name driverdistributor -p 5000:8080 -v driverdata:/app/data driverdistributor
+
+      - name: Deployment complete
+        run: echo "DriverDistributor container is up and running!"
