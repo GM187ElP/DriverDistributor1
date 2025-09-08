@@ -127,21 +127,21 @@
                             <PersianDatePicker For="() => persian" @bind-Value="persian" Required="true" Label="تاریخ خروجی" ErrorText="لطفا تاریخ را انتخاب کنید" />
                             <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
 
-                                @if (persian!=null)
+                                @if (persian != null)
                                 {
-                                        <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
-                                            <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
-                                            <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
-                                            <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
-                                            <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
-                                        </MudStack>
+                                    <MudStack Spacing=2 Row=true AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                        <MudText Color="Color.Info" Typo="Typo.h6">@($"{persian.DayOfWeek},")</MudText>
+                                        <MudText Color="Color.Warning" Typo="Typo.h6">@($"{persian.DayOfMonth}")</MudText>
+                                        <MudText Color="Color.Error" Typo="Typo.h6">@($"{persian.MonthString}")</MudText>
+                                        <MudText Color="Color.Success" Typo="Typo.h6">@($"{persian.Year}")</MudText>
+                                    </MudStack>
                                 }
 
                             </MudStack>
                         </MudStack>
 
                         <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=IsException Required=@(!IsException)
-                        ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
+                                         ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
 
                         <MudNumericField Class="mt-5" @bind-Value="dto.InvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" DebounceInterval="0" Immediate=true Min="0" Disabled=IsException Required=@(!IsException) ErrorText="لطفا جمع ریال فاکتورها را وارد کنید" />
 
@@ -149,22 +149,22 @@
                             @for (int i = 0; i < shipmentNumbersList.Count; i++)
                             {
                                 var index = i;
-                                    <MudGrid Class="align-center mt-2">
-                                        <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
-                                            <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
-                                        </MudButton>
+                                <MudGrid Class="align-center mt-2">
+                                    <MudButton @onclick="IncrementShipmentCount" Class="same-height" Disabled=IsException>
+                                        <MudIcon Icon="@Icons.Material.Outlined.AddCircleOutline" Color="Color.Success" Size="Size.Small" Disabled=IsException />
+                                    </MudButton>
 
-                                        <MudTextField T="int?"
-                                        @bind-Value=shipmentNumbersList[index]
-                                        Disabled=IsException
-                                        Label="@($"خروجی {index + 1}")"
-                                        Required=!IsException
-                                        ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
+                                    <MudTextField T="int?"
+                                                  @bind-Value=shipmentNumbersList[index]
+                                                  Disabled=IsException
+                                                  Label="@($"خروجی {index + 1}")"
+                                                  Required=!IsException
+                                                  ErrorText="@($"شماره خروجی {index+1} نمی تواند خالی باشد")" />
 
-                                        <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
-                                            <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
-                                        </MudButton>
-                                    </MudGrid>
+                                    <MudButton @onclick="@(() => DecrementShipmentCount(index))" Class="same-height" Disabled=IsException>
+                                        <MudIcon Icon="@Icons.Material.Outlined.RemoveCircleOutline" Color="Color.Error" Size="Size.Small" Disabled=IsException />
+                                    </MudButton>
+                                </MudGrid>
                             }
                         </div>
 
@@ -176,8 +176,8 @@
                         </MudStack>
                         <MudNumericField @bind-Value="dto.SecondServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsSecondService || IsException) Required=IsSecondService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
                         <MudNumericField Class="mt-5" @bind-Value="dto.SecondServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsSecondService || IsException)
-                        ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
-                        Required=IsSecondService />
+                                         ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                                         Required=IsSecondService />
 
                         <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
                             <MudCheckBox @bind-Value="IsThirdService" Disabled=!IsSecondService />
@@ -186,8 +186,8 @@
 
                         <MudNumericField @bind-Value="dto.ThirdServiceInvoiceCount" Label="تعداد فاکتورها" Variant="Variant.Outlined" Min="0" Disabled=@(!IsThirdService || IsException) Required=IsThirdService ErrorText="لطفا تعداد فاکتورها را وارد کنید" />
                         <MudNumericField Class="mt-5" @bind-Value="dto.ThirdServiceInvoiceAmount" Label="جمع ریال فاکتورها" Variant="Variant.Outlined" Format="N0" Immediate=true Min="0" Disabled=@(!IsThirdService || IsException)
-                        ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
-                        Required=IsThirdService />
+                                         ErrorText="لطفا جمع ریال فاکتورها را وارد کنید"
+                                         Required=IsThirdService />
 
                         <MudStack Class="mt-5" Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
                             <MudButton Variant="Variant.Filled" Color="Color.Error" onclick="ClearForm"><MudText Typo="Typo.h6">پاک کردن</MudText></MudButton>
@@ -203,25 +203,25 @@
 
 <style>
     .same-height {
-    height: 56px;
+        height: 56px;
     }
 
     .item-template {
-    font-size: 1.2rem;
-    padding: 8px 16px;
-    text-align: center;
-    font-family: 'Iranian Sans', sans-serif;
+        font-size: 1.2rem;
+        padding: 8px 16px;
+        text-align: center;
+        font-family: 'Iranian Sans', sans-serif;
     }
 
     .autocomplete-container, .autocomplete-container * {
-    text-align: center;
-    font-size: 1.2rem;
-    font-family: 'Iranian Sans', sans-serif;
+        text-align: center;
+        font-size: 1.2rem;
+        font-family: 'Iranian Sans', sans-serif;
     }
 
     .align-center {
-    display: flex;
-    align-items: center;
+        display: flex;
+        align-items: center;
     }
 </style>
 
@@ -233,6 +233,7 @@
     private MudForm form;
     private ShipmentEditDto dto = new();
     private Shipment shipment;
+    private Personnel personnel;
 
     [Required(ErrorMessage = "لطفا تاریخ را انتخاب کنید")]
     private PersianCalendarClass persian;
@@ -282,9 +283,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
+        var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
+        personnel = await dbContext.Personnels.FindAsync(auth.User.Identity.Name);
+
         if (Id == 0)
         {
-            persian = new(ResetDate(), isEmptyAtStart: true);
+            SetDateAndWarehouse();
+
+
+
             IsException = false;
             await LoadDataAsync(IsException);
             IsSecondService = false;
@@ -302,6 +310,24 @@
         }
 
         await LoadDataAsync(IsException);
+    }
+
+    private void SetDateAndWarehouse()
+    {
+        if (personnel != null)
+        {
+            if (personnel.PersonnelCode == "20071" || personnel.PersonnelCode == "20548")
+            {
+                var date = ResetDate(1);
+                date = date.DayOfWeek == DayOfWeek.Friday ? date.AddDays(1) : date;
+                persian = new(date);
+            }
+            else
+                persian = new(ResetDate());
+
+            if (personnel.PersonnelCode == "20415")
+                dto.WarehouseName = "فيروز";
+        }
     }
 
     private async Task LoadDataAsync(bool isExc)
@@ -424,7 +450,7 @@
         public int VIP { get; set; }
     }
 
-    DateTime ResetDate() => DateTime.Today.AddDays(0);
+    DateTime ResetDate(int offset = 0) => DateTime.Today.AddDays(offset);
 
 
     private async Task OnIsExceptionChangedAsync()
@@ -459,7 +485,7 @@
         if (Id == 0)
         {
             dto = new();
-            persian = new(ResetDate(), isEmptyAtStart: true);
+            SetDateAndWarehouse();
             IsException = false;
             shipmentNumbersList = [];
             shipmentNumbersList.Add(null);
@@ -530,12 +556,8 @@
                 }
             }
 
-            var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
-            var personnel = await dbContext.Personnels.FindAsync(auth.User.Identity.Name);
-
             if (personnel != null)
                 shipment.UserName = personnel.Name;
-
 
             await dbContext.Shipments.AddAsync(shipment);
             changedRowCount = await dbContext.SaveChangesAsync();

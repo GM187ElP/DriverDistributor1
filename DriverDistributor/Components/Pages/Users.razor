@@ -1,0 +1,40 @@
+﻿@page "/users"
+@using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@* @inject IDbContextFactory<ApplicationUser> dbContextFactory *@
+@inject UserManager<ApplicationUser> userManager
+
+
+<h3>Users</h3>
+
+
+@code {
+    private List<UserInfo> userInfoList = [];
+
+    private async Task LoadUsers()
+    {
+        var userInfo = new UserInfo();
+        var users = userManager.Users.Select(x => new
+        {
+            Username=x.UserName,
+
+        }).ToList();
+        foreach (var user in users)
+        {
+            // var roles =await userManager.GetRolesAsync(user);
+            // var r = string.Join(", ", roles);
+        }
+    }
+
+    private async Task LoadPersonnelAsync()
+    {
+        
+    }
+
+    public class UserInfo
+    {
+        public string? Username { get; set; }
+        public string? Roles { get; set; }
+    }
+}

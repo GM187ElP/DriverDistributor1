@@ -26,10 +26,11 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-        @bind-Value="SelectedMonth"
-        Dense="true"
-        FitContent="true"
-        Clearable="false">
+                   @bind-Value="SelectedMonth"
+                   @onchange=LoadDataAsync
+                   Dense="true"
+                   FitContent="true"
+                   Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -37,44 +38,45 @@
         </MudSelect>
 
         <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-        IconColor="Color.Primary"
-        Size="Size.Small"
-        @onclick="Refresh">
+                   IconColor="Color.Primary"
+                   Size="Size.Small"
+                   @onclick="Refresh">
             آپدیت
         </MudButton>
 
-        <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
-        @bind-Value="IsGostaresh"
-        Color="Color.Secondary"
-        CheckMark
-        FixedContent
-        Class="toggle-group-fit"
-        Delimiters="false">
-            <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" />
-            <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" />
-            <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" />
-        </MudToggleGroup>
+        @* <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" *@
+        @* @bind-Value="IsGostaresh" *@
+        @* @onchange="LoadDataAsync" *@
+        @* Color="Color.Secondary" *@
+        @* CheckMark *@
+        @* FixedContent *@
+        @* Class="toggle-group-fit" *@
+        @* Delimiters="false"> *@
+        @*     <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" /> *@
+        @*     <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" /> *@
+        @*     <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" /> *@
+        @* </MudToggleGroup> *@
 
         <!-- Date picker + Clear Filter inline -->
-        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-            <PersianDatePicker For="() => Persian" @bind-Value="Persian" Label="تاریخ خروجی" />
+        @* <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center"> *@
+        @*     <PersianDatePicker For="() => Persian" @bind-Value="Persian" Label="تاریخ خروجی" /> *@
 
-            <!-- Display selected date info -->
-            @if (!string.IsNullOrWhiteSpace(Persian.DisplayDate))
-            {
-                <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
-                    <MudText Color="Color.Info" Typo="Typo.h6">@($"{Persian.DayOfWeek},")</MudText>
-                    <MudText Color="Color.Warning" Typo="Typo.h6">@($"{Persian.DayOfMonth}")</MudText>
-                    <MudText Color="Color.Error" Typo="Typo.h6">@($"{Persian.MonthString}")</MudText>
-                    <MudText Color="Color.Success" Typo="Typo.h6">@($"{Persian.Year}")</MudText>
-                </MudStack>
-            }
-            <MudButton OnClick="ClearDate" Color="Color.Error" Variant="Variant.Filled">
-                <MudText Typo="Typo.h6">
-                    حذف فیلتر
-                </MudText>
-            </MudButton>
-        </MudStack>
+        @*     <!-- Display selected date info --> *@
+        @*     @if (!string.IsNullOrWhiteSpace(Persian.DisplayDate)) *@
+        @*     { *@
+        @*         <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center"> *@
+        @*             <MudText Color="Color.Info" Typo="Typo.h6">@($"{Persian.DayOfWeek},")</MudText> *@
+        @*             <MudText Color="Color.Warning" Typo="Typo.h6">@($"{Persian.DayOfMonth}")</MudText> *@
+        @*             <MudText Color="Color.Error" Typo="Typo.h6">@($"{Persian.MonthString}")</MudText> *@
+        @*             <MudText Color="Color.Success" Typo="Typo.h6">@($"{Persian.Year}")</MudText> *@
+        @*         </MudStack> *@
+        @*     } *@
+        @*     <MudButton OnClick="ClearDate" Color="Color.Error" Variant="Variant.Filled"> *@
+        @*         <MudText Typo="Typo.h6"> *@
+        @*             حذف فیلتر *@
+        @*         </MudText> *@
+        @*     </MudButton> *@
+        @* </MudStack> *@
     </MudStack>
 
 </MudPaper>
@@ -85,39 +87,39 @@
         *@
 
 <MudDataGrid @ref="_mudDataGrid"
-T="TotalReportDto"
+             T="TotalReportDto"
              Items="@totalReportDtos"
-Dense="true"
-Bordered="true"
-Hover="true"
-RowClassFunc="@RowClassFunc"
-Striped="true"
-FixedHeader="true"
-Height="630px"
-Style="flex: 1; overflow: auto;"
-@* QuickFilter="@Filter" *@
-HeaderClass="table-header"
-Filterable=true
-ShowColumnOptions="false">
+             Dense="true"
+             Bordered="true"
+             Hover="true"
+             RowClassFunc="@RowClassFunc"
+             Striped="true"
+             FixedHeader="true"
+             Height="630px"
+             Style="flex: 1; overflow: auto;"
+             @* QuickFilter="@Filter" *@
+             HeaderClass="table-header"
+             Filterable=true
+             ShowColumnOptions="false">
 
     <ToolBarContent>
         <MudTextField @bind-Value="_searchString"
-        Placeholder="جستجو"
-        Clearable=true
-        ClearIcon="@Icons.Material.Filled.Clear"
-        OnClearButtonClick="ClearDate"
-        Adornment="Adornment.Start"
-        Immediate="true"
-        AdornmentIcon="@Icons.Material.Filled.Search"
-        IconSize="Size.Medium"
-        FullWidth=false
-        Class="mt-0" />
+                      Placeholder="جستجو"
+                      Clearable=true
+                      ClearIcon="@Icons.Material.Filled.Clear"
+                      OnClearButtonClick="ClearDate"
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      FullWidth=false
+                      Class="mt-0" />
     </ToolBarContent>
 
     <Columns>
 
         <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-        
+
         <PropertyColumn Property="x => x.Name" Sortable="false" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.PersonnelCode" Sortable="false" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.InvoiceCountFormatted" Sortable="false" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
@@ -162,25 +164,25 @@ ShowColumnOptions="false">
 
 <style>
     .table-header {
-    background-color: #1976d2 !important;
-    color: white !important;
-    text-align: center !important padding: 4px !important;
-    vertical-align: middle !important;
-    font-weight: bold !important;
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
     }
 
     body, html {
-    overflow: hidden !important;
-    height: 99% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+        overflow: hidden !important;
+        height: 99% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .table-cell {
-    padding: 2px 6px !important;
-    font-size: small;
-    text-align: center;
+        padding: 2px 6px !important;
+        font-size: small;
+        text-align: center;
     }
 </style>
 
@@ -225,14 +227,13 @@ ShowColumnOptions="false">
                 false => "کوشش",
                 null => null
             };
-            LoadData();
         }
     }
 
     private async Task LoadDataAsync()
     {
-        var dbContext =await dbContextFactory.CreateDbContextAsync();
-        totalReportDtos= await LoadDataQueryAsync(dbContext).ToListAsync()?? new();
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
+        totalReportDtos = await LoadDataQueryAsync(dbContext).ToListAsync() ?? new();
     }
 
     private IQueryable<TotalReportDto> LoadDataQueryAsync(AppDbContext? dbContext)
@@ -250,8 +251,8 @@ ShowColumnOptions="false">
                 {
                     Name = g.Key,
                     PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ? g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty : g.Where(x => x.Shipment.DistributorName == g.Key)
-                        .Select(x => x.Shipment.DistributorPersonnelCode)
-                        .FirstOrDefault().ToString() ?? string.Empty,
+                            .Select(x => x.Shipment.DistributorPersonnelCode)
+                            .FirstOrDefault().ToString() ?? string.Empty,
 
                     InvoiceCount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
                     InvoiceAmount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
@@ -355,7 +356,7 @@ ShowColumnOptions="false">
                 await dbContext.SaveChangesAsync();
             }
         }
-        LoadData();
+        await LoadDataAsync();
     }
 
     void ClearDate()
@@ -383,10 +384,10 @@ ShowColumnOptions="false">
         }
     }
 
-    // private async Task PrepareExportData()
-    // {
-    //     reportToExcel = SafeFilteredItems(_mudDataGrid);
-    // }
+    private async Task PrepareExportData()
+    {
+        reportToExcel = SafeFilteredItems(_mudDataGrid);
+    }
 
     void SetMonth()
     {
@@ -401,20 +402,19 @@ ShowColumnOptions="false">
         set
         {
             _selectedMonth = value;
-            LoadData();
         }
     }
 
-    void Refresh() => LoadData();
+    async Task Refresh() => await LoadDataAsync();
 
     protected override async Task OnInitializedAsync()
     {
         dbc = await dbContextFactory.CreateDbContextAsync();
-        LoadDataQueryAsync(dbc);
         SetMonth();
+        LoadDataQueryAsync(dbc);
         Persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
         await base.OnInitializedAsync();
-        LoadData();
+        await LoadDataAsync();
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -436,77 +436,38 @@ ShowColumnOptions="false">
 
         var search = _searchString.Trim();
 
-        bool ContainsIgnoreCase(string? source) => source?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
+        bool ContainsIgnoreCase(string? source) =>
+        source?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
 
         bool matchesSearch =
-        (s.Name?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.Weekday?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.MonthName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        ContainsIgnoreCase(s.Name) ||
+        ContainsIgnoreCase(s.PersonnelCode) ||
+        s.InvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.InvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.ReturnInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.ReturnInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.NetInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.NetInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
 
-        (s.DriverPersonnelCode?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.DistributorPersonnelCode?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        // Formatted fields
+        ContainsIgnoreCase(s.InvoiceCountFormatted) ||
+        ContainsIgnoreCase(s.InvoiceAmountFormatted) ||
+        ContainsIgnoreCase(s.ReturnInvoiceCountFormatted) ||
+        ContainsIgnoreCase(s.ReturnInvoiceAmountFormatted) ||
+        ContainsIgnoreCase(s.NetInvoiceCountFormatted) ||
+        ContainsIgnoreCase(s.NetInvoiceAmountFormatted);
 
-        (s.DriverName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.DriverDuty?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+        // bool filterByDate = true;
+        // if (!string.IsNullOrEmpty(Persian?.MonthString))
+        //     filterByDate = s.ShipmentDatePersian == Persian.DisplayDate;
 
-        (s.DistributorName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.DistributorDuty?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.RouteName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.WarehouseName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.InvoiceCount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.InvoiceAmount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.ReturnInvoiceCount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ReturnInvoiceAmount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.SecondServiceInvoiceCount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.SecondServiceInvoiceAmount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.ThirdServiceInvoiceCount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ThirdServiceInvoiceAmount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.HasVipFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.IsExceptionFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.DistributionCenter?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.NetInvoiceCount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.NetInvoiceAmount?.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.UserName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-
-        (s.InvoiceCountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.InvoiceAmountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ReturnInvoiceCountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ReturnInvoiceAmountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.SecondServiceInvoiceCountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.SecondServiceInvoiceAmountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ThirdServiceInvoiceCountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.ThirdServiceInvoiceAmountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.NetInvoiceCountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
-        (s.NetInvoiceAmountFormatted?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false);
-
-        bool filterByDate = true;
-        if (!string.IsNullOrEmpty(Persian?.DisplayDate))
-            filterByDate = s.ShipmentDatePersian == Persian.DisplayDate;
-
-        return matchesSearch && filterByDate;
+        return matchesSearch;
     };
 
-    void EditItem(IndexedShipment row)
-    {
-        nm.NavigateTo($"/edit-shipment/{row.Id}");
-    }
-
-    void RegisterReturn(IndexedShipment row)
-    {
-        nm.NavigateTo($"/register-return/{row.Id}");
-    }
 
     private async Task OnExportRequested()
     {
-       // await PrepareExportData();
+        await PrepareExportData();
 
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش کلی");

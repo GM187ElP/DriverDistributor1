@@ -48,33 +48,62 @@ var secretService = new SecretEncodeDecode(builder.Configuration, builder.Enviro
 var dirInfo = Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Private"));
 string path;
 
+string hostIp = "10.11.11.28";
+bool isLocal = System.Net.Dns.GetHostAddresses("localhost")
+                 .Any(ip => ip.ToString() == hostIp);
+
+var linuxConnectionString = new SqlConnectionStringBuilder()
+{
+    DataSource = isLocal ? ".,1433" : $"{hostIp},1433",
+    InitialCatalog = "DriverDistributor",
+    TrustServerCertificate = true,
+    MultipleActiveResultSets = true,
+    UserID = "sa",
+    Password = "Arsalan.1461",
+};
+
+
+var selector = "linux";
+var connectionString = string.Empty;
 if (builder.Environment.IsDevelopment())
 {
-    //--------------------------sqlite------------------------------------------
-    //var dbPath = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "App_Data", "1404.db");
-    //builder.Services.AddDbContext<AppDbContext>(options =>
-    //    options.UseSqlite($"Data Source={dbPath}"));
-
-    //--------------------------sqlserver------------------------------------------
-    //var connectionString = builder.Configuration["ConnectionStrings:Local"];
-    //builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
-
     //--------------------------encryption------------------------------------
     //SecretEncodeDecode.EncodeToJson();
 
-    //--------------------------decryption--------------------------------------------
-    path = Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json");   // using remote database for local project
-    var connectionString = secretService.DecodeToJson(path).ToString();
-    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
+    if (selector == "linux")
+    {
+        connectionString = linuxConnectionString.ToString();
+    }
+    else
+    {
+        if (selector == "local")
+        {
+            //--------------------------sqlserver------------------------------------------
+            connectionString = builder.Configuration["ConnectionStrings:Local"];
+        }
+        else
+        {
+            //--------------------------decryption--------------------------------------------
+            path = Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json");   // using remote database for local project
+            connectionString = secretService.DecodeToJson(path).ToString();
+        }
+    }
 }
 else
 {
-    //--------------------------decryption--------------------------------------------
-    path = Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json");    // using in hosted env
-    var connectionString = secretService.DecodeToJson(path).ToString();
-    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
+    if (selector == "linux")
+    {
+        connectionString = linuxConnectionString.ToString();
+    }
+    else
+    {
+        //--------------------------decryption--------------------------------------------
+        path = Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json");    // using in hosted env
+        connectionString = secretService.DecodeToJson(path).ToString();
+    }
 }
 
+builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 //-------------------------------------------------------------------
 

@@ -4,13 +4,15 @@
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
 @using static DriverDistributor.Components.PersianDatePicker
 @using static DriverDistributor.Components.Excel
 @inject NavigationManager nm
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
-@inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory
 
 
 <PageTitle>لیست حواله ها</PageTitle>
@@ -25,7 +27,8 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-        @bind-Value="SelectedMonth"
+        Value="_selectedMonth"
+        ValueChanged="MonthChanged"
         Dense="true"
         FitContent="true"
         Clearable="false">
@@ -43,7 +46,8 @@
         </MudButton>
 
         <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
-        @bind-Value="IsGostaresh"
+        Value="_isGostaresh"
+        ValueChanged="WarehouseChanged"
         Color="Color.Secondary"
         CheckMark
         FixedContent
@@ -116,9 +120,10 @@ ShowColumnOptions="false">
     <Columns>
 
         <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+
         <TemplateColumn Title="حذف" Filterable="false" StickyLeft="true" HeaderClass="table-header">
             <CellTemplate Context="row">
-                <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!isAuthorized)"
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!row.Item.CanModify)"
                 Color="Color.Error"
                 OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
                 </MudIconButton>
@@ -131,7 +136,7 @@ ShowColumnOptions="false">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                 Color="Color.Primary"
                 Size="Size.Small"
-                Disabled="@( !isAuthorized)"
+                Disabled="@( !row.Item.CanModify)"
                 OnClick="@(() => EditItem(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
@@ -141,7 +146,7 @@ ShowColumnOptions="false">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
                 Color="Color.Primary"
                 Size="Size.Small"
-                Disabled="@(row.Item.IsException || !isAuthorized)"
+                Disabled="@(row.Item.IsException || !row.Item.CanModify)"
                 OnClick="@(() => RegisterReturn(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
@@ -200,11 +205,11 @@ ShowColumnOptions="false">
     }
 
     body, html {
-        overflow: hidden !important; 
-        height: 99% !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
+    overflow: hidden !important;
+    height: 99% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     }
 
     .table-cell {
@@ -219,6 +224,7 @@ ShowColumnOptions="false">
     private readonly DialogOptions _closeOnEscape = new() { CloseOnEscapeKey = true };
     private MudMessageBox _mudMessageBox;
 
+    private ClaimsPrincipal? user;
     private PersianCalendarClass _persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
     private MudDataGrid<IndexedShipment> _mudDataGrid;
     private readonly string[] monthList = { "کلی", "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
@@ -230,6 +236,7 @@ ShowColumnOptions="false">
     private string _searchString;
     private List<IndexedShipment> reportToExcel;
     private Excel excel;
+    private string username;
 
     private PersianCalendarClass Persian
     {
@@ -242,19 +249,52 @@ ShowColumnOptions="false">
         }
     }
 
-    private bool? IsGostaresh
+    async Task WarehouseChanged(bool? newValue) 
     {
-        get => _isGostaresh;
-        set
+        _distributionCenter = newValue switch
         {
-            _isGostaresh = value;
-            _distributionCenter = value switch
+            true => "گسترش",
+            false => "کوشش",
+            null => null
+        };
+
+        await LoadDataAsync();
+    }
+
+    async Task MonthChanged(string? newValue) 
+    {
+        _selectedMonth = newValue;
+        await LoadDataAsync();
+    }
+
+    private async Task SetCanModify()
+    {
+        if (user != null)
+        {
+            var personnelCode = user?.Identity?.Name;
+            var dbContext =await dbContextFactory.CreateDbContextAsync();
+            var currentUser = await dbContext.Personnels.FindAsync(personnelCode);
+            if (currentUser != null)
             {
-                true => "گسترش",
-                false => "کوشش",
-                null => null
-            };
-            LoadData();
+                if (user.IsInRole("HR") || user.IsInRole("Admin"))
+                {
+                    foreach (var indexedShipment in indexedShipments)
+                    {
+                        indexedShipment.CanModify = true;
+                    }
+                }
+                foreach (var indexedShipment in indexedShipments)
+                {
+                    indexedShipment.CanModify = indexedShipment.UserName == currentUser.Name;
+                }
+            }
+        }
+        else
+        {
+            foreach (var indexedShipment in indexedShipments)
+            {
+                indexedShipment.CanModify = false;
+            }
         }
     }
 
@@ -263,6 +303,7 @@ ShowColumnOptions="false">
         bool? result;
         result = await _mudMessageBox.ShowAsync();
 
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         if (result is true)
         {
             var row = await dbContext.Shipments.FindAsync(id);
@@ -272,17 +313,18 @@ ShowColumnOptions="false">
                 await dbContext.SaveChangesAsync();
             }
         }
-        LoadData();
+        await LoadDataAsync();
     }
 
-    void ClearDate()
+    async Task ClearDate()
     {
         if (Persian.DisplayDate != null)
             Persian.DisplayDate = string.Empty;
 
         _searchString = string.Empty;
         SetMonth();
-        IsGostaresh = null;
+
+        await WarehouseChanged(null);
     }
 
     public class IndexedShipment
@@ -395,6 +437,9 @@ ShowColumnOptions="false">
         public string? IsExceptionFormatted => IsException ? "حالت خاص" : null;
         [PropertyInfo(100, "-", false, ColumnType.Text)]
         public string? DistributionCenter { get; set; }
+
+        [PropertyInfo(100, "-", false, ColumnType.Boolean)]
+        public bool CanModify { get; set; }
     }
 
     private List<T> SafeFilteredItems<T>(MudDataGrid<T> grid)
@@ -412,7 +457,7 @@ ShowColumnOptions="false">
         }
     }
 
-    private async Task PrepareExportData()
+    private void PrepareExportData()
     {
         reportToExcel = SafeFilteredItems(_mudDataGrid);
     }
@@ -424,28 +469,21 @@ ShowColumnOptions="false">
         _selectedMonth = monthList[num];
     }
 
-    public string SelectedMonth
-    {
-        get => _selectedMonth;
-        set
-        {
-            _selectedMonth = value;
-            LoadData();
-        }
-    }
+    
 
-    void Refresh() => LoadData();
+    async Task Refresh() =>await LoadDataAsync();
 
     protected override async Task OnInitializedAsync()
     {
         SetMonth();
         Persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
         await base.OnInitializedAsync();
-        LoadData();
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        user = authState.User;
+       await LoadDataAsync();
         isAuthorized = user.Identity?.IsAuthenticated ?? false;
+
         StateHasChanged();
     }
 
@@ -456,8 +494,9 @@ ShowColumnOptions="false">
         return string.Empty;
     }
 
-    void LoadData()
+    async Task LoadDataAsync()
     {
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         var query = dbContext.Shipments.Include(x => x.ShipmentNumbers).AsNoTracking();
 
         if (_selectedMonth != "کلی")
@@ -466,7 +505,7 @@ ShowColumnOptions="false">
         if (_distributionCenter != null)
             query = query.Where(x => (x.DistributionCenter == _distributionCenter || x.DistributionCenter == null));
 
-        var shipments = query.ToList();
+        var shipments =await query.ToListAsync();
 
         indexedShipments = [];
         foreach (var shipment in shipments)
@@ -477,6 +516,8 @@ ShowColumnOptions="false">
             indexedShipment.ShipmentNumbersString = string.Join('-', numbers) ?? null;
             indexedShipments.Add(indexedShipment);
         }
+
+        await SetCanModify();
         StateHasChanged();
     }
 
@@ -557,7 +598,7 @@ ShowColumnOptions="false">
 
     private async Task OnExportRequested()
     {
-        await PrepareExportData();
+        PrepareExportData();
 
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش کلی");
