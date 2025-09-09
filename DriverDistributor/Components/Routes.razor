@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using DriverDistributor.Components.Pages
 
 
 
@@ -13,7 +14,7 @@
                 ...
             </Authorizing>
             <NotAuthorized>
-                شما اجازه مشاهده این صفحه را ندارید
+                <AccessDenied/>
             </NotAuthorized>
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
