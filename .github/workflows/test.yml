@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - underService3
 
 jobs:
   deploy:
