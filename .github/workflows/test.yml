@@ -3,7 +3,8 @@ name: Deploy DriverDistributor
 on:
   push:
     branches:
-      - underService3
+      - main
+      
 
 jobs:
   deploy:
