@@ -10,12 +10,12 @@ using DriverDistributor.Entities;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json;
+using MudBlazor;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 //-------------------------------------------------------------------
-
-builder.Services.AddDefaultIdentity<ApplicationUser>()
-    .AddEntityFrameworkStores<AppDbContext>();
+builder.Services.AddSingleton<Presence>();
 
 builder.Services.AddSingleton<SecretEncodeDecode>();
 
@@ -25,7 +25,12 @@ builder.Services.AddRazorPages(); //  this is required for Identity UI Razor Pag
 
 builder.Services.AddScoped<DataServices>();
 
-builder.Services.Configure<IdentityOptions>(options =>
+var culture = new CultureInfo("fa-IR");
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+builder.Services.AddTransient<MudLocalizer, CustomeMudLocalizer>();
+
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
     // Password rules
     options.Password.RequireDigit = true;
@@ -36,9 +41,10 @@ builder.Services.Configure<IdentityOptions>(options =>
 
     // Username allowed characters
     options.User.AllowedUserNameCharacters = "0123456789";
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
-    // You can also configure other options here
-});
 
 builder.Services.AddServerSideBlazor()
     .AddCircuitOptions(options => { options.DetailedErrors = true; });
@@ -144,6 +150,7 @@ app.MapRazorComponents<App>()
 
 app.MapRazorPages(); // this makes /Identity/Account/Login work
 app.MapControllers();
+app.MapHub<PresenceHub>("/presenceHub");
 //-------------------------------------------------------------------
 
 app.Run();

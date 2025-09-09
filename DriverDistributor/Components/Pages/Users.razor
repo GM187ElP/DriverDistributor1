@@ -1,40 +1,299 @@
 ﻿@page "/users"
+@using DriverDistributor.Data
 @using DriverDistributor.Entities
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
-@* @inject IDbContextFactory<ApplicationUser> dbContextFactory *@
+@using Microsoft.AspNetCore.Components.Authorization
 @inject UserManager<ApplicationUser> userManager
+@inject RoleManager<ApplicationRole> roleManager
+@inject IDbContextFactory<AppDbContext> dbContextFactory
+@inject IDialogService DialogService
+@inject NavigationManager nm
+
+<h3>لیست کاربران</h3>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+
+        <MudDataGrid T="UserInfo"
+                     Items="@userInfoList"
+                     ReadOnly=false
+                     EditMode="DataGridEditMode.Form"
+                     FixedHeader=true
+                     Height="500px"
+                     Striped=true
+                     StartedEditingItem="@StartedEditingItem"
+                     CanceledEditingItem="@CanceledEditingItem"
+                     CommittedItemChanges="@CommittedItemChanges"
+                     Bordered="true"
+                     Dense="true"
+                     QuickFilter="@Filter"
+                     RowClassFunc="RowClassFunc"
+                     EditTrigger="DataGridEditTrigger.Manual"
+                     HeaderClass="table-header">
+
+            <ToolBarContent>
+                <MudTextField @bind-Value="_searchString"
+                              Placeholder="جستجو"
+                              Clearable=true
+                              ClearIcon="@Icons.Material.Filled.Clear"
+                              Adornment="Adornment.Start"
+                              Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search"
+                              IconSize="Size.Medium"
+                              FullWidth=false
+                              Class="mt-0" />
+            </ToolBarContent>
+
+            <Columns>
+                <PropertyColumn Property="x => x.Index" Title="ردیف" Editable="false" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Username" Title="کد پرسنلی" Editable="false" HeaderClass="table-header" CellClass="table-cell" />
+                <PropertyColumn Property="x => x.Name" Title="نام و نام خانوادگی" Editable="false" HeaderClass="table-header" CellClass="table-cell" />
+                <TemplateColumn Title="وضعیت" Context="row">
+                    <CellTemplate>
+                        <MudIcon Color="@(row.Item.IsOnline ? Color.Success : Color.Error)"
+                                 Icon="@Icons.Material.Filled.Circle" Size="Size.Small" />
+                    </CellTemplate>
+                </TemplateColumn>
+
+                <TemplateColumn Title="آخرین فعالیت" Context="row">
+                    <CellTemplate>
+                        @(row.Item.LastSeen?.ToLocalTime().ToString("yyyy/MM/dd HH:mm") ?? "-")
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn Title="نقش ها" HeaderClass="table-header" CellClass="table-cell">
+                    <CellTemplate Context="row">
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Add" Color="Color.Success" OnClick="@row.Actions.StartEditingItemAsync" />
+                        @foreach (var role in row.Item.Roles)
+                        {
+                            <MudButton Color="Color.Error" Size="Size.Small" OnClick="async () => await OpenDialogAsync(row.Item.Username, role)">
+                                @role
+                            </MudButton>
+                        }
+                    </CellTemplate>
+
+                    <EditTemplate Context="row">
+                        <MudSelect T="string"
+                                   @bind-Value="row.Item.SelectedRole"
+                                   Label="انتخاب نقش"
+                                   Dense="true">
+                            @foreach (var role in userSelectItemRoles)
+                            {
+                                <MudSelectItem Value="@role.Name">@role.PersianName</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </EditTemplate>
+                </TemplateColumn>
+
+            </Columns>
+        </MudDataGrid>
 
 
-<h3>Users</h3>
+
+    </Authorized>
+    <NotAuthorized>
+        <AccessDenied />
+    </NotAuthorized>
+</AuthorizeView>
+
+<MudMessageBox @ref="_mudMessageBox" Title=" هشدار!">
+    <TitleContent>
+        <MudAlert Severity="Severity.Warning">
+            هشدار
+        </MudAlert>
+    </TitleContent>
+    <MessageContent>
+        <MudText Typo="Typo.h6">
+            آیا از حذف نقش مطمئن هستید!؟
+        </MudText>
+    </MessageContent>
+    <CancelButton>
+        <MudButton Style="font-weight:bold;" Variant="Variant.Filled" Color="Color.Info" StartIcon="@Icons.Material.Filled.CancelPresentation">           انصراف        </MudButton>
+    </CancelButton>
+    <YesButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" StartIcon="@Icons.Material.Filled.DeleteForever">حذف</MudButton>
+    </YesButton>
+</MudMessageBox>
+
+<style>
+    .table-header {
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
+    }
+
+    body, html {
+        overflow: hidden !important;
+        height: 99% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .table-cell {
+        padding: 2px 6px !important;
+        font-size: small;
+        text-align: center;
+    }
+</style>
 
 
 @code {
-    private List<UserInfo> userInfoList = [];
+    private readonly DialogOptions _closeOnEscape = new() { CloseOnEscapeKey = true };
+    private MudMessageBox _mudMessageBox;
 
-    private async Task LoadUsers()
+    private HubConnection hubConnection;
+
+    private MudDataGrid<UserInfo> _mudDataGrid;
+    private IEnumerable<UserInfo> Elements = new List<UserInfo>();
+    private List<string> _events = new();
+    private bool _editTriggerRowClick;
+    private string _selectedRole;
+    private List<UserInfo> userInfoList = new();
+    private List<ApplicationRole> allRoles = new();
+    private List<ApplicationRole> userSelectItemRoles = new();
+    private string? _searchString = "";
+
+    protected override async Task OnInitializedAsync()
     {
-        var userInfo = new UserInfo();
-        var users = userManager.Users.Select(x => new
-        {
-            Username=x.UserName,
+        await LoadDataAsync();
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(nm.ToAbsoluteUri("/presenceHub"))
+            .WithAutomaticReconnect()
+            .Build();
 
-        }).ToList();
-        foreach (var user in users)
+        hubConnection.On<string, DateTime>("UserUpdated", (username, lastSeen) =>
         {
-            // var roles =await userManager.GetRolesAsync(user);
-            // var r = string.Join(", ", roles);
+            var user = userInfoList.FirstOrDefault(u => u.Username == username);
+            if (user != null)
+            {
+                user.LastSeen = lastSeen;
+                InvokeAsync(StateHasChanged);
+            }
+        });
+
+        await hubConnection.StartAsync();
+    }
+
+    private async Task OpenDialogAsync(string username, string role)
+    {
+        bool? result;
+        result = await _mudMessageBox.ShowAsync();
+
+        if (result is true)
+        {
+            await RemoveUserRole(username, role);
+        }
+        await LoadDataAsync();
+        StateHasChanged();
+    }
+
+    void StartedEditingItem(UserInfo item)
+    {
+        List<ApplicationRole> userRoles = [];
+        foreach (var role in item.Roles)
+        {
+            var userRole = allRoles.FirstOrDefault(x => x.PersianName == role);
+            if (userRole != null)
+                userRoles.Add(userRole);
+        }
+        userSelectItemRoles = allRoles.Except(userRoles).ToList();
+    }
+
+    async Task RemoveUserRole(string username, string selectedRole)
+    {
+        var user = await userManager.FindByNameAsync(username);
+        var role = allRoles.FirstOrDefault(x => x.PersianName == selectedRole)?.Name;
+        if (role != null && user != null)
+        {
+            await userManager.RemoveFromRoleAsync(user, role);
         }
     }
 
-    private async Task LoadPersonnelAsync()
+    void CanceledEditingItem(UserInfo item)
     {
-        
+        _events.Insert(0, $"Event = CanceledEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+    async Task CommittedItemChanges(UserInfo item)
+    {
+        if (string.IsNullOrEmpty(item.SelectedRole))
+            return;
+
+        var user = await userManager.FindByNameAsync(item.Username);
+        var selectedRole = allRoles.FirstOrDefault(x => x.Name == item.SelectedRole);
+        if (user != null && selectedRole != null)
+        {
+            var result = await userManager.AddToRoleAsync(user, selectedRole.Name!);
+            if (result.Succeeded)
+            {
+                item.Roles.Add(selectedRole.PersianName);
+                item.SelectedRole = "";
+                StateHasChanged();
+            }
+        }
+    }
+
+
+    private async Task LoadDataAsync()
+    {
+        userInfoList = [];
+        allRoles = await roleManager.Roles.ToListAsync();
+
+        var dbcontext = await dbContextFactory.CreateDbContextAsync();
+        var personnel = await dbcontext.Personnels.ToListAsync();
+        var users = await userManager.Users.ToListAsync();
+
+        foreach (var u in users)
+        {
+            var roles = await userManager.GetRolesAsync(u);
+            var persianRoles = roles
+                .Select(r => roleManager.Roles.First(x => x.Name == r).PersianName)
+                .ToList();
+
+            userInfoList.Add(new UserInfo
+                {
+                    Username = u.UserName!,
+                    Name = personnel.FirstOrDefault(p => p.PersonnelCode == u.UserName)?.Name ?? "",
+                    Roles = persianRoles
+                });
+        }
+    }
+
+
+    private string RowClassFunc(UserInfo element, int rowNumber)
+    {
+        element.Index = 1 + rowNumber + (_mudDataGrid?.CurrentPage ?? 0) * (_mudDataGrid?.RowsPerPage ?? 0);
+        return string.Empty;
     }
 
     public class UserInfo
     {
-        public string? Username { get; set; }
-        public string? Roles { get; set; }
+        public int Index { get; set; }
+        public string Username { get; set; } = "";
+        public string Name { get; set; } = "";
+        public List<string> Roles { get; set; } = new();
+        public string SelectedRole { get; set; } = "";
+
+        public DateTime? LastSeen { get; set; }
+        public bool IsOnline => LastSeen.HasValue && (DateTime.UtcNow - LastSeen.Value).TotalMinutes < 2;
     }
+
+    private Func<UserInfo, bool> Filter => userInfo =>
+     {
+         if (string.IsNullOrWhiteSpace(_searchString))
+             return true;
+
+         var search = _searchString.Trim();
+
+         return (userInfo.Username?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (userInfo.Name?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (userInfo.Roles != null && userInfo.Roles.Any(r => r.Contains(search, StringComparison.OrdinalIgnoreCase)));
+     };
+
+
+
 }

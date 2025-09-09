@@ -1,0 +1,119 @@
+﻿@page "/add-role"
+@using DriverDistributor.Entities
+@using DriverDistributor.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using MudBlazor
+@inject RoleManager<ApplicationRole> roleManager
+
+<PageTitle>اضافه کردن انبار</PageTitle>
+
+<AuthorizeView Roles="Admin">
+    <NotAuthorized>
+        <AccessDenied />
+    </NotAuthorized>
+    <Authorized>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="page-center">
+            <MudPaper Class="pa-6 form-card" Elevation="4">
+                <div style="display:flex; justify-content:center; align-items:center; margin-bottom:16px;">
+                    <h2 class="mud-typography-h5 mb-0">اضافه کردن انبار</h2>
+                </div>
+
+                <MudForm @ref="form" Model="@model" @bind-IsValid="@success" @bind-Errors="@errors">
+                    <MudTextField Class="mb-3" @bind-Value="model.Name" Immediate="true"
+                                  Required="true" RequiredError="نام نقش انگلیسی را وارد کنید"
+                                  Placeholder="نام نقش به انگلیسی"
+                                  Validation="ValidateEnglishName" />
+
+                    <MudTextField Class="mb-3" @bind-Value="model.PersianName" Immediate="true"
+                                  Required="true" RequiredError="نام نقش فارسی را وارد کنید"
+                                  Placeholder="نام نقش به فارسی" />
+
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                               OnClick="@(async ()=>await Add(form))">
+                        ثبت
+                    </MudButton>
+                </MudForm>
+
+            </MudPaper>
+        </MudContainer>
+    </Authorized>
+</AuthorizeView>
+
+<style>
+    /* Center the container */
+    .page-center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0 auto;
+    }
+
+    /* Card styling */
+    .form-card {
+        width: 100%;
+        max-width: 420px;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+
+    /* Reduce MudBlazor default spacing */
+    .mud-form .mud-text-field {
+        margin-bottom: 12px !important;
+    }
+
+    /* Override MudPaper default margin */
+    .mud-paper {
+        margin: 0 !important;
+    }
+</style>
+
+@code {
+    [Inject] public DataServices services { get; set; }
+
+    bool success;
+    string[] errors = { };
+    private MudForm form;
+    List<Warehouse> data = [];
+
+    private ApplicationRole model = new();
+
+    private async Task<string?> ValidateEnglishName(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return "نام نقش انگلیسی را وارد کنید";
+
+        var roles = await roleManager.Roles.ToListAsync();
+        if (roles.Any(x => x.Name == name))
+            return "این نقش انگلیسی موجود است.";
+
+        return null;
+    }
+
+
+    private async Task Add(MudForm form)
+    {
+        await form.Validate();
+
+        if (success)
+        {
+            var role = new ApplicationRole
+                {
+                    Name = model.Name,
+                    PersianName = model.PersianName
+                };
+
+            var result = await roleManager.CreateAsync(role);
+            if (result.Succeeded)
+            {
+                model = new();
+                await Task.Delay(1);
+
+                StateHasChanged();
+                await form.ResetAsync();
+            }
+        }
+    }
+}

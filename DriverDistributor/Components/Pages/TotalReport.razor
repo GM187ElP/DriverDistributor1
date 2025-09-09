@@ -86,6 +86,7 @@
 
         *@
 
+
 <MudDataGrid @ref="_mudDataGrid"
              T="TotalReportDto"
              Items="@totalReportDtos"
@@ -97,7 +98,6 @@
              FixedHeader="true"
              Height="630px"
              Style="flex: 1; overflow: auto;"
-             @* QuickFilter="@Filter" *@
              HeaderClass="table-header"
              Filterable=true
              ShowColumnOptions="false">
@@ -117,29 +117,58 @@
     </ToolBarContent>
 
     <Columns>
+        <PropertyColumn Property="x => x.Index" Sortable="false" Title="ردیف" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.Name" Sortable="false" Title="نام" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverCount" Sortable="false" Title="تعداد راننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DistributorCount" Sortable="false" Title="تعداد توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverDistributorCount" Sortable="false" Title="تعداد راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.PersonnelCode" Sortable="false" Title="کد پرسنلی" HeaderClass="table-header" CellClass="table-cell" />
 
-        <PropertyColumn Property="x => x.Index" Title="ردیف" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DistributorInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DistributorInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
 
-        <PropertyColumn Property="x => x.Name" Sortable="false" Title="تاریخ" StickyRight="true" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.PersonnelCode" Sortable="false" Title="روز" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.InvoiceCountFormatted" Sortable="false" Title="راننده" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.InvoiceAmountFormatted" Sortable="false" Title="موزع" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ReturnInvoiceCountFormatted" Sortable="false" Title="مسیر" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ReturnInvoiceAmountFormatted" Sortable="false" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="ریال فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور راننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور راننده" HeaderClass="table-header" CellClass="table-cell" />
 
-        <PropertyColumn Property="x => x.VIPCount" Sortable="false" Title="تعداد خالص ف" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.ExceptionCount" Sortable="false" Title="خروجی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.AbsentCount" Sortable="false" Title="تعداد فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.AtAutoMechCount" Sortable="false" Title="ریال فاکتور مرجوعی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.AtWarehouseCount" Sortable="false" Title="تعداد ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.CapitalCityCount" Sortable="false" Title="ریال ف سرویس دوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.NonCapitalCityCount" Sortable="false" Title="تعداد ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.OtherCount" Sortable="false" Title="ریال ف سرویس سوم" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.OffCount" Sortable="false" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverDistributorInvoiceCountFormatted" Sortable="false" Title="تعداد فاکتور راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverDistributorInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DistributorReturnInvoiceCountFormatted" Sortable="false" Title="تعداد مرجوعی توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DistributorReturnInvoiceAmountFormatted" Sortable="false" Title="مبلغ مرجوعی توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DriverReturnInvoiceCountFormatted" Sortable="false" Title="تعداد مرجوعی راننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverReturnInvoiceAmountFormatted" Sortable="false" Title="مبلغ مرجوعی راننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DriverDistributorReturnInvoiceCountFormatted" Sortable="false" Title="تعداد مرجوعی راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverDistributorReturnInvoiceAmountFormatted" Sortable="false" Title="مبلغ مرجوعی راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد مرجوعی راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="مبلغ مرجوعی راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.VIPCount" Sortable="false" Title="ویژه" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.CapitalCityCount" Sortable="false" Title="شیراز" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.NonCapitalCityCount" Sortable="false" Title="غیر شیراز" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.ExceptionCount" Sortable="false" Title="تعداد استثنا" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AtWarehouseCount" Sortable="false" Title="انبار" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.OffCount" Sortable="false" Title="مرخصی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AtAutoMechCount" Sortable="false" Title="تعمیرگاه" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.OtherCount" Sortable="false" Title="متفرقه" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.AbsentCount" Sortable="false" Title="غیبت" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DriverNetInvoiceCountFormatted" Sortable="false" Title="خالص تعداد فاکتور راننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverNetInvoiceAmountFormatted" Sortable="false" Title="خالص مبلغ فاکتور راننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DriverDistributorNetInvoiceCountFormatted" Sortable="false" Title="خالص تعداد فاکتور راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DriverDistributorNetInvoiceAmountFormatted" Sortable="false" Title="خالص مبلغ فاکتور راننده-توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.DistributorNetInvoiceCountFormatted" Sortable="false" Title="خالص تعداد فاکتور توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.DistributorNetInvoiceAmountFormatted" Sortable="false" Title="خالص مبلغ فاکتور توزیع‌کننده" HeaderClass="table-header" CellClass="table-cell" />
+
+
+
     </Columns>
 </MudDataGrid>
+
 
 <MudMessageBox @ref="_mudMessageBox" Title=" هشدار!">
     <TitleContent>
@@ -211,7 +240,7 @@
         {
             _persian = value;
             _searchString = value.DisplayDate;
-            totalReportDtos.Where(Filter);
+            //totalReportDtos.Where(Filter);
         }
     }
 
@@ -232,11 +261,11 @@
 
     private async Task LoadDataAsync()
     {
-        var dbContext = await dbContextFactory.CreateDbContextAsync();
-        totalReportDtos = await LoadDataQueryAsync(dbContext).ToListAsync() ?? new();
+        //var dbContext = await dbContextFactory.CreateDbContextAsync();
+        //totalReportDtos = await LoadDataQueryAsync(dbContext).ToListAsync() ?? new();
     }
 
-    private IQueryable<TotalReportDto> LoadDataQueryAsync(AppDbContext? dbContext)
+    private async Task LoadDataAsync(AppDbContext? dbContext)
     {
         var mainQuery = dbContext.Shipments.AsQueryable();
 
@@ -244,20 +273,53 @@
             ? mainQuery.Where(s => s.MonthName == _selectedMonth)
             : mainQuery;
 
-        return query
-            .SelectMany(s => new[] { new { Name = s.DriverName, Shipment = s }, new { Name = s.DistributorName, Shipment = s } })
+        // Driver query
+        var driverQuery = query
+            .Where(s => !string.IsNullOrEmpty(s.DriverName))
+            .Select(s => new ShipmentNameDto { Name = s.DriverName!, Shipment = s });
+
+        // Distributor query
+        var distributorQuery = query
+            .Where(s => !string.IsNullOrEmpty(s.DistributorName))
+            .Select(s => new ShipmentNameDto { Name = s.DistributorName!, Shipment = s });
+
+        var driverQueryList = await driverQuery.ToListAsync();
+        var distributorQueryList = await distributorQuery.ToListAsync();
+
+        var combinedList = driverQueryList
+            .Concat(distributorQueryList)
+            .GroupBy(x => x.Name)
+            .Select(g => g.First())
+            .ToList();
+
+        totalReportDtos = combinedList
             .GroupBy(x => x.Name)
             .Select(g => new TotalReportDto
                 {
                     Name = g.Key,
-                    PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ? g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty : g.Where(x => x.Shipment.DistributorName == g.Key)
-                            .Select(x => x.Shipment.DistributorPersonnelCode)
-                            .FirstOrDefault().ToString() ?? string.Empty,
 
-                    InvoiceCount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
-                    InvoiceAmount = g.Where(x => !x.Shipment.IsException).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
-                    ReturnInvoiceCount = g.Where(x => !x.Shipment.IsException).Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
-                    ReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException).Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+                    PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ?
+                                    g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty :
+                                        g.Where(x => x.Shipment.DistributorName == g.Key).Select(x => x.Shipment.DistributorPersonnelCode).FirstOrDefault().ToString() ?? string.Empty,
+
+                    DriverInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
+                    DriverInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+                    DriverReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+                    DriverReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+
+                    DistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorDuty != "موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
+                    DistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorDuty != "موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+                    DistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorDuty != "موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+                    DistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorDuty != "موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+
+                    DriverDistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده_موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
+                    DriverDistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده_موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+                    DriverDistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+                    DriverDistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverDuty != "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+
+                    DriverDistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverDuty != "راننده_موزع") ? 1 : 0),
+                    DriverCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverDuty != "راننده") ? 1 : 0),
+                    DistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DistributorDuty != "موزع") ? 1 : 0),
 
                     VIPCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.HasVip) ? 1 : 0),
                     CapitalCityCount = g.Sum(x => (x.Shipment.RouteName == "شیراز") ? 1 : 0),
@@ -268,9 +330,14 @@
                     AtAutoMechCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "تعمیرگاه") ? 1 : 0),
                     OtherCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "متفرقه") ? 1 : 0),
                     AbsentCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "غیبت") ? 1 : 0),
-                });
+                }).ToList();
     }
 
+    public class ShipmentNameDto
+    {
+        public string Name { get; set; } = "";
+        public Shipment Shipment { get; set; } = null!;
+    }
 
     public class TotalReportDto
     {
@@ -280,20 +347,60 @@
         [PropertyInfo(1, "نام", true, ColumnType.Text)]
         public string Name { get; set; }
 
+        [PropertyInfo(1, "نام", true, ColumnType.Text)]
+        public int DriverCount { get; set; }
+
+        [PropertyInfo(1, "نام", true, ColumnType.Text)]
+        public int DistributorCount { get; set; }
+
+        [PropertyInfo(1, "نام", true, ColumnType.Text)]
+        public int DriverDistributorCount { get; set; }
+
         [PropertyInfo(2, "کد پرسنلی", true, ColumnType.Text)]
         public string PersonnelCode { get; set; }
 
+
         [PropertyInfo(3, "تعداد فاکتور", true, ColumnType.Number)]
-        public int InvoiceCount { get; set; }
+        public int DistributorInvoiceCount { get; set; }
 
         [PropertyInfo(4, "مبلغ فاکتور", true, ColumnType.Number)]
-        public long InvoiceAmount { get; set; }
+        public long DistributorInvoiceAmount { get; set; }
+
+
+        [PropertyInfo(3, "تعداد فاکتور", true, ColumnType.Number)]
+        public int DriverInvoiceCount { get; set; }
+
+        [PropertyInfo(4, "مبلغ فاکتور", true, ColumnType.Number)]
+        public long DriverInvoiceAmount { get; set; }
+
+
+        [PropertyInfo(3, "تعداد فاکتور", true, ColumnType.Number)]
+        public int DriverDistributorInvoiceCount { get; set; }
+
+        [PropertyInfo(4, "مبلغ فاکتور", true, ColumnType.Number)]
+        public long DriverDistributorInvoiceAmount { get; set; }
+
 
         [PropertyInfo(5, "تعداد مرجوعی", true, ColumnType.Number)]
-        public int ReturnInvoiceCount { get; set; }
+        public int DistributorReturnInvoiceCount { get; set; }
 
         [PropertyInfo(6, "مبلغ مرجوعی", true, ColumnType.Number)]
-        public long ReturnInvoiceAmount { get; set; }
+        public long DistributorReturnInvoiceAmount { get; set; }
+
+
+        [PropertyInfo(5, "تعداد مرجوعی", true, ColumnType.Number)]
+        public int DriverDistributorReturnInvoiceCount { get; set; }
+
+        [PropertyInfo(6, "مبلغ مرجوعی", true, ColumnType.Number)]
+        public long DriverDistributorReturnInvoiceAmount { get; set; }
+
+
+        [PropertyInfo(5, "تعداد مرجوعی", true, ColumnType.Number)]
+        public int DriverReturnInvoiceCount { get; set; }
+
+        [PropertyInfo(6, "مبلغ مرجوعی", true, ColumnType.Number)]
+        public long DriverReturnInvoiceAmount { get; set; }
+
 
         [PropertyInfo(7, "ویژه", true, ColumnType.Number)]
         public int VIPCount { get; set; }
@@ -323,19 +430,71 @@
         public int AbsentCount { get; set; }
 
         [PropertyInfo(16, "خالص تعداد", true, ColumnType.Number)]
-        public int NetInvoiceCount => InvoiceCount - ReturnInvoiceCount;
+        public int DriverNetInvoiceCount => DriverInvoiceCount - DriverReturnInvoiceCount;
 
         [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
-        public long NetInvoiceAmount => InvoiceAmount - ReturnInvoiceAmount;
+        public long DriverNetInvoiceAmount => DriverInvoiceAmount - DriverReturnInvoiceAmount;
+
+        [PropertyInfo(16, "خالص تعداد", true, ColumnType.Number)]
+        public int DriverDistributorNetInvoiceCount => DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
+
+        [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
+        public long DriverDistributorNetInvoiceAmount => DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
+
+        [PropertyInfo(16, "خالص تعداد", true, ColumnType.Number)]
+        public int DistributorNetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount;
+
+        [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
+        public long DistributorNetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount;
+
+        [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
+        public long NetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount + DriverInvoiceCount - DriverReturnInvoiceCount + DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
+
+        [PropertyInfo(17, "خالص مبلغ", true, ColumnType.Number)]
+        public long NetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount + DriverInvoiceAmount - DriverReturnInvoiceAmount + DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
 
         [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string InvoiceCountFormatted => InvoiceCount.ToString("N0");
+        public string DriverInvoiceCountFormatted => DriverInvoiceCount.ToString("N0");
         [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string InvoiceAmountFormatted => InvoiceAmount.ToString("N0");
+        public string DriverInvoiceAmountFormatted => DriverInvoiceAmount.ToString("N0");
         [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ReturnInvoiceCountFormatted => ReturnInvoiceCount.ToString("N0");
+        public string DriverReturnInvoiceCountFormatted => DriverReturnInvoiceCount.ToString("N0");
         [PropertyInfo(100, "-", false, ColumnType.Text)]
-        public string ReturnInvoiceAmountFormatted => ReturnInvoiceAmount.ToString("N0");
+        public string DriverReturnInvoiceAmountFormatted => DriverReturnInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorInvoiceCountFormatted => DriverDistributorInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorInvoiceAmountFormatted => DriverDistributorInvoiceAmount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorReturnInvoiceCountFormatted => DriverDistributorReturnInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorReturnInvoiceAmountFormatted => DriverDistributorReturnInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorInvoiceCountFormatted => DistributorInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorInvoiceAmountFormatted => DistributorInvoiceAmount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorReturnInvoiceCountFormatted => DistributorReturnInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorReturnInvoiceAmountFormatted => DistributorReturnInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverNetInvoiceCountFormatted => DriverNetInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverNetInvoiceAmountFormatted => DriverNetInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorNetInvoiceCountFormatted => DriverDistributorNetInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DriverDistributorNetInvoiceAmountFormatted => DriverDistributorNetInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorNetInvoiceCountFormatted => DistributorNetInvoiceCount.ToString("N0");
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string DistributorNetInvoiceAmountFormatted => DistributorNetInvoiceAmount.ToString("N0");
+
         [PropertyInfo(100, "-", false, ColumnType.Text)]
         public string NetInvoiceCountFormatted => NetInvoiceCount.ToString("N0");
         [PropertyInfo(100, "-", false, ColumnType.Text)]
@@ -411,10 +570,10 @@
     {
         dbc = await dbContextFactory.CreateDbContextAsync();
         SetMonth();
-        LoadDataQueryAsync(dbc);
         Persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
         await base.OnInitializedAsync();
-        await LoadDataAsync();
+        //await LoadDataAsync();
+        await LoadDataAsync(dbc);
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
@@ -442,20 +601,20 @@
         bool matchesSearch =
         ContainsIgnoreCase(s.Name) ||
         ContainsIgnoreCase(s.PersonnelCode) ||
-        s.InvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-        s.InvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-        s.ReturnInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-        s.ReturnInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-        s.NetInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
-        s.NetInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.DriverInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.DriverInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.DriverReturnInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        s.DriverReturnInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase);
+        // s.NetInvoiceCount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
+        // s.NetInvoiceAmount.ToString().Contains(search, StringComparison.OrdinalIgnoreCase) ||
 
         // Formatted fields
-        ContainsIgnoreCase(s.InvoiceCountFormatted) ||
-        ContainsIgnoreCase(s.InvoiceAmountFormatted) ||
-        ContainsIgnoreCase(s.ReturnInvoiceCountFormatted) ||
-        ContainsIgnoreCase(s.ReturnInvoiceAmountFormatted) ||
-        ContainsIgnoreCase(s.NetInvoiceCountFormatted) ||
-        ContainsIgnoreCase(s.NetInvoiceAmountFormatted);
+        // ContainsIgnoreCase(s.InvoiceCountFormatted) ||
+        // ContainsIgnoreCase(s.InvoiceAmountFormatted) ||
+        // ContainsIgnoreCase(s.ReturnInvoiceCountFormatted) ||
+        // ContainsIgnoreCase(s.ReturnInvoiceAmountFormatted) ||
+        // ContainsIgnoreCase(s.NetInvoiceCountFormatted) ||
+        // ContainsIgnoreCase(s.NetInvoiceAmountFormatted);
 
         // bool filterByDate = true;
         // if (!string.IsNullOrEmpty(Persian?.MonthString))
