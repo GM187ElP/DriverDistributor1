@@ -241,24 +241,39 @@ ShowColumnOptions="false">
             : mainQuery;
 
 
-        // Driver query
-        var driverQuery = query
-            .Where(s => !string.IsNullOrEmpty(s.DriverName))
-            .Select(s => new ShipmentNameDto { Name = s.DriverName!, Shipment = s });
+        var driverNames = await query
+         .Where(s => !string.IsNullOrEmpty(s.DriverName))
+         .Select(s => s.DriverName!)
+         .Distinct()
+         .ToListAsync();
 
-        // Distributor query
-        var distributorQuery = query
+        var distributorNames = await query
             .Where(s => !string.IsNullOrEmpty(s.DistributorName))
-            .Select(s => new ShipmentNameDto { Name = s.DistributorName!, Shipment = s });
+            .Select(s => s.DistributorName!)
+            .Distinct()
+            .ToListAsync();
 
-        var driverQueryList = await driverQuery.ToListAsync();
-        var distributorQueryList = await distributorQuery.ToListAsync();
-
-        var combinedList = driverQueryList
-            .Concat(distributorQueryList)
-            .GroupBy(x => x.Name)
-            .Select(g => g.First())
+        var allNames = driverNames
+            .Concat(distributorNames)
+            .Distinct()   
             .ToList();
+
+        var shipments = await query
+            .Where(s => allNames.Contains(s.DriverName!) || allNames.Contains(s.DistributorName!))
+            .ToListAsync();
+
+        var combinedList = shipments
+     .SelectMany(s => new[]
+     {
+        !string.IsNullOrEmpty(s.DriverName)
+            ? new ShipmentNameDto { Name = s.DriverName!, Shipment = s }
+            : null,
+        !string.IsNullOrEmpty(s.DistributorName)
+            ? new ShipmentNameDto { Name = s.DistributorName!, Shipment = s }
+            : null
+         }.Where(x => x != null)!) 
+     .ToList();
+
 
         totalReportDtos = combinedList
             .GroupBy(x => x.Name)
@@ -296,7 +311,7 @@ ShowColumnOptions="false">
                     DistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع") ? 1 : 0),
 
                     VIPCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.HasVip) ? 1 : 0),
-                    CapitalCityCount = g.Sum(x => (x.Shipment.RouteName == "شیراز") ? 1 : 0),
+                    CapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName == "شیراز") ? 1 : 0),
                     NonCapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName != "شیراز") ? 1 : 0),
                     ExceptionCount = g.Count(x => x.Shipment.IsException),
                     AtWarehouseCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "انبار") ? 1 : 0),
