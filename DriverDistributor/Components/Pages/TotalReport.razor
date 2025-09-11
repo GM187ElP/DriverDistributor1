@@ -26,11 +26,11 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-        Value="_selectedMonth"
-        ValueChanged=LoadDataAsync
-        Dense="true"
-        FitContent="true"
-        Clearable="false">
+                   Value="_selectedMonth"
+                   ValueChanged=LoadDataAsync
+                   Dense="true"
+                   FitContent="true"
+                   Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -62,33 +62,33 @@
 
 
 <MudDataGrid @ref="_mudDataGrid"
-T="TotalReportDto"
-Items="@totalReportDtos"
-Dense="true"
-Bordered="true"
-Hover="true"
-RowClassFunc="@RowClassFunc"
-QuickFilter="Filter"
-Striped="true"
-FixedHeader="true"
-Height="630px"
-Style="flex: 1; overflow: auto;"
-HeaderClass="table-header"
-Filterable=true
-ShowColumnOptions="false">
+             T="TotalReportDto"
+             Items="@totalReportDtos"
+             Dense="true"
+             Bordered="true"
+             Hover="true"
+             RowClassFunc="@RowClassFunc"
+             QuickFilter="Filter"
+             Striped="true"
+             FixedHeader="true"
+             Height="630px"
+             Style="flex: 1; overflow: auto;"
+             HeaderClass="table-header"
+             Filterable=true
+             ShowColumnOptions="false">
 
     <ToolBarContent>
         <MudTextField @bind-Value="SearchString"
-        Placeholder="جستجو"
-        Clearable=true
-        ClearIcon="@Icons.Material.Filled.Clear"
-        OnClearButtonClick="ClearDate"
-        Adornment="Adornment.Start"
-        Immediate="true"
-        AdornmentIcon="@Icons.Material.Filled.Search"
-        IconSize="Size.Medium"
-        FullWidth=false
-        Class="mt-0" />
+                      Placeholder="جستجو"
+                      Clearable=true
+                      ClearIcon="@Icons.Material.Filled.Clear"
+                      OnClearButtonClick="ClearDate"
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      FullWidth=false
+                      Class="mt-0" />
     </ToolBarContent>
 
     <Columns>
@@ -172,25 +172,25 @@ ShowColumnOptions="false">
 
 <style>
     .table-header {
-    background-color: #1976d2 !important;
-    color: white !important;
-    text-align: center !important padding: 4px !important;
-    vertical-align: middle !important;
-    font-weight: bold !important;
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
     }
 
     body, html {
-    overflow: hidden !important;
-    height: 99% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+        overflow: hidden !important;
+        height: 99% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .table-cell {
-    padding: 2px 6px !important;
-    font-size: small;
-    text-align: center;
+        padding: 2px 6px !important;
+        font-size: small;
+        text-align: center;
     }
 </style>
 
@@ -233,78 +233,92 @@ ShowColumnOptions="false">
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         var mainQuery = dbContext.Shipments.AsQueryable();
 
-        if(!string.IsNullOrWhiteSpace(selectedMonth))
-        _selectedMonth = selectedMonth;
+        if (!string.IsNullOrWhiteSpace(selectedMonth))
+            _selectedMonth = selectedMonth;
 
         var query = _selectedMonth != "کلی"
             ? mainQuery.Where(s => s.MonthName == _selectedMonth)
             : mainQuery;
 
 
-        // Driver query
-        var driverQuery = query
-            .Where(s => !string.IsNullOrEmpty(s.DriverName))
-            .Select(s => new ShipmentNameDto { Name = s.DriverName!, Shipment = s });
+        var driverNames = await query
+         .Where(s => !string.IsNullOrEmpty(s.DriverName))
+         .Select(s => s.DriverName!)
+         .Distinct()
+         .ToListAsync();
 
-        // Distributor query
-        var distributorQuery = query
+        var distributorNames = await query
             .Where(s => !string.IsNullOrEmpty(s.DistributorName))
-            .Select(s => new ShipmentNameDto { Name = s.DistributorName!, Shipment = s });
+            .Select(s => s.DistributorName!)
+            .Distinct()
+            .ToListAsync();
 
-        var driverQueryList = await driverQuery.ToListAsync();
-        var distributorQueryList = await distributorQuery.ToListAsync();
-
-        var combinedList = driverQueryList
-            .Concat(distributorQueryList)
-            .GroupBy(x => x.Name)
-            .Select(g => g.First())
+        var allNames = driverNames
+            .Concat(distributorNames)
+            .Distinct()
             .ToList();
 
+        var shipments = await query
+            .Where(s => allNames.Contains(s.DriverName!) || allNames.Contains(s.DistributorName!))
+            .ToListAsync();
+
+        var combinedList = shipments
+     .SelectMany(s => new[]
+     {
+        !string.IsNullOrEmpty(s.DriverName)
+            ? new ShipmentNameDto { Name = s.DriverName!, Shipment = s }
+            : null,
+        !string.IsNullOrEmpty(s.DistributorName)
+            ? new ShipmentNameDto { Name = s.DistributorName!, Shipment = s }
+            : null
+             }.Where(x => x != null)!)
+     .ToList();
+
         totalReportDtos = combinedList
-            .GroupBy(x => x.Name)
-            .Select(g => new TotalReportDto
-                {
-                    Name = g.Key,
+       .GroupBy(x => x.Name)
+       .Select(g => new TotalReportDto
+           {
+               Name = g.Key,
 
-                    PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ?
-                                                    g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty :
-                                                        g.Where(x => x.Shipment.DistributorName == g.Key).Select(x => x.Shipment.DistributorPersonnelCode).FirstOrDefault().ToString() ?? string.Empty,
+               PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ?
+                                                   g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty :
+                                                       g.Where(x => x.Shipment.DistributorName == g.Key).Select(x => x.Shipment.DistributorPersonnelCode).FirstOrDefault().ToString() ?? string.Empty,
 
-                    DriverInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
-                    DriverInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
-                    DriverReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
-                    DriverReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+               DriverInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
+               DriverInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
+               DriverReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+               DriverReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-                    DistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
-                    DistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
-                    DistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
-                    DistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+               DistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
+               DistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+               DistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+               DistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-                    DriverDistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
-                    DriverDistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
-                    DriverDistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
-                    DriverDistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
+               DriverDistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
+               DriverDistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+               DriverDistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
+               DriverDistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-                    WarehouseTaksun = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "تکسان") ? 1 : 0),
-                    WarehouseKhoshbakht = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "خوشبخت") ? 1 : 0),
-                    WarehouseFirooz = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "فيروز") ? 1 : 0),
-                    WarehouseMakenzy = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "مکنزي") ? 1 : 0),
-                    WarehouseNooshidani = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "نوشيدني") ? 1 : 0),
+               WarehouseTaksun = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "تکسان") ? 1 : 0),
+               WarehouseKhoshbakht = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "خوشبخت") ? 1 : 0),
+               WarehouseFirooz = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "فيروز") ? 1 : 0),
+               WarehouseMakenzy = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "مکنزي") ? 1 : 0),
+               WarehouseNooshidani = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "نوشيدني") ? 1 : 0),
 
-                    DriverDistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع") ? 1 : 0),
-                    DriverCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده") ? 1 : 0),
-                    DistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع") ? 1 : 0),
+               DriverDistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع") ? 1 : 0),
+               DriverCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده") ? 1 : 0),
+               DistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع") ? 1 : 0),
 
-                    VIPCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.HasVip) ? 1 : 0),
-                    CapitalCityCount = g.Sum(x => (x.Shipment.RouteName == "شیراز") ? 1 : 0),
-                    NonCapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName != "شیراز") ? 1 : 0),
-                    ExceptionCount = g.Count(x => x.Shipment.IsException),
-                    AtWarehouseCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "انبار") ? 1 : 0),
-                    OffCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "مرخصی") ? 1 : 0),
-                    AtAutoMechCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "تعمیرگاه") ? 1 : 0),
-                    OtherCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "متفرقه") ? 1 : 0),
-                    AbsentCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "غیبت") ? 1 : 0),
-                }).ToList();
+               VIPCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.HasVip) ? 1 : 0),
+               CapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName == "شیراز") ? 1 : 0),
+               NonCapitalCityCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.RouteName != "شیراز") ? 1 : 0),
+               ExceptionCount = g.Count(x => x.Shipment.IsException),
+               AtWarehouseCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "انبار") ? 1 : 0),
+               OffCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "مرخصی") ? 1 : 0),
+               AtAutoMechCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "تعمیرگاه") ? 1 : 0),
+               OtherCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "متفرقه") ? 1 : 0),
+               AbsentCount = g.Sum(x => (x.Shipment.IsException && x.Shipment.RouteName == "غیبت") ? 1 : 0),
+           }).ToList();
         StateHasChanged();
     }
 
@@ -547,7 +561,7 @@ ShowColumnOptions="false">
 
     protected override async Task OnInitializedAsync()
     {
-        _currentMonth=SetMonth();
+        _currentMonth = SetMonth();
         await base.OnInitializedAsync();
         await LoadDataAsync(_currentMonth);
 
