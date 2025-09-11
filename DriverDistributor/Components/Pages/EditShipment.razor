@@ -28,7 +28,7 @@
                 <MudGrid>
                     <MudItem Class="mt-5" xs="4" sm="3" md="4">
                         <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
-                            <MudCheckBox @bind-Value="IsException" @onchange="ToggleException" />
+                            <MudCheckBox T="bool" Value="IsException" ValueChanged="ToggleException" />
                             <MudText Typo="Typo.h6">حالت خاص</MudText>
                         </MudStack>
                         <MudStack Row=true AlignItems="AlignItems.Center" Justify="Justify.Center" Spacing="1">
@@ -452,17 +452,11 @@
 
     DateTime ResetDate(int offset = 0) => DateTime.Today.AddDays(offset);
 
-
-    private async Task OnIsExceptionChangedAsync()
+    private async Task ToggleException(bool value)
     {
+        IsException = value;
         await LoadDataAsync(IsException);
         StateHasChanged();
-    }
-
-    private async Task ToggleException(ChangeEventArgs e)
-    {
-        IsException = (bool)e.Value;
-        await OnIsExceptionChangedAsync();
     }
 
     private void IncrementShipmentCount()

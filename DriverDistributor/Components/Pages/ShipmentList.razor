@@ -251,6 +251,7 @@ ShowColumnOptions="false">
 
     async Task WarehouseChanged(bool? newValue) 
     {
+        _isGostaresh = newValue;
         _distributionCenter = newValue switch
         {
             true => "گسترش",
