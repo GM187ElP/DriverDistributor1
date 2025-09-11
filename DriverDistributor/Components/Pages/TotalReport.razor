@@ -319,130 +319,130 @@ ShowColumnOptions="false">
         [PropertyInfo(1, "ردیف", true, ColumnType.Number)]
         public long Index { get; set; }
 
-        [PropertyInfo(2, "نام", true, ColumnType.Text)]
-        public string Name { get; set; }
-
-        [PropertyInfo(6, "کد پرسنلی", true, ColumnType.Text)]
+        [PropertyInfo(2, "کد پرسنلی", true, ColumnType.Text)]
         public string PersonnelCode { get; set; }
 
-        [PropertyInfo(3, "تعداد روز رانندگی", true, ColumnType.Text)]
-        public int DriverCount { get; set; }
-
-        [PropertyInfo(4, "تعداد روز موزعی", true, ColumnType.Text)]
-        public int DistributorCount { get; set; }
-
-        [PropertyInfo(5, "تعداد روز راننده موزعی", true, ColumnType.Text)]
-        public int DriverDistributorCount { get; set; }
+        [PropertyInfo(3, "نام", true, ColumnType.Text)]
+        public string Name { get; set; }
 
 
-        [PropertyInfo(7, "انبار تکسان", true, ColumnType.Number)]
+        [PropertyInfo(4, "انبار تکسان", true, ColumnType.Number)]
         public int WarehouseTaksun { get; set; }
 
-        [PropertyInfo(7, "انبار خوشبخت", true, ColumnType.Number)]
+        [PropertyInfo(5, "انبار خوشبخت", true, ColumnType.Number)]
         public int WarehouseKhoshbakht { get; set; }
 
-        [PropertyInfo(7, "انبار فیروز", true, ColumnType.Number)]
+        [PropertyInfo(6, "انبار فیروز", true, ColumnType.Number)]
         public int WarehouseFirooz { get; set; }
 
         [PropertyInfo(7, "انبار مکنزی", true, ColumnType.Number)]
         public int WarehouseMakenzy { get; set; }
 
-        [PropertyInfo(7, "انبار نوشیدنی", true, ColumnType.Number)]
+        [PropertyInfo(8, "انبار نوشیدنی", true, ColumnType.Number)]
         public int WarehouseNooshidani { get; set; }
 
 
-        [PropertyInfo(7, "تعداد فاکتور موزعی", true, ColumnType.Number)]
+        [PropertyInfo(9, "تعداد روز رانندگی", true, ColumnType.Text)]
+        public int DriverCount { get; set; }
+
+        [PropertyInfo(10, "تعداد روز موزعی", true, ColumnType.Text)]
+        public int DistributorCount { get; set; }
+
+        [PropertyInfo(11, "تعداد روز راننده موزعی", true, ColumnType.Text)]
+        public int DriverDistributorCount { get; set; }
+
+
+        [PropertyInfo(12, "VIP", true, ColumnType.Number)]
+        public int VIPCount { get; set; }
+
+        [PropertyInfo(13, "خاص", true, ColumnType.Number)]
+        public int ExceptionCount { get; set; }
+
+        [PropertyInfo(14, "شیراز", true, ColumnType.Number)]
+        public int CapitalCityCount { get; set; }
+
+        [PropertyInfo(15, "غیر شیراز", true, ColumnType.Number)]
+        public int NonCapitalCityCount { get; set; }
+
+        [PropertyInfo(16, "انبار", true, ColumnType.Number)]
+        public int AtWarehouseCount { get; set; }
+
+        [PropertyInfo(17, "مرخصی", true, ColumnType.Number)]
+        public int OffCount { get; set; }
+
+        [PropertyInfo(18, "تعمیرگاه", true, ColumnType.Number)]
+        public int AtAutoMechCount { get; set; }
+
+        [PropertyInfo(19, "متفرقه", true, ColumnType.Number)]
+        public int OtherCount { get; set; }
+
+        [PropertyInfo(20, "غیبت", true, ColumnType.Number)]
+        public int AbsentCount { get; set; }
+
+
+        [PropertyInfo(21, "تعداد فاکتور موزعی", true, ColumnType.Number)]
         public int DistributorInvoiceCount { get; set; }
 
-        [PropertyInfo(8, "مبلغ فاکتور موزعی", true, ColumnType.Number)]
+        [PropertyInfo(22, "مبلغ فاکتور موزعی", true, ColumnType.Number)]
         public long DistributorInvoiceAmount { get; set; }
 
-
-        [PropertyInfo(9, "تعداد فاکتور رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(23, "تعداد فاکتور رانندگی", true, ColumnType.Number)]
         public int DriverInvoiceCount { get; set; }
 
-        [PropertyInfo(10, "مبلغ فاکتور رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(24, "مبلغ فاکتور رانندگی", true, ColumnType.Number)]
         public long DriverInvoiceAmount { get; set; }
 
-
-        [PropertyInfo(11, "تعداد فاکتور راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(25, "تعداد فاکتور راننده موزعی", true, ColumnType.Number)]
         public int DriverDistributorInvoiceCount { get; set; }
 
-        [PropertyInfo(12, "مبلغ فاکتور راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(26, "مبلغ فاکتور راننده موزعی", true, ColumnType.Number)]
         public long DriverDistributorInvoiceAmount { get; set; }
 
 
-        [PropertyInfo(13, "تعداد فاکتور مرجوعی موزعی", true, ColumnType.Number)]
+        [PropertyInfo(27, "تعداد فاکتور مرجوعی موزعی", true, ColumnType.Number)]
         public int DistributorReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(14, "مبلغ مرجوعی موزعی", true, ColumnType.Number)]
+        [PropertyInfo(28, "مبلغ مرجوعی موزعی", true, ColumnType.Number)]
         public long DistributorReturnInvoiceAmount { get; set; }
 
+        [PropertyInfo(29, "تعداد فاکتور مرجوعی رانندگی", true, ColumnType.Number)]
+        public int DriverReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(15, "تعداد فاکتور مرجوعی راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(30, "مبلغ مرجوعی رانندگی", true, ColumnType.Number)]
+        public long DriverReturnInvoiceAmount { get; set; }
+
+        [PropertyInfo(31, "تعداد فاکتور مرجوعی راننده موزعی", true, ColumnType.Number)]
         public int DriverDistributorReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(16, "مبلغ مرجوعی راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(32, "مبلغ مرجوعی راننده موزعی", true, ColumnType.Number)]
         public long DriverDistributorReturnInvoiceAmount { get; set; }
 
 
-        [PropertyInfo(17, "تعداد فاکتور مرجوعی رانندگی", true, ColumnType.Number)]
-        public int DriverReturnInvoiceCount { get; set; }
-
-        [PropertyInfo(18, "مبلغ مرجوعی رانندگی", true, ColumnType.Number)]
-        public long DriverReturnInvoiceAmount { get; set; }
-
-
-        [PropertyInfo(19, "VIP", true, ColumnType.Number)]
-        public int VIPCount { get; set; }
-
-        [PropertyInfo(20, "شیراز", true, ColumnType.Number)]
-        public int CapitalCityCount { get; set; }
-
-        [PropertyInfo(21, "غیر شیراز", true, ColumnType.Number)]
-        public int NonCapitalCityCount { get; set; }
-
-        [PropertyInfo(22, "خاص", true, ColumnType.Number)]
-        public int ExceptionCount { get; set; }
-
-        [PropertyInfo(23, "انبار", true, ColumnType.Number)]
-        public int AtWarehouseCount { get; set; }
-
-        [PropertyInfo(24, "مرخصی", true, ColumnType.Number)]
-        public int OffCount { get; set; }
-
-        [PropertyInfo(25, "تعمیرگاه", true, ColumnType.Number)]
-        public int AtAutoMechCount { get; set; }
-
-        [PropertyInfo(26, "متفرقه", true, ColumnType.Number)]
-        public int OtherCount { get; set; }
-
-        [PropertyInfo(27, "غیبت", true, ColumnType.Number)]
-        public int AbsentCount { get; set; }
-
-        [PropertyInfo(28, "تعداد فاکتور خالص رانندگی", true, ColumnType.Number)]
-        public int DriverNetInvoiceCount => DriverInvoiceCount - DriverReturnInvoiceCount;
-
-        [PropertyInfo(29, "مبلغ خالص رانندگی", true, ColumnType.Number)]
-        public long DriverNetInvoiceAmount => DriverInvoiceAmount - DriverReturnInvoiceAmount;
-
-        [PropertyInfo(30, "تعداد فاکتور خالص راننده موزعی", true, ColumnType.Number)]
-        public int DriverDistributorNetInvoiceCount => DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
-
-        [PropertyInfo(31, "مبلغ خالص راننده موزعی", true, ColumnType.Number)]
-        public long DriverDistributorNetInvoiceAmount => DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
-
-        [PropertyInfo(32, "تعداد فاکتور خالص موزعی", true, ColumnType.Number)]
+        [PropertyInfo(33, "تعداد فاکتور خالص موزعی", true, ColumnType.Number)]
         public int DistributorNetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount;
 
-        [PropertyInfo(33, "مبلغ فاکتور خالص موزعی", true, ColumnType.Number)]
+        [PropertyInfo(34, "مبلغ فاکتور خالص موزعی", true, ColumnType.Number)]
         public long DistributorNetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount;
 
-        [PropertyInfo(34, "تعداد فاکتور خالص", true, ColumnType.Number)]
+        [PropertyInfo(35, "تعداد فاکتور خالص رانندگی", true, ColumnType.Number)]
+        public int DriverNetInvoiceCount => DriverInvoiceCount - DriverReturnInvoiceCount;
+
+        [PropertyInfo(36, "مبلغ خالص رانندگی", true, ColumnType.Number)]
+        public long DriverNetInvoiceAmount => DriverInvoiceAmount - DriverReturnInvoiceAmount;
+
+        [PropertyInfo(37, "تعداد فاکتور خالص راننده موزعی", true, ColumnType.Number)]
+        public int DriverDistributorNetInvoiceCount => DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
+
+        [PropertyInfo(38, "مبلغ خالص راننده موزعی", true, ColumnType.Number)]
+        public long DriverDistributorNetInvoiceAmount => DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
+
+
+        [PropertyInfo(39, "تعداد فاکتور خالص", true, ColumnType.Number)]
         public long NetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount + DriverInvoiceCount - DriverReturnInvoiceCount + DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
 
-        [PropertyInfo(35, "مبلغ فاکتور خالص", true, ColumnType.Number)]
+        [PropertyInfo(40, "مبلغ فاکتور خالص", true, ColumnType.Number)]
         public long NetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount + DriverInvoiceAmount - DriverReturnInvoiceAmount + DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
+
 
         [PropertyInfo(100, "-", false, ColumnType.Text)]
         public string DriverInvoiceCountFormatted => DriverInvoiceCount.ToString("N0");
@@ -556,8 +556,6 @@ ShowColumnOptions="false">
         isAuthorized = user.Identity?.IsAuthenticated ?? false;
         StateHasChanged();
     }
-
-
 
     private string RowClassFunc(TotalReportDto element, int rowNumber)
     {
