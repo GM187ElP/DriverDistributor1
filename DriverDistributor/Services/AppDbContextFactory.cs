@@ -38,6 +38,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Options;
         dasdasd
 
+
         return new AppDbContext(options);
     }
 }
