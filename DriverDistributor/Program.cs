@@ -8,8 +8,6 @@ using DriverDistributor.Data;
 using DriverDistributor.Services;
 using DriverDistributor.Entities;
 using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Tokens;
-using System.Text.Json;
 using MudBlazor;
 using System.Globalization;
 
@@ -58,10 +56,18 @@ string hostIp = "10.11.11.28";
 bool isLocal = System.Net.Dns.GetHostAddresses("localhost")
                  .Any(ip => ip.ToString() == hostIp);
 
+string migrationEnvironment = "Development";
+var initCatalog = migrationEnvironment switch 
+{ 
+    "Development"=> "DriverDistributor_Dev",
+    "Staging" => "DriverDistributor_Staging",
+    _=> "DriverDistributor"
+};
+
 var linuxConnectionString = new SqlConnectionStringBuilder()
 {
     DataSource = isLocal ? ".,1433" : $"{hostIp},1433",
-    InitialCatalog = "DriverDistributor",
+    InitialCatalog = initCatalog,
     TrustServerCertificate = true,
     MultipleActiveResultSets = true,
     UserID = "sa",

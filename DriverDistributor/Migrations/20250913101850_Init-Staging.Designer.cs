@@ -4,6 +4,7 @@ using DriverDistributor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DriverDistributor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250913101850_Init-Staging")]
+    partial class InitStaging
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -128,7 +131,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Distributors", (string)null);
+                    b.ToTable("Distributors");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Driver", b =>
@@ -141,7 +144,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Drivers", (string)null);
+                    b.ToTable("Drivers");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Personnel", b =>
@@ -162,7 +165,7 @@ namespace DriverDistributor.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("Personnels", (string)null);
+                    b.ToTable("Personnels");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Route", b =>
@@ -175,7 +178,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Routes", (string)null);
+                    b.ToTable("Routes");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Shipment", b =>
@@ -280,7 +283,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasIndex("WarehouseName");
 
-                    b.ToTable("Shipments", (string)null);
+                    b.ToTable("Shipments");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.ShipmentNumber", b =>
@@ -301,7 +304,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasIndex("ShipmentId");
 
-                    b.ToTable("ShipmentNumbers", (string)null);
+                    b.ToTable("ShipmentNumbers");
                 });
 
             modelBuilder.Entity("DriverDistributor.Entities.Warehouse", b =>
@@ -311,7 +314,7 @@ namespace DriverDistributor.Migrations
 
                     b.HasKey("Name");
 
-                    b.ToTable("Warehouses", (string)null);
+                    b.ToTable("Warehouses");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
