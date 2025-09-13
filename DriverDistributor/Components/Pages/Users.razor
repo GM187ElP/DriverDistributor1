@@ -1,6 +1,7 @@
 ﻿@page "/users"
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
@@ -10,11 +11,11 @@
 @inject IDbContextFactory<AppDbContext> dbContextFactory
 @inject IDialogService DialogService
 @inject NavigationManager nm
+@inject AuthenticationStateProvider authenticationStateProvider
+@attribute [Authorize(Roles = "Admin,HR")]
 
 <h3>لیست کاربران</h3>
 
-<AuthorizeView Roles="Admin">
-    <Authorized>
 
         <MudDataGrid T="UserInfo"
                      Items="@userInfoList"
@@ -89,14 +90,6 @@
             </Columns>
         </MudDataGrid>
 
-
-
-    </Authorized>
-    <NotAuthorized>
-        <AccessDenied />
-    </NotAuthorized>
-</AuthorizeView>
-
 <MudMessageBox @ref="_mudMessageBox" Title=" هشدار!">
     <TitleContent>
         <MudAlert Severity="Severity.Warning">
@@ -156,9 +149,15 @@
     private List<ApplicationRole> allRoles = new();
     private List<ApplicationRole> userSelectItemRoles = new();
     private string? _searchString = "";
+    private bool isAdmin = false;
+    private ApplicationRole admin;
 
     protected override async Task OnInitializedAsync()
     {
+        var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
+        admin = await roleManager.FindByNameAsync("Admin");
+        var user = auth.User;
+        isAdmin = user.IsInRole("Admin");
         await LoadDataAsync();
         hubConnection = new HubConnectionBuilder()
             .WithUrl(nm.ToAbsoluteUri("/presenceHub"))
@@ -191,7 +190,7 @@
         StateHasChanged();
     }
 
-    void StartedEditingItem(UserInfo item)
+    private void StartedEditingItem(UserInfo item)
     {
         List<ApplicationRole> userRoles = [];
         foreach (var role in item.Roles)
@@ -201,15 +200,25 @@
                 userRoles.Add(userRole);
         }
         userSelectItemRoles = allRoles.Except(userRoles).ToList();
+
+        if (!isAdmin)
+            userSelectItemRoles.Remove(admin);
     }
 
     async Task RemoveUserRole(string username, string selectedRole)
     {
         var user = await userManager.FindByNameAsync(username);
         var role = allRoles.FirstOrDefault(x => x.PersianName == selectedRole)?.Name;
-        if (role != null && user != null)
+
+        if (role != null)
         {
-            await userManager.RemoveFromRoleAsync(user, role);
+            if (!isAdmin && role == "Admin")
+                return;
+
+            if (user != null)
+            {
+                await userManager.RemoveFromRoleAsync(user, role);
+            }
         }
     }
 

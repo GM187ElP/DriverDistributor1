@@ -14,7 +14,7 @@
 @inject NavigationManager navigationManager
 @inject AuthenticationStateProvider authenticationStateProvider
 @inject UserManager<ApplicationUser> userManager
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,LogisticManager")]
 
 
 <PageTitle>ویرایش خروجی</PageTitle>
@@ -290,8 +290,6 @@
         if (Id == 0)
         {
             SetDateAndWarehouse();
-
-
 
             IsException = false;
             await LoadDataAsync(IsException);

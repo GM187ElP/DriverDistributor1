@@ -4,6 +4,7 @@
 @using ClosedXML.Excel
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using static DriverDistributor.Components.Excel
@@ -11,13 +12,12 @@
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
 @inject AppDbContext dbContext
+@attribute [Authorize(Roles = "Admin,LogisticManager,HR")]
 
 <PageTitle>لیست حواله ها</PageTitle>
 
 
 <MudRTLProvider RightToLeft="true">
-
-
     <h3 class="mt-5">لیست حواله ها</h3>
 
     @* <div style="display: flex; flex-direction: column; height: 100vh;"> *@
