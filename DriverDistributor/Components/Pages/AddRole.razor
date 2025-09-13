@@ -5,14 +5,12 @@
 @using Microsoft.AspNetCore.Identity
 @using MudBlazor
 @inject RoleManager<ApplicationRole> roleManager
+@attribute [Authorize(Roles = "Admin")]
+
 
 <PageTitle>اضافه کردن انبار</PageTitle>
 
-<AuthorizeView Roles="Admin">
-    <NotAuthorized>
-        <AccessDenied />
-    </NotAuthorized>
-    <Authorized>
+
         <MudContainer MaxWidth="MaxWidth.Small" Class="page-center">
             <MudPaper Class="pa-6 form-card" Elevation="4">
                 <div style="display:flex; justify-content:center; align-items:center; margin-bottom:16px;">
@@ -37,8 +35,6 @@
 
             </MudPaper>
         </MudContainer>
-    </Authorized>
-</AuthorizeView>
 
 <style>
     /* Center the container */

@@ -3,20 +3,18 @@
 @using ClosedXML.Excel
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.EntityFrameworkCore
 @using static DriverDistributor.Components.PersianDatePicker
 @using static DriverDistributor.Components.Excel
-@inject NavigationManager nm
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
 @inject AppDbContext dbContext
 @inject IDbContextFactory<AppDbContext> dbContextFactory
-
+@attribute [Authorize(Roles = "Admin,LogisticManager,HR")]
 
 <PageTitle>گزارش کلی</PageTitle>
-
-
 
 <h2 class="mt-2 mb-2">گزارش کلی</h2>
 

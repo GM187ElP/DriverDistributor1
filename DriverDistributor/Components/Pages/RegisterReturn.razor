@@ -2,10 +2,13 @@
 @using System.ComponentModel.DataAnnotations
 @using DriverDistributor.Data
 @using DriverDistributor.Entities
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager navigationManager
 @inject IDbContextFactory<AppDbContext> dbContextFactory
 @inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,LogisticManager")]
+
 
 <PageTitle>ویرایش خروجی</PageTitle>
 

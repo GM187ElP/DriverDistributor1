@@ -4,7 +4,7 @@
 @using DriverDistributor.Services
 @using Microsoft.AspNetCore.Authorization
 @using MudBlazor
-@attribute [Authorize]
+@attribute [Authorize(Roles = "Admin,LogisticManager")]
 
 <PageTitle>اضافه کردن راننده و موزع</PageTitle>
 
