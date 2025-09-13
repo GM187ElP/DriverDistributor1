@@ -9,6 +9,7 @@ on:
 
 jobs:
   deploy:
+    name: Deploy (${{ github.ref_name }})
     runs-on: self-hosted
 
     steps:
