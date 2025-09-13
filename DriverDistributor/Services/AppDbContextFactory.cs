@@ -37,6 +37,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .UseSqlServer(connString)
             .Options;
 
+
         return new AppDbContext(options);
     }
 }
