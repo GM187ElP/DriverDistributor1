@@ -52,16 +52,23 @@ var secretService = new SecretEncodeDecode(builder.Configuration, builder.Enviro
 var dirInfo = Directory.CreateDirectory(Path.Combine(builder.Environment.ContentRootPath, "Private"));
 string path;
 
-string hostIp = "10.11.11.28";
-bool isLocal = System.Net.Dns.GetHostAddresses("localhost")
-                 .Any(ip => ip.ToString() == hostIp);
 
-string migrationEnvironment = "";
-var initCatalog = migrationEnvironment switch 
-{ 
-    "Development"=> "DriverDistributor_Dev",
-    "Staging" => "DriverDistributor_Staging",
-    _=> "DriverDistributor"
+string environment;
+var localIps = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName()); 
+string hostIp = "10.11.11.28";
+
+bool isLocal = localIps.Any(ip => ip.ToString() == hostIp);
+
+if (isLocal)
+    environment = "develop";  // change this to use other envs
+else
+    environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "production";
+
+var initCatalog = (environment ?? "").ToLower() switch
+{
+    "develop" => "DriverDistributor_Dev",
+    "staging" => "DriverDistributor_Staging",
+    _ => "DriverDistributor"
 };
 
 var linuxConnectionString = new SqlConnectionStringBuilder()
