@@ -36,6 +36,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseSqlServer(connString)
             .Options;
+        dasdasd
 
         return new AppDbContext(options);
     }
