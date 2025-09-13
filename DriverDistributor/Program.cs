@@ -56,7 +56,7 @@ string hostIp = "10.11.11.28";
 bool isLocal = System.Net.Dns.GetHostAddresses("localhost")
                  .Any(ip => ip.ToString() == hostIp);
 
-string migrationEnvironment = "Development";
+string migrationEnvironment = "";
 var initCatalog = migrationEnvironment switch 
 { 
     "Development"=> "DriverDistributor_Dev",
