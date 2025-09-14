@@ -6,6 +6,9 @@ namespace DriverDistributor.Entities;
 public class Route
 {
     [Key]
+    [Label("آیدی")]
+    public int Id { get; set; }
+    
     [Label("مسیر")]
     public string Name { get; set; }
 

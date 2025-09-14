@@ -1,85 +1,326 @@
-{
-  "extRoutes": [
-    "انبار",
-    "تعمیرگاه",
-    "غیبت",
-    "متفرقه",
-    "مرخصی"
-  ],
-  "routes": [
-    "ارسنجان",
-    "استهبان",
-    "اسیر",
-    "اشکنان",
-    "اقلید",
-    "اوز",
-    "ایج",
-    "آب پخش",
-    "آباده",
-    "آباده طشک",
-    "بالاده",
-    "برازجان",
-    "بردخون",
-    "بلغان",
-    "بنارویه",
-    "بوانات",
-    "بوشهر",
-    "بهبهان",
-    "بیرم",
-    "بیضا",
-    "جم و ریز",
-    "جنت شهر",
-    "جویم",
-    "جهرم",
-    "حاجی آباد",
-    "خرامه",
-    "خشت",
-    "خفر",
-    "خنج",
-    "خورموج",
-    "خیر",
-    "داراب",
-    "داریون",
-    "دشت ارژن",
-    "دیر",
-    "دیلم",
-    "زاهدشهر",
-    "زرقان",
-    "سپیدان",
-    "سروستان",
-    "سعادت شهر",
-    "سورمق",
-    "سیدان",
-    "شبانکاره",
-    "شرفویه",
-    "صفاشهر",
-    "عسلویه",
-    "علامرودشت",
-    "فراشبند",
-    "فسا",
-    "فیروزآباد",
-    "قادرآباد",
-    "قائمیه",
-    "قطب آباد",
-    "قطرویه",
-    "قیر",
-    "کازرون",
-    "کنار تخته",
-    "کنگان",
-    "کوار",
-    "گراش",
-    "گله دار",
-    "گناوه",
-    "لار",
-    "لامرد",
-    "لپویی",
-    "مرودشت",
-    "میمند",
-    "نخل تقی",
-    "نورآباد",
-    "نیریز",
-    "یاسوج",
-    "کامفیروز",
-    "زرین دشت"
-  ]
-}
+[
+  {
+    "Name": "انبار",
+    "IsExc": true
+  },
+  {
+    "Name": "تعمیرگاه",
+    "IsExc": true
+  },
+  {
+    "Name": "غیبت",
+    "IsExc": true
+  },
+  {
+    "Name": "متفرقه",
+    "IsExc": true
+  },
+  {
+    "Name": "مرخصی",
+    "IsExc": true
+  },
+  {
+    "Name": "شیراز",
+    "IsExc": false
+  },
+  {
+    "Name": "صدرا",
+    "IsExc": false
+  },
+  {
+    "Name": "جهرم",
+    "IsExc": false
+  },
+  {
+    "Name": "مرودشت",
+    "IsExc": false
+  },
+  {
+    "Name": "فسا",
+    "IsExc": false
+  },
+  {
+    "Name": "کازرون",
+    "IsExc": false
+  },
+  {
+    "Name": "داراب",
+    "IsExc": false
+  },
+  {
+    "Name": "فیروزآباد",
+    "IsExc": false
+  },
+  {
+    "Name": "آباده",
+    "IsExc": false
+  },
+  {
+    "Name": "لار",
+    "IsExc": false
+  },
+  {
+    "Name": "نورآباد",
+    "IsExc": false
+  },
+  {
+    "Name": "نیریز",
+    "IsExc": false
+  },
+  {
+    "Name": "اقلید",
+    "IsExc": false
+  },
+  {
+    "Name": "استهبان",
+    "IsExc": false
+  },
+  {
+    "Name": "گراش",
+    "IsExc": false
+  },
+  {
+    "Name": "زرقان",
+    "IsExc": false
+  },
+  {
+    "Name": "کوار",
+    "IsExc": false
+  },
+  {
+    "Name": "لامرد",
+    "IsExc": false
+  },
+  {
+    "Name": "صفاشهر",
+    "IsExc": false
+  },
+  {
+    "Name": "قائمیه",
+    "IsExc": false
+  },
+  {
+    "Name": "فراشبند",
+    "IsExc": false
+  },
+  {
+    "Name": "قیر",
+    "IsExc": false
+  },
+  {
+    "Name": "اوز",
+    "IsExc": false
+  },
+  {
+    "Name": "خنج",
+    "IsExc": false
+  },
+  {
+    "Name": "خرامه",
+    "IsExc": false
+  },
+  {
+    "Name": "سروستان",
+    "IsExc": false
+  },
+  {
+    "Name": "ارسنجان",
+    "IsExc": false
+  },
+  {
+    "Name": "قادرآباد",
+    "IsExc": false
+  },
+  {
+    "Name": "میمند",
+    "IsExc": false
+  },
+  {
+    "Name": "بوانات",
+    "IsExc": false
+  },
+  {
+    "Name": "زاهدشهر",
+    "IsExc": false
+  },
+  {
+    "Name": "خشت",
+    "IsExc": false
+  },
+  {
+    "Name": "اشکنان",
+    "IsExc": false
+  },
+  {
+    "Name": "بنارویه",
+    "IsExc": false
+  },
+  {
+    "Name": "سیدان",
+    "IsExc": false
+  },
+  {
+    "Name": "جویم",
+    "IsExc": false
+  },
+  {
+    "Name": "آباده طشک",
+    "IsExc": false
+  },
+  {
+    "Name": "بیرم",
+    "IsExc": false
+  },
+  {
+    "Name": "بیضا",
+    "IsExc": false
+  },
+  {
+    "Name": "ایج",
+    "IsExc": false
+  },
+  {
+    "Name": "علامرودشت",
+    "IsExc": false
+  },
+  {
+    "Name": "کامفیروز",
+    "IsExc": false
+  },
+  {
+    "Name": "سورمق",
+    "IsExc": false
+  },
+  {
+    "Name": "اسیر",
+    "IsExc": false
+  },
+  {
+    "Name": "قطرویه",
+    "IsExc": false
+  },
+  {
+    "Name": "آب پخش",
+    "IsExc": false
+  },
+  {
+    "Name": "بالاده",
+    "IsExc": false
+  },
+  {
+    "Name": "برازجان",
+    "IsExc": false
+  },
+  {
+    "Name": "بردخون",
+    "IsExc": false
+  },
+  {
+    "Name": "بلغان",
+    "IsExc": false
+  },
+  {
+    "Name": "بوشهر",
+    "IsExc": false
+  },
+  {
+    "Name": "بهبهان",
+    "IsExc": false
+  },
+  {
+    "Name": "جم و ریز",
+    "IsExc": false
+  },
+  {
+    "Name": "جنت شهر",
+    "IsExc": false
+  },
+  {
+    "Name": "حاجی آباد",
+    "IsExc": false
+  },
+  {
+    "Name": "خفر",
+    "IsExc": false
+  },
+  {
+    "Name": "خورموج",
+    "IsExc": false
+  },
+  {
+    "Name": "خیر",
+    "IsExc": false
+  },
+  {
+    "Name": "داریون",
+    "IsExc": false
+  },
+  {
+    "Name": "دشت ارژن",
+    "IsExc": false
+  },
+  {
+    "Name": "دیر",
+    "IsExc": false
+  },
+  {
+    "Name": "دیلم",
+    "IsExc": false
+  },
+  {
+    "Name": "سپیدان",
+    "IsExc": false
+  },
+  {
+    "Name": "سعادت شهر",
+    "IsExc": false
+  },
+  {
+    "Name": "شبانکاره",
+    "IsExc": false
+  },
+  {
+    "Name": "شرفویه",
+    "IsExc": false
+  },
+  {
+    "Name": "عسلویه",
+    "IsExc": false
+  },
+  {
+    "Name": "قطب آباد",
+    "IsExc": false
+  },
+  {
+    "Name": "کنار تخته",
+    "IsExc": false
+  },
+  {
+    "Name": "کنگان",
+    "IsExc": false
+  },
+  {
+    "Name": "گله دار",
+    "IsExc": false
+  },
+  {
+    "Name": "گناوه",
+    "IsExc": false
+  },
+  {
+    "Name": "لپویی",
+    "IsExc": false
+  },
+  {
+    "Name": "نخل تقی",
+    "IsExc": false
+  },
+  {
+    "Name": "یاسوج",
+    "IsExc": false
+  },
+  {
+    "Name": "زرین دشت",
+    "IsExc": false
+  }
+]
