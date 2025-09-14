@@ -54,12 +54,12 @@ string path;
 
 
 string environment;
-var localIps = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName()); 
+var localIps = System.Net.Dns.GetHostAddresses(System.Net.Dns.GetHostName());
 string hostIp = "10.11.11.28";
 
 bool isLocal = localIps.Any(ip => ip.ToString() == hostIp);
 
-if (isLocal)
+if (!isLocal)
     environment = "develop";  // change this to use other envs
 else
     environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "production";
@@ -80,7 +80,6 @@ var linuxConnectionString = new SqlConnectionStringBuilder()
     UserID = "sa",
     Password = "Arsalan.1461",
 };
-
 
 var selector = "linux";
 var connectionString = string.Empty;
@@ -148,6 +147,8 @@ app.UseHttpsRedirection();
 //-------------------------------------------------------------------
 app.UseAuthentication();
 app.UseAuthorization();
+
+
 //-------------------------------------------------------------------
 
 
@@ -164,6 +165,31 @@ app.MapRazorComponents<App>()
 app.MapRazorPages(); // this makes /Identity/Account/Login work
 app.MapControllers();
 app.MapHub<PresenceHub>("/presenceHub");
+
+using (var scope = app.Services.CreateAsyncScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
+
+    //await dbContext.Warehouses.ExecuteDeleteAsync();
+    //await dbContext.Routes.ExecuteDeleteAsync();
+    //await dbContext.Drivers.ExecuteDeleteAsync();
+    //await dbContext.Distributors.ExecuteDeleteAsync();
+    //await dbContext.Personnels.ExecuteDeleteAsync();
+
+    if (!dbContext.Routes.Any())
+    {
+        var seeder = new Seeder(dbContext, userManager, roleManager);
+
+        //string password = "";
+        //await seeder.AdminExecuteAsync(password);
+        await seeder.WarehousesExecuteAsync();
+        await seeder.RoutesExecuteAsync();
+        await seeder.PersonnelsExecuteAsync();
+        await seeder.DDExecuteAsync();
+    }
+}
 //-------------------------------------------------------------------
 
 app.Run();

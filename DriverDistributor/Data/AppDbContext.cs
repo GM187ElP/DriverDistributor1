@@ -7,7 +7,7 @@ using Route = DriverDistributor.Entities.Route;
 
 namespace DriverDistributor.Data;
 
-public class AppDbContext : IdentityDbContext<ApplicationUser,ApplicationRole,string>
+public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
     public DbSet<Shipment> Shipments { get; set; }
     public DbSet<Driver> Drivers { get; set; }
@@ -41,6 +41,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser,ApplicationRole,st
 
         builder.Entity<Distributor>()
           .HasKey(x => x.Name);
+
+        builder.Entity<Route>()
+          .HasMany(x => x.Shipments)
+          .WithOne(x => x.Route)
+          .HasPrincipalKey(x => x.Name)
+          .HasForeignKey(x => x.RouteName);
+
+        builder.Entity<Route>()
+            .HasKey(x => x.Id);
+
+        builder.Entity<Route>()
+            .HasIndex(x => x.Name)
+            .IsUnique();
 
         builder.Entity<Distributor>()
             .Property(x => x.Name)
