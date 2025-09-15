@@ -34,33 +34,47 @@ jobs:
             echo "DB_CONNECTION_STRING=Data Source=.,1433;Initial Catalog=DriverDistributor;User ID=sa;Password=${{secrets.DB_PASSWORD}};Multiple Active Result Sets=True;Trust Server Certificate=True;" >> $GITHUB_ENV
           fi
 
-      # 3. Prepare folder
+      # 3. Prepare project folder
       - name: Prepare project folder
         run: |
           mkdir -p /home/ubuntu/DriverDistributor/${APP_ENV}
           rsync -av --delete --exclude='.vs' ./ /home/ubuntu/DriverDistributor/${APP_ENV}/
 
-      # 4. Stop existing containers
+      # 4. Stop old DriverDistributor containers
       - name: Stop old containers
         run: |
           docker stop driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rm driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rmi driverdistributor-${APP_ENV} 2>/dev/null || true
 
-      # 5. Ensure SQL Server container is running
+      # 5. Ensure SQL Server container persists
       - name: Ensure SQL Server container
         run: |
-          if ! docker ps --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
-              docker start sqlserver
+          sudo mkdir -p /home/ubuntu/sql_backups 2>/dev/null || true
+          sudo chmod -R 777 /home/ubuntu/sql_backups
+          docker network create sqlnet 2>/dev/null || true
+
+          if docker ps -a --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
+            echo "Starting existing SQL Server container..."
+            docker start sqlserver
+          else
+            echo "Creating new SQL Server container..."
+            docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Arsalan.1461" \
+              -p 1433:1433 \
+              -v mssql_data:/var/opt/mssql \
+              -v /home/ubuntu/sql_backups:/var/opt/mssql/backups \
+              --name sqlserver \
+              --network sqlnet \
+              -d mcr.microsoft.com/mssql/server:2022-latest
           fi
 
-      # 6. Build new Docker image
+      # 6. Build new DriverDistributor Docker image
       - name: Build Docker image
         run: |
           cd /home/ubuntu/DriverDistributor/${APP_ENV}
           docker build -t driverdistributor-${APP_ENV} .
 
-      # 7. Run new container
+      # 7. Run DriverDistributor container
       - name: Run DriverDistributor container
         run: |
           docker run -d \
@@ -71,5 +85,10 @@ jobs:
           -e ConnectionStrings__Default="${DB_CONNECTION_STRING}" \
           driverdistributor-${APP_ENV}
 
+      # 8. Cleanup unused Docker resources
+      - name: Clean up unused Docker resources
+        run: docker system prune -af
+
+      # 9. Deployment complete
       - name: Deployment complete
         run: echo "DriverDistributor ${APP_ENV} container is up and running!"

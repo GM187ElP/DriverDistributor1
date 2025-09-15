@@ -182,7 +182,7 @@ using (var scope = app.Services.CreateAsyncScope())
     {
         var seeder = new Seeder(dbContext, userManager, roleManager);
 
-        //string password = "";
+        //string password = "1234";
         //await seeder.AdminExecuteAsync(password);
         await seeder.WarehousesExecuteAsync();
         await seeder.RoutesExecuteAsync();
