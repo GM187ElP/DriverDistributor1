@@ -47,7 +47,7 @@ jobs:
           docker rm driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rmi driverdistributor-${APP_ENV} 2>/dev/null || true
 
-      # 5. Ensure SQL Server container (persistent)
+      # 5. Ensure SQL Server container persists
       - name: Ensure SQL Server container
         run: |
           sudo mkdir -p /home/ubuntu/sql_backups 2>/dev/null || true
@@ -55,8 +55,10 @@ jobs:
           docker network create sqlnet 2>/dev/null || true
 
           if docker ps -a --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
+            echo "Starting existing SQL Server container..."
             docker start sqlserver
           else
+            echo "Creating new SQL Server container..."
             docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Arsalan.1461" \
               -p 1433:1433 \
               -v mssql_data:/var/opt/mssql \
@@ -83,6 +85,10 @@ jobs:
           -e ConnectionStrings__Default="${DB_CONNECTION_STRING}" \
           driverdistributor-${APP_ENV}
 
-      # 8. Deployment complete
+      # 8. Cleanup unused Docker resources
+      - name: Clean up unused Docker resources
+        run: docker system prune -af
+
+      # 9. Deployment complete
       - name: Deployment complete
         run: echo "DriverDistributor ${APP_ENV} container is up and running!"
