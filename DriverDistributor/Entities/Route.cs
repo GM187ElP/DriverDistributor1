@@ -10,9 +10,9 @@ public class Route
     public int Id { get; set; }
     
     [Label("مسیر")]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     [Label("مسیر خاص")]
-    public bool IsExt { get; set; }
+    public bool IsExt { get; set; } = false;
     public ICollection<Shipment> Shipments { get; set; } = [];
 }

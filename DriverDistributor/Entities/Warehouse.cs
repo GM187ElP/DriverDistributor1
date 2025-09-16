@@ -7,6 +7,6 @@ public class Warehouse
 {
     [Key]
     [Label("انبار")]
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
     public ICollection<Shipment> Shipments { get; set; } = [];
 }

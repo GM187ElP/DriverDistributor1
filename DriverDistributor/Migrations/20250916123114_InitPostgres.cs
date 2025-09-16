@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace DriverDistributor.Migrations
 {
     /// <inheritdoc />
-    public partial class AddIdToRoutes : Migration
+    public partial class InitPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,11 +16,11 @@ namespace DriverDistributor.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PersianName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    PersianName = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -30,21 +31,21 @@ namespace DriverDistributor.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UserName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "text", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "boolean", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -55,8 +56,8 @@ namespace DriverDistributor.Migrations
                 name: "Distributors",
                 columns: table => new
                 {
-                    Name = table.Column<string>(type: "nvarchar(100)", nullable: false),
-                    PersonnelCode = table.Column<int>(type: "int", nullable: true)
+                    Name = table.Column<string>(type: "character varying(100)", nullable: false),
+                    PersonnelCode = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -67,8 +68,8 @@ namespace DriverDistributor.Migrations
                 name: "Drivers",
                 columns: table => new
                 {
-                    Name = table.Column<string>(type: "nvarchar(100)", nullable: false),
-                    PersonnelCode = table.Column<int>(type: "int", nullable: true)
+                    Name = table.Column<string>(type: "character varying(100)", nullable: false),
+                    PersonnelCode = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -79,9 +80,9 @@ namespace DriverDistributor.Migrations
                 name: "Personnels",
                 columns: table => new
                 {
-                    PersonnelCode = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    PersonnelCode = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    PhoneNumber = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -93,10 +94,10 @@ namespace DriverDistributor.Migrations
                 name: "Routes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    IsExt = table.Column<bool>(type: "bit", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    IsExt = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -108,7 +109,7 @@ namespace DriverDistributor.Migrations
                 name: "Warehouses",
                 columns: table => new
                 {
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -119,11 +120,11 @@ namespace DriverDistributor.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -140,11 +141,11 @@ namespace DriverDistributor.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    ClaimType = table.Column<string>(type: "text", nullable: true),
+                    ClaimValue = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -161,10 +162,10 @@ namespace DriverDistributor.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    ProviderKey = table.Column<string>(type: "text", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "text", nullable: true),
+                    UserId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -181,8 +182,8 @@ namespace DriverDistributor.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    RoleId = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -205,10 +206,10 @@ namespace DriverDistributor.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    LoginProvider = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -226,32 +227,33 @@ namespace DriverDistributor.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ShipmentDateGregorian = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    ShipmentDatePersian = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Weekday = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MonthName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DriverPersonnelCode = table.Column<int>(type: "int", nullable: true),
-                    DistributorPersonnelCode = table.Column<int>(type: "int", nullable: true),
-                    DriverName = table.Column<string>(type: "nvarchar(100)", nullable: true),
-                    DriverDuty = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DistributorName = table.Column<string>(type: "nvarchar(100)", nullable: true),
-                    DistributorDuty = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RouteName = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    WarehouseName = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    InvoiceCount = table.Column<int>(type: "int", nullable: true),
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ShipmentDateGregorian = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ShipmentDatePersian = table.Column<string>(type: "text", nullable: false),
+                    Weekday = table.Column<string>(type: "text", nullable: false),
+                    MonthName = table.Column<string>(type: "text", nullable: false),
+                    DriverPersonnelCode = table.Column<int>(type: "integer", nullable: true),
+                    DistributorPersonnelCode = table.Column<int>(type: "integer", nullable: true),
+                    DriverName = table.Column<string>(type: "character varying(100)", nullable: true),
+                    DriverDuty = table.Column<string>(type: "text", nullable: true),
+                    DistributorName = table.Column<string>(type: "character varying(100)", nullable: true),
+                    DistributorDuty = table.Column<string>(type: "text", nullable: true),
+                    RouteName = table.Column<string>(type: "text", nullable: false),
+                    WarehouseName = table.Column<string>(type: "text", nullable: true),
+                    InvoiceCount = table.Column<int>(type: "integer", nullable: true),
                     InvoiceAmount = table.Column<long>(type: "bigint", nullable: true),
-                    ReturnInvoiceCount = table.Column<int>(type: "int", nullable: true),
+                    ReturnInvoiceCount = table.Column<int>(type: "integer", nullable: true),
                     ReturnInvoiceAmount = table.Column<long>(type: "bigint", nullable: true),
-                    SecondServiceInvoiceCount = table.Column<int>(type: "int", nullable: true),
-                    ThirdServiceInvoiceCount = table.Column<int>(type: "int", nullable: true),
+                    SecondServiceInvoiceCount = table.Column<int>(type: "integer", nullable: true),
+                    ThirdServiceInvoiceCount = table.Column<int>(type: "integer", nullable: true),
                     SecondServiceInvoiceAmount = table.Column<long>(type: "bigint", nullable: true),
                     ThirdServiceInvoiceAmount = table.Column<long>(type: "bigint", nullable: true),
-                    HasVip = table.Column<bool>(type: "bit", nullable: false),
-                    IsException = table.Column<bool>(type: "bit", nullable: false),
-                    DistributionCenter = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserName = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                    HasVip = table.Column<bool>(type: "boolean", nullable: false),
+                    IsException = table.Column<bool>(type: "boolean", nullable: false),
+                    DistributionCenter = table.Column<string>(type: "text", nullable: true),
+                    UserName = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -295,9 +297,10 @@ namespace DriverDistributor.Migrations
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Number = table.Column<int>(type: "int", nullable: false),
-                    ShipmentId = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Number = table.Column<int>(type: "integer", nullable: false),
+                    ShipmentId = table.Column<long>(type: "bigint", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -319,8 +322,7 @@ namespace DriverDistributor.Migrations
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
-                unique: true,
-                filter: "[NormalizedName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
@@ -346,8 +348,7 @@ namespace DriverDistributor.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
-                unique: true,
-                filter: "[NormalizedUserName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Personnels_Name",

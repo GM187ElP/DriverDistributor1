@@ -32,6 +32,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             .HasPrincipalKey(x => x.Name)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Shipment>()
+            .HasQueryFilter(s => !s.IsDeleted);
+
+        builder.Entity<ShipmentNumber>()
+            .HasQueryFilter(s => !s.IsDeleted);
+
         builder.Entity<Driver>()
            .Property(x => x.Name)
             .HasColumnType("nvarchar(100)");

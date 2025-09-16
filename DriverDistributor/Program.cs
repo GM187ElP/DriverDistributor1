@@ -10,6 +10,8 @@ using DriverDistributor.Entities;
 using Microsoft.Data.SqlClient;
 using MudBlazor;
 using System.Globalization;
+using Npgsql;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 var builder = WebApplication.CreateBuilder(args);
 //-------------------------------------------------------------------
@@ -71,7 +73,7 @@ var initCatalog = (environment ?? "").ToLower() switch
     _ => "DriverDistributor"
 };
 
-var linuxConnectionString = new SqlConnectionStringBuilder()
+var ssLinuxConnectionString = new SqlConnectionStringBuilder()
 {
     DataSource = isLocal ? ".,1433" : $"{hostIp},1433",
     InitialCatalog = initCatalog,
@@ -81,6 +83,17 @@ var linuxConnectionString = new SqlConnectionStringBuilder()
     Password = "Arsalan.1461",
 };
 
+var pgLinuxConnectionString = new NpgsqlConnectionStringBuilder()
+{
+    Host = isLocal ? "localhost" : $"{hostIp}",
+    Port = 5432,
+    Database = "DriverDistributor",
+    Username = "postgres",
+    Password = "Arsalan.1461",
+    //SslMode = SslMode.Require
+};
+
+var database = "pg"; // ss or pg
 var selector = "linux";
 var connectionString = string.Empty;
 if (builder.Environment.IsDevelopment())
@@ -90,7 +103,7 @@ if (builder.Environment.IsDevelopment())
 
     if (selector == "linux")
     {
-        connectionString = linuxConnectionString.ToString();
+        connectionString =database=="ss"? ssLinuxConnectionString.ToString(): pgLinuxConnectionString.ToString();
     }
     else
     {
@@ -111,7 +124,7 @@ else
 {
     if (selector == "linux")
     {
-        connectionString = linuxConnectionString.ToString();
+        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
     }
     else
     {
@@ -121,12 +134,15 @@ else
     }
 }
 
-builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
+if (database == "ss")
+    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
+else
+    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-//-------------------------------------------------------------------
+    //-------------------------------------------------------------------
 
-// Add MudBlazor services
-builder.Services.AddMudServices();
+    // Add MudBlazor services
+    builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -150,10 +166,6 @@ app.UseAuthorization();
 
 
 //-------------------------------------------------------------------
-
-
-
-
 app.UseAntiforgery();
 
 app.MapStaticAssets();

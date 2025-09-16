@@ -1,9 +1,10 @@
 ﻿namespace DriverDistributor.Entities;
 
-public class ShipmentNumber
+public class ShipmentNumber:ISoftDelete
 {
     public long Id { get; set; }
     public int Number { get; set; } = 0;
     public long ShipmentId { get; set; }
-    public Shipment Shipment { get; set; }
+    public Shipment? Shipment { get; set; }
+    public bool IsDeleted { get; set; } = false;
 }

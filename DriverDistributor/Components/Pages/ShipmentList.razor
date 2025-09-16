@@ -248,7 +248,7 @@ ShowColumnOptions="false">
         }
     }
 
-    async Task WarehouseChanged(bool? newValue) 
+    async Task WarehouseChanged(bool? newValue)
     {
         _isGostaresh = newValue;
         _distributionCenter = newValue switch
@@ -261,7 +261,7 @@ ShowColumnOptions="false">
         await LoadDataAsync();
     }
 
-    async Task MonthChanged(string? newValue) 
+    async Task MonthChanged(string? newValue)
     {
         _selectedMonth = newValue;
         await LoadDataAsync();
@@ -272,7 +272,7 @@ ShowColumnOptions="false">
         if (user != null)
         {
             var personnelCode = user?.Identity?.Name;
-            var dbContext =await dbContextFactory.CreateDbContextAsync();
+            var dbContext = await dbContextFactory.CreateDbContextAsync();
             var currentUser = await dbContext.Personnels.FindAsync(personnelCode);
             if (currentUser != null)
             {
@@ -309,7 +309,8 @@ ShowColumnOptions="false">
             var row = await dbContext.Shipments.FindAsync(id);
             if (row is not null)
             {
-                dbContext.Shipments.Remove(row);
+                row.IsDeleted = true;
+                row.UserName = user.Identity.Name;
                 await dbContext.SaveChangesAsync();
             }
         }
@@ -469,9 +470,9 @@ ShowColumnOptions="false">
         _selectedMonth = monthList[num];
     }
 
-    
 
-    async Task Refresh() =>await LoadDataAsync();
+
+    async Task Refresh() => await LoadDataAsync();
 
     protected override async Task OnInitializedAsync()
     {
@@ -481,7 +482,7 @@ ShowColumnOptions="false">
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
-       await LoadDataAsync();
+        await LoadDataAsync();
         isAuthorized = user.Identity?.IsAuthenticated ?? false;
 
         StateHasChanged();
@@ -505,7 +506,7 @@ ShowColumnOptions="false">
         if (_distributionCenter != null)
             query = query.Where(x => (x.DistributionCenter == _distributionCenter || x.DistributionCenter == null));
 
-        var shipments =await query.ToListAsync();
+        var shipments = await query.ToListAsync();
 
         indexedShipments = [];
         foreach (var shipment in shipments)

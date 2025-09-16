@@ -4,6 +4,6 @@ namespace DriverDistributor.Entities
 {
     public class ApplicationRole:IdentityRole
     {
-        public string PersianName { get; set; }
+        public string? PersianName { get; set; }
     }
 }
