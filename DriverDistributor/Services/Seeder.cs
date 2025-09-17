@@ -41,7 +41,7 @@ public class Seeder
         {
             UserName = "1"
         };
-       var result= await userManager.CreateAsync(user, password);
+        var result = await userManager.CreateAsync(user, password);
 
         if (!await roleManager.RoleExistsAsync("Admin"))
         {
@@ -87,7 +87,7 @@ public class Seeder
         foreach (var item in deserializedJson)
         {
             var data = new Personnel();
-            data.PersonnelCode = item.Id?.ToString(); 
+            data.PersonnelCode = item.Id?.ToString();
             data.Name = item.Name;
             data.PhoneNumber = "0" + item.Phone;
             dataList.Add(data);
@@ -118,49 +118,45 @@ public class Seeder
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task DDExecuteAsync()
+    public async Task DriversExecuteAsync()
     {
         var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\drivers.json";
         var json = File.ReadAllText(path);
-        var deserializedJson = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json);
+        var deserializedJson = JsonSerializer.Deserialize<List<DD>>(json);
 
         var dataList1 = new List<Driver>();
-        var dataList2 = new List<Distributor>();
 
         foreach (var item in deserializedJson)
         {
-            if (item.Key == "drivers")
-            {
-                foreach (var name in item.Value)
-                {
-                    var data = new Driver();
-                    data.Name = name;
 
-                    var personnel = personnels.FirstOrDefault(x => x.Name == name);
-                    if (personnel != null && int.TryParse(personnel.PersonnelCode, out int code))
-                        data.PersonnelCode = code;
-
-                    dataList1.Add(data);
-                }
-            }
-            else if (item.Key == "distributors")
-            {
-                foreach (var name in item.Value)
-                {
-                    var data = new Distributor();
-                    data.Name = name;
-
-                    var personnel = personnels.FirstOrDefault(x => x.Name == name);
-                    if (personnel != null && int.TryParse(personnel.PersonnelCode, out int code))
-                        data.PersonnelCode = code;
-
-                    dataList2.Add(data);
-                }
-            }
+            var data = new Driver();
+            data.Name = item.Name;
+            data.PersonnelCode = item.PersonnelCode;
+            dataList1.Add(data);
         }
 
         await dbContext.AddRangeAsync(dataList1);
-        await dbContext.AddRangeAsync(dataList2);
+        await dbContext.SaveChangesAsync();
+    }
+
+    public async Task DistributorsExecuteAsync()
+    {
+        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\distributors.json";
+        var json = File.ReadAllText(path);
+        var deserializedJson = JsonSerializer.Deserialize<List<DD>>(json);
+
+        var dataList1 = new List<Distributor>();
+
+        foreach (var item in deserializedJson)
+        {
+
+            var data = new Distributor();
+            data.Name = item.Name;
+            data.PersonnelCode = item.PersonnelCode;
+            dataList1.Add(data);
+        }
+
+        await dbContext.AddRangeAsync(dataList1);
         await dbContext.SaveChangesAsync();
     }
 
@@ -174,6 +170,13 @@ public class Seeder
     {
         public string Name { get; set; }
         public bool IsExc { get; set; }
+    }
+
+
+    public class DD
+    {
+        public string Name { get; set; }
+        public int PersonnelCode { get; set; }
     }
 
 }

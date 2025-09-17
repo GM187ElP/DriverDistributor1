@@ -34,7 +34,7 @@ jobs:
             echo "APP_ENV=production" >> $GITHUB_ENV
             echo "PORT=5000" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV    # switch to ss if needed
-            echo "DB_NAME=DriverDistributor_production" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor" >> $GITHUB_ENV
           fi
 
           if [[ "$DB_TYPE" == "ss" ]]; then

@@ -184,11 +184,11 @@ using (var scope = app.Services.CreateAsyncScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
-    //await dbContext.Warehouses.ExecuteDeleteAsync();
-    //await dbContext.Routes.ExecuteDeleteAsync();
-    //await dbContext.Drivers.ExecuteDeleteAsync();
-    //await dbContext.Distributors.ExecuteDeleteAsync();
-    //await dbContext.Personnels.ExecuteDeleteAsync();
+    await dbContext.Warehouses.ExecuteDeleteAsync();
+    await dbContext.Routes.ExecuteDeleteAsync();
+    await dbContext.Drivers.ExecuteDeleteAsync();
+    await dbContext.Distributors.ExecuteDeleteAsync();
+    await dbContext.Personnels.ExecuteDeleteAsync();
 
     if (!dbContext.Routes.Any())
     {
@@ -199,7 +199,8 @@ using (var scope = app.Services.CreateAsyncScope())
         await seeder.WarehousesExecuteAsync();
         await seeder.RoutesExecuteAsync();
         await seeder.PersonnelsExecuteAsync();
-        await seeder.DDExecuteAsync();
+        await seeder.DriversExecuteAsync();
+        await seeder.DistributorsExecuteAsync();
     }
 }
 //-------------------------------------------------------------------
