@@ -25,14 +25,14 @@ jobs:
             echo "APP_ENV=develop" >> $GITHUB_ENV
             echo "PORT=5002" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV
-            echo "DB_NAME=DriverDistributor_develop" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor_Development" >> $GITHUB_ENV
 
           elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
             echo ">>> Running staging environment setup"
             echo "APP_ENV=staging" >> $GITHUB_ENV
             echo "PORT=5001" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV
-            echo "DB_NAME=DriverDistributor_staging" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor_Staging" >> $GITHUB_ENV
 
           elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo ">>> Running production environment setup"

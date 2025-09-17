@@ -62,13 +62,13 @@ string hostIp = "10.11.11.28";
 bool isLocal = localIps.Any(ip => ip.ToString() == hostIp);
 
 if (!isLocal)
-    environment = "develop";  // change this to use other envs
+    environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "production";
 else
     environment = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "production";
 
 var initCatalog = (environment ?? "").ToLower() switch
 {
-    "develop" => "DriverDistributor_Dev",
+    "development" => "DriverDistributor_Development",
     "staging" => "DriverDistributor_Staging",
     _ => "DriverDistributor"
 };
@@ -87,7 +87,7 @@ var pgLinuxConnectionString = new NpgsqlConnectionStringBuilder()
 {
     Host = isLocal ? "localhost" : $"{hostIp}",
     Port = 5432,
-    Database = "DriverDistributor",
+    Database = initCatalog,
     Username = "postgres",
     Password = "Arsalan.1461",
     //SslMode = SslMode.Require
@@ -184,11 +184,11 @@ using (var scope = app.Services.CreateAsyncScope())
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
 
-    await dbContext.Warehouses.ExecuteDeleteAsync();
-    await dbContext.Routes.ExecuteDeleteAsync();
-    await dbContext.Drivers.ExecuteDeleteAsync();
-    await dbContext.Distributors.ExecuteDeleteAsync();
-    await dbContext.Personnels.ExecuteDeleteAsync();
+    //await dbContext.Warehouses.ExecuteDeleteAsync();
+    //await dbContext.Routes.ExecuteDeleteAsync();
+    //await dbContext.Drivers.ExecuteDeleteAsync();
+    //await dbContext.Distributors.ExecuteDeleteAsync();
+    //await dbContext.Personnels.ExecuteDeleteAsync();
 
     if (!dbContext.Routes.Any())
     {

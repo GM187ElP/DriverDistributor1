@@ -13,7 +13,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var env = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Development";
         var initCatalog = env switch
         {
-            "Development" => "DriverDistributor_Dev",
+            "Development" => "DriverDistributor_Development",
             "Staging" => "DriverDistributor_Staging",
             _ => "DriverDistributor"
         };
@@ -39,7 +39,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         {
             Host = isLocal ? "localhost" : $"{hostIp}",
             Port = 5432,
-            Database = "DriverDistributor",
+            Database = initCatalog,
             Username = "postgres",
             Password = "Arsalan.1461",
             //SslMode = SslMode.Require
