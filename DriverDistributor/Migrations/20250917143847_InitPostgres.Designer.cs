@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DriverDistributor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250916123114_InitPostgres")]
+    [Migration("20250917143847_InitPostgres")]
     partial class InitPostgres
     {
         /// <inheritdoc />
@@ -254,8 +254,8 @@ namespace DriverDistributor.Migrations
                     b.Property<int?>("SecondServiceInvoiceCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("ShipmentDateGregorian")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateOnly?>("ShipmentDateGregorian")
+                        .HasColumnType("date");
 
                     b.Property<string>("ShipmentDatePersian")
                         .IsRequired()

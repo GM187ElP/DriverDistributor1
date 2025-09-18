@@ -7,12 +7,12 @@ namespace DriverDistributor.Entities;
 public class Shipment : ISoftDelete
 {
     public long Id { get; set; }
-    public DateTime? ShipmentDateGregorian { get; set; }
+    public DateOnly? ShipmentDateGregorian { get; set; }
     public string ShipmentDatePersian { get; set; }
     public string Weekday { get; set; }
     public string MonthName { get; set; }
-    public int? DriverPersonnelCode { get; set; }
-    public int? DistributorPersonnelCode { get; set; }
+    public string? DriverPersonnelCode { get; set; }
+    public string? DistributorPersonnelCode { get; set; }
 
     [ForeignKeyLink(nameof(Driver), "Name")]
     public string? DriverName { get; set; }

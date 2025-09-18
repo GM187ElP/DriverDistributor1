@@ -18,8 +18,8 @@ namespace DriverDistributor.Migrations
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
                     PersianName = table.Column<string>(type: "text", nullable: true),
-                    Name = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    Name = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     ConcurrencyStamp = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -32,10 +32,10 @@ namespace DriverDistributor.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    UserName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "character  varying(256)", maxLength: 256, nullable: true),
+                    UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     EmailConfirmed = table.Column<bool>(type: "boolean", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: true),
                     SecurityStamp = table.Column<string>(type: "text", nullable: true),
@@ -228,7 +228,7 @@ namespace DriverDistributor.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ShipmentDateGregorian = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ShipmentDateGregorian = table.Column<DateOnly>(type: "date", nullable: true),
                     ShipmentDatePersian = table.Column<string>(type: "text", nullable: false),
                     Weekday = table.Column<string>(type: "text", nullable: false),
                     MonthName = table.Column<string>(type: "text", nullable: false),

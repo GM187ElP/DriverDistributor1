@@ -34,6 +34,7 @@
   <ItemGroup>
     <Folder Include="Components\Pages\Reports\" />
     <Folder Include="EntitiesChanges\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Private\" />
   </ItemGroup>
 

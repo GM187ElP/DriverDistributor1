@@ -103,7 +103,7 @@ if (builder.Environment.IsDevelopment())
 
     if (selector == "linux")
     {
-        connectionString =database=="ss"? ssLinuxConnectionString.ToString(): pgLinuxConnectionString.ToString();
+        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
     }
     else
     {
@@ -139,10 +139,10 @@ if (database == "ss")
 else
     builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseNpgsql(connectionString));
 
-    //-------------------------------------------------------------------
+//-------------------------------------------------------------------
 
-    // Add MudBlazor services
-    builder.Services.AddMudServices();
+// Add MudBlazor services
+builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -190,18 +190,24 @@ using (var scope = app.Services.CreateAsyncScope())
     //await dbContext.Distributors.ExecuteDeleteAsync();
     //await dbContext.Personnels.ExecuteDeleteAsync();
 
-    if (!dbContext.Routes.Any())
-    {
-        var seeder = new Seeder(dbContext, userManager, roleManager);
+    var seeder = new Seeder(dbContext, userManager, roleManager);
 
-        //string password = "1234";
-        //await seeder.AdminExecuteAsync(password);
-        await seeder.WarehousesExecuteAsync();
-        await seeder.RoutesExecuteAsync();
-        await seeder.PersonnelsExecuteAsync();
-        await seeder.DriversExecuteAsync();
-        await seeder.DistributorsExecuteAsync();
+    if (!await userManager.Users.AnyAsync(x => x.UserName == "1"))
+    {
+        string password = "1234";
+        await seeder.AdminExecuteAsync(password);
     }
+    var personnelExist = await dbContext.Personnels.CountAsync() >= 94;
+    var adminExists = await dbContext.Personnels.AnyAsync(x => x.PersonnelCode == "1");
+    if (!dbContext.Warehouses.Any())
+        await seeder.WarehousesExecuteAsync();
+    if (!dbContext.Routes.Any())
+        await seeder.RoutesExecuteAsync();
+    await seeder.PersonnelsExecuteAsync(adminExists, personnelExist);
+    if (!dbContext.Drivers.Any())
+        await seeder.DriversExecuteAsync();
+    if (!dbContext.Distributors.Any())
+        await seeder.DistributorsExecuteAsync();
 }
 //-------------------------------------------------------------------
 

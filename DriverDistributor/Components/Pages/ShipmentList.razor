@@ -76,6 +76,11 @@
                     حذف فیلتر
                 </MudText>
             </MudButton>
+            <MudButton OnClick="RegisterShipment" Color="Color.Success" Variant="Variant.Filled">
+                <MudText Typo="Typo.h6">
+                    ثبت خروجی
+                </MudText>
+            </MudButton>
         </MudStack>
     </MudStack>
 
@@ -607,6 +612,11 @@ ShowColumnOptions="false">
         var columnsdsfs = excel.SetData(reportToExcel, worksheet, 1, 2, null);
 
         await excel.Export(workbook);
+    }
+
+    private void RegisterShipment(MouseEventArgs args)
+    {
+        nm.NavigateTo("/edit-shipment");
     }
 }
 

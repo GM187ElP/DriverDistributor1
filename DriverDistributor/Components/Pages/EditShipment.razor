@@ -285,7 +285,7 @@
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
-        personnel = await dbContext.Personnels.FindAsync(auth.User.Identity.Name);
+        personnel = await dbContext.Personnels.FirstOrDefaultAsync(x=>x.PersonnelCode== auth.User.Identity.Name);
 
         if (Id == 0)
         {
@@ -295,13 +295,13 @@
             await LoadDataAsync(IsException);
             IsSecondService = false;
             IsThirdService = false;
-            dto.ShipmentDateGregorian = persian.GregorianDate;
+            dto.ShipmentDateGregorian = DateOnly.FromDateTime(persian.GregorianDate.Date);
             shipmentNumbersList.Add(null);
         }
         else
         {
             await LoadShipment();
-            persian = new(dto.ShipmentDateGregorian!.Value);
+            persian = new(new DateTime(dto.ShipmentDateGregorian!.Value, new(0, 0)));
             IsException = dto.IsException;
             IsSecondService = dto.SecondServiceInvoiceAmount != null;
             IsThirdService = dto.ThirdServiceInvoiceAmount != null;
@@ -309,6 +309,16 @@
 
         await LoadDataAsync(IsException);
     }
+
+    // private DateTime ConvertToUtc(DateTime date, string tz = "Iran Standard Time")
+    // {
+    //     var iranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tz);
+
+    //     var unspecifiedDate = DateTime.SpecifyKind(date, DateTimeKind.Unspecified);
+
+    //     return TimeZoneInfo.ConvertTimeToUtc(unspecifiedDate, iranTimeZone);
+    // }
+
 
     private void SetDateAndWarehouse()
     {
@@ -500,7 +510,8 @@
         if (!form!.IsValid)
             return;
 
-        dto.ShipmentDateGregorian = persian.GregorianDate;
+
+        dto.ShipmentDateGregorian = DateOnly.FromDateTime(persian.GregorianDate.Date);
         dto.Weekday = persian.DayOfWeek;
         dto.MonthName = persian.MonthString;
         dto.ShipmentDatePersian = persian.Date;

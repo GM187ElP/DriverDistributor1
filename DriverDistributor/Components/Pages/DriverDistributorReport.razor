@@ -181,7 +181,7 @@
     private List<Driver> drivers = [];
     private List<Distributor> distributors = [];
     private bool? isDistributor = null;
-    private HashSet<(int? code, string name)> nameList = [];
+    private HashSet<(string? code, string name)> nameList = [];
     private HashSet<Report2> data = [];
     private MudDataGrid<ShipmentWithIndex> table;
     List<Report> reportByWarehouse = [];
@@ -208,7 +208,7 @@
                 nameList = distributors.Select(d => (d.PersonnelCode, d.Name)).ToHashSet();
             else
             {
-                nameList = new HashSet<(int? code, string name)>();
+                nameList = new HashSet<(string? code, string name)>();
                 nameList.UnionWith(drivers.Select(d => (d.PersonnelCode, d.Name)));
                 nameList.UnionWith(distributors.Select(d => (d.PersonnelCode, d.Name)));
             }

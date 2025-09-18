@@ -3,6 +3,7 @@ using System;
 using DriverDistributor.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DriverDistributor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917150617_second")]
+    partial class second
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,8 +207,8 @@ namespace DriverDistributor.Migrations
                     b.Property<string>("DistributorName")
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("DistributorPersonnelCode")
-                        .HasColumnType("text");
+                    b.Property<int?>("DistributorPersonnelCode")
+                        .HasColumnType("integer");
 
                     b.Property<string>("DriverDuty")
                         .HasColumnType("text");
@@ -213,8 +216,8 @@ namespace DriverDistributor.Migrations
                     b.Property<string>("DriverName")
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("DriverPersonnelCode")
-                        .HasColumnType("text");
+                    b.Property<int?>("DriverPersonnelCode")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("HasVip")
                         .HasColumnType("boolean");

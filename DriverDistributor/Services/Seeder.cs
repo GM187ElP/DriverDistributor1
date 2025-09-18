@@ -25,22 +25,11 @@ public class Seeder
 
     public async Task AdminExecuteAsync(string password)
     {
-        if (await dbContext.Personnels.AnyAsync(x => x.PersonnelCode == "1"))
-            return;
-
-        var personnel = new Personnel
-        {
-            PersonnelCode = "1",
-            Name = "Admin",
-            PhoneNumber = ""
-        };
-        await dbContext.AddAsync(personnel);
-        await dbContext.SaveChangesAsync();
-
         var user = new ApplicationUser
         {
             UserName = "1"
         };
+
         var result = await userManager.CreateAsync(user, password);
 
         if (!await roleManager.RoleExistsAsync("Admin"))
@@ -75,7 +64,7 @@ public class Seeder
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task PersonnelsExecuteAsync()
+    public async Task PersonnelsExecuteAsync(bool adminExists, bool personnelExist)
     {
         var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\personnels.json";
         var json = File.ReadAllText(path);
@@ -84,15 +73,28 @@ public class Seeder
 
         var dataList = new List<Personnel>();
 
-        foreach (var item in deserializedJson)
+        if (!adminExists)
         {
-            var data = new Personnel();
-            data.PersonnelCode = item.Id?.ToString();
-            data.Name = item.Name;
-            data.PhoneNumber = "0" + item.Phone;
-            dataList.Add(data);
-            personnels.Add(data);
+            var personnel = new Personnel
+            {
+                PersonnelCode = "1",
+                Name = "Admin",
+                PhoneNumber = ""
+            };
+
+            dataList.Add(personnel);
         }
+
+        if (!personnelExist)
+            foreach (var item in deserializedJson)
+            {
+                var data = new Personnel();
+                data.PersonnelCode = item.Id?.ToString();
+                data.Name = item.Name;
+                data.PhoneNumber = "0" + item.Phone;
+                dataList.Add(data);
+                personnels.Add(data);
+            }
 
         await dbContext.AddRangeAsync(dataList);
         await dbContext.SaveChangesAsync();
@@ -176,7 +178,7 @@ public class Seeder
     public class DD
     {
         public string Name { get; set; }
-        public int PersonnelCode { get; set; }
+        public string PersonnelCode { get; set; }
     }
 
 }

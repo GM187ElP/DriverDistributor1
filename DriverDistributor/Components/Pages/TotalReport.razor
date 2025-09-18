@@ -93,16 +93,23 @@
         <PropertyColumn Property="x => x.Index" Sortable="false" Title="ردیف" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.Name" Sortable="false" Title="نام" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.PersonnelCode" Sortable="false" Title="کد پرسنلی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WorkingDaysCount" Sortable="false" Title="تعداد روز کاری" HeaderClass="table-header" CellClass="table-cell" />
 
         <PropertyColumn Property="x => x.DriverCount" Sortable="false" Title="تعداد روز رانندگی" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.DistributorCount" Sortable="false" Title="تعداد روز موزعی" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.DriverDistributorCount" Sortable="false" Title="تعداد روز راننده-موزعی" HeaderClass="table-header" CellClass="table-cell" />
 
-        <PropertyColumn Property="x => x.WarehouseTaksun" Sortable="false" Title="تکسان" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.WarehouseKhoshbakht" Sortable="false" Title="خوشبخت" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.WarehouseMakenzy" Sortable="false" Title="مکنزی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.WarehouseNooshidani" Sortable="false" Title="نوشیدنی" HeaderClass="table-header" CellClass="table-cell" />
-        <PropertyColumn Property="x => x.WarehouseFirooz" Sortable="false" Title="فیروز" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseTaksunInvoiceCount" Sortable="false" Title="تعداد فاکتور انبار تکسان" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseKhoshbakhtInvoiceCount" Sortable="false" Title="تعداد فاکتور انبار خوشبخت" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseMakenzyInvoiceCount" Sortable="false" Title="تعداد فاکتور انبار مکنزی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseNooshidaniInvoiceCount" Sortable="false" Title="تعداد فاکتور انبار نوشیدنی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseFiroozInvoiceCount" Sortable="false" Title="تعداد فاکتور انبار فیروز" HeaderClass="table-header" CellClass="table-cell" />
+
+        <PropertyColumn Property="x => x.WarehouseTaksunInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور انبار تکسان" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseKhoshbakhtInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور انبار خوشبخت" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseMakenzyInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور انبار  مکنزی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseNooshidaniInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور انبار نوشیدنی" HeaderClass="table-header" CellClass="table-cell" />
+        <PropertyColumn Property="x => x.WarehouseFiroozInvoiceAmountFormatted" Sortable="false" Title="مبلغ فاکتور انبار فیروز" HeaderClass="table-header" CellClass="table-cell" />
 
         <PropertyColumn Property="x => x.VIPCount" Sortable="false" Title="VIP" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.CapitalCityCount" Sortable="false" Title="شیراز" HeaderClass="table-header" CellClass="table-cell" />
@@ -143,6 +150,7 @@
 
         <PropertyColumn Property="x => x.NetInvoiceCountFormatted" Sortable="false" Title="تعداد خالص فاکتور" HeaderClass="table-header" CellClass="table-cell" />
         <PropertyColumn Property="x => x.NetInvoiceAmountFormatted" Sortable="false" Title="مبلغ خالص فاکتور" HeaderClass="table-header" CellClass="table-cell" />
+
     </Columns>
 </MudDataGrid>
 
@@ -269,7 +277,7 @@
         !string.IsNullOrEmpty(s.DistributorName)
             ? new ShipmentNameDto { Name = s.DistributorName!, Shipment = s }
             : null
-             }.Where(x => x != null)!)
+                             }.Where(x => x != null)!)
      .ToList();
 
         totalReportDtos = combinedList
@@ -279,29 +287,35 @@
                Name = g.Key,
 
                PersonnelCode = g.Any(x => x.Shipment.DriverName == g.Key) ?
-                                                   g.Where(x => x.Shipment.DriverName == g.Key).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault().ToString() ?? string.Empty :
-                                                       g.Where(x => x.Shipment.DistributorName == g.Key).Select(x => x.Shipment.DistributorPersonnelCode).FirstOrDefault().ToString() ?? string.Empty,
+                                                                   g.Where(x => x.Shipment.DriverName == g.Key && x.Shipment.DriverPersonnelCode != null).Select(x => x.Shipment.DriverPersonnelCode).FirstOrDefault() ?? string.Empty :
+                                                                           g.Where(x => x.Shipment.DistributorName == g.Key && x.Shipment.DistributorPersonnelCode != null).Select(x => x.Shipment.DistributorPersonnelCode).FirstOrDefault() ?? string.Empty,
 
                DriverInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
                DriverInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
                DriverReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
                DriverReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-               DistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
-               DistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+               DistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
+               DistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
                DistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
                DistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DistributorName == g.Key && x.Shipment.DistributorDuty == "موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-               DriverDistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0)),
-               DriverDistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0)),
+               DriverDistributorInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0)),
+               DriverDistributorInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0)),
                DriverDistributorReturnInvoiceCount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceCount ?? 0),
                DriverDistributorReturnInvoiceAmount = g.Where(x => !x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع").Sum(x => x.Shipment.ReturnInvoiceAmount ?? 0),
 
-               WarehouseTaksun = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "تکسان") ? 1 : 0),
-               WarehouseKhoshbakht = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "خوشبخت") ? 1 : 0),
-               WarehouseFirooz = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "فيروز") ? 1 : 0),
-               WarehouseMakenzy = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "مکنزي") ? 1 : 0),
-               WarehouseNooshidani = g.Sum(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "نوشيدني") ? 1 : 0),
+               WarehouseTaksunInvoiceCount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "تکسان")).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0) - (x.Shipment.ReturnInvoiceCount ?? 0)),
+               WarehouseKhoshbakhtInvoiceCount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "خوشبخت")).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0) - (x.Shipment.ReturnInvoiceCount ?? 0)),
+               WarehouseFiroozInvoiceCount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "فيروز")).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0) - (x.Shipment.ReturnInvoiceCount ?? 0)),
+               WarehouseMakenzyInvoiceCount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "مکنزي")).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0) - (x.Shipment.ReturnInvoiceCount ?? 0)),
+               WarehouseNooshidaniInvoiceCount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "نوشيدني")).Sum(x => (x.Shipment.InvoiceCount ?? 0) + (x.Shipment.SecondServiceInvoiceCount ?? 0) + (x.Shipment.ThirdServiceInvoiceCount ?? 0) - (x.Shipment.ReturnInvoiceCount ?? 0)),
+
+               WarehouseTaksunInvoiceAmount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "تکسان")).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0) - (x.Shipment.ReturnInvoiceAmount ?? 0)),
+               WarehouseKhoshbakhtInvoiceAmount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "خوشبخت")).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0) - (x.Shipment.ReturnInvoiceAmount ?? 0)),
+               WarehouseFiroozInvoiceAmount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "فيروز")).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0) - (x.Shipment.ReturnInvoiceAmount ?? 0)),
+               WarehouseMakenzyInvoiceAmount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "مکنزي")).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0) - (x.Shipment.ReturnInvoiceAmount ?? 0)),
+               WarehouseNooshidaniInvoiceAmount = g.Where(x => (!x.Shipment.IsException && x.Shipment.WarehouseName == "نوشيدني")).Sum(x => (x.Shipment.InvoiceAmount ?? 0) + (x.Shipment.SecondServiceInvoiceAmount ?? 0) + (x.Shipment.ThirdServiceInvoiceAmount ?? 0) - (x.Shipment.ReturnInvoiceAmount ?? 0)),
 
                DriverDistributorCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده_موزع") ? 1 : 0),
                DriverCount = g.Sum(x => (!x.Shipment.IsException && x.Shipment.DriverName == g.Key && x.Shipment.DriverDuty == "راننده") ? 1 : 0),
@@ -337,122 +351,141 @@
         [PropertyInfo(3, "نام", true, ColumnType.Text)]
         public string Name { get; set; }
 
-
-        [PropertyInfo(4, "انبار تکسان", true, ColumnType.Number)]
-        public int WarehouseTaksun { get; set; }
-
-        [PropertyInfo(5, "انبار خوشبخت", true, ColumnType.Number)]
-        public int WarehouseKhoshbakht { get; set; }
-
-        [PropertyInfo(6, "انبار فیروز", true, ColumnType.Number)]
-        public int WarehouseFirooz { get; set; }
-
-        [PropertyInfo(7, "انبار مکنزی", true, ColumnType.Number)]
-        public int WarehouseMakenzy { get; set; }
-
-        [PropertyInfo(8, "انبار نوشیدنی", true, ColumnType.Number)]
-        public int WarehouseNooshidani { get; set; }
+        [PropertyInfo(4, "تعداد روز کاری", true, ColumnType.Number)]
+        public int WorkingDaysCount => ExceptionCount + CapitalCityCount + NonCapitalCityCount;
 
 
-        [PropertyInfo(9, "تعداد روز رانندگی", true, ColumnType.Text)]
+        [PropertyInfo(5, "تعداد فاکتور انبار تکسان", true, ColumnType.Number)]
+        public int WarehouseTaksunInvoiceCount { get; set; }
+
+        [PropertyInfo(6, "تعداد فاکتور انبار خوشبخت", true, ColumnType.Number)]
+        public int WarehouseKhoshbakhtInvoiceCount { get; set; }
+
+        [PropertyInfo(7, "تعداد فاکتور انبار فیروز", true, ColumnType.Number)]
+        public int WarehouseFiroozInvoiceCount { get; set; }
+
+        [PropertyInfo(8, "تعداد فاکتور انبار مکنزی", true, ColumnType.Number)]
+        public int WarehouseMakenzyInvoiceCount { get; set; }
+
+        [PropertyInfo(9, "تعداد فاکتور انبار نوشیدنی", true, ColumnType.Number)]
+        public int WarehouseNooshidaniInvoiceCount { get; set; }
+
+
+        [PropertyInfo(10, "مبلغ فاکتور انبار تکسان", true, ColumnType.Number)]
+        public long WarehouseTaksunInvoiceAmount { get; set; }
+
+        [PropertyInfo(11, "مبلغ فاکتور انبار خوشبخت", true, ColumnType.Number)]
+        public long WarehouseKhoshbakhtInvoiceAmount { get; set; }
+
+        [PropertyInfo(12, "مبلغ فاکتور انبار فیروز", true, ColumnType.Number)]
+        public long WarehouseFiroozInvoiceAmount { get; set; }
+
+        [PropertyInfo(13, "مبلغ فاکتور انبار مکنزی", true, ColumnType.Number)]
+        public long WarehouseMakenzyInvoiceAmount { get; set; }
+
+        [PropertyInfo(14, "مبلغ فاکتور انبار نوشیدنی", true, ColumnType.Number)]
+        public long WarehouseNooshidaniInvoiceAmount { get; set; }
+
+
+        [PropertyInfo(15, "تعداد روز رانندگی", true, ColumnType.Text)]
         public int DriverCount { get; set; }
 
-        [PropertyInfo(10, "تعداد روز موزعی", true, ColumnType.Text)]
+        [PropertyInfo(16, "تعداد روز موزعی", true, ColumnType.Text)]
         public int DistributorCount { get; set; }
 
-        [PropertyInfo(11, "تعداد روز راننده موزعی", true, ColumnType.Text)]
+        [PropertyInfo(17, "تعداد روز راننده موزعی", true, ColumnType.Text)]
         public int DriverDistributorCount { get; set; }
 
 
-        [PropertyInfo(12, "VIP", true, ColumnType.Number)]
+        [PropertyInfo(18, "VIP", true, ColumnType.Number)]
         public int VIPCount { get; set; }
 
-        [PropertyInfo(13, "خاص", true, ColumnType.Number)]
+        [PropertyInfo(19, "خاص", true, ColumnType.Number)]
         public int ExceptionCount { get; set; }
 
-        [PropertyInfo(14, "شیراز", true, ColumnType.Number)]
+        [PropertyInfo(20, "شیراز", true, ColumnType.Number)]
         public int CapitalCityCount { get; set; }
 
-        [PropertyInfo(15, "غیر شیراز", true, ColumnType.Number)]
+        [PropertyInfo(21, "غیر شیراز", true, ColumnType.Number)]
         public int NonCapitalCityCount { get; set; }
 
-        [PropertyInfo(16, "انبار", true, ColumnType.Number)]
+        [PropertyInfo(22, "انبار", true, ColumnType.Number)]
         public int AtWarehouseCount { get; set; }
 
-        [PropertyInfo(17, "مرخصی", true, ColumnType.Number)]
+        [PropertyInfo(23, "مرخصی", true, ColumnType.Number)]
         public int OffCount { get; set; }
 
-        [PropertyInfo(18, "تعمیرگاه", true, ColumnType.Number)]
+        [PropertyInfo(24, "تعمیرگاه", true, ColumnType.Number)]
         public int AtAutoMechCount { get; set; }
 
-        [PropertyInfo(19, "متفرقه", true, ColumnType.Number)]
+        [PropertyInfo(25, "متفرقه", true, ColumnType.Number)]
         public int OtherCount { get; set; }
 
-        [PropertyInfo(20, "غیبت", true, ColumnType.Number)]
+        [PropertyInfo(26, "غیبت", true, ColumnType.Number)]
         public int AbsentCount { get; set; }
 
 
-        [PropertyInfo(21, "تعداد فاکتور موزعی", true, ColumnType.Number)]
+        [PropertyInfo(27, "تعداد فاکتور موزعی", true, ColumnType.Number)]
         public int DistributorInvoiceCount { get; set; }
 
-        [PropertyInfo(22, "مبلغ فاکتور موزعی", true, ColumnType.Number)]
+        [PropertyInfo(28, "مبلغ فاکتور موزعی", true, ColumnType.Number)]
         public long DistributorInvoiceAmount { get; set; }
 
-        [PropertyInfo(23, "تعداد فاکتور رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(29, "تعداد فاکتور رانندگی", true, ColumnType.Number)]
         public int DriverInvoiceCount { get; set; }
 
-        [PropertyInfo(24, "مبلغ فاکتور رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(30, "مبلغ فاکتور رانندگی", true, ColumnType.Number)]
         public long DriverInvoiceAmount { get; set; }
 
-        [PropertyInfo(25, "تعداد فاکتور راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(31, "تعداد فاکتور راننده موزعی", true, ColumnType.Number)]
         public int DriverDistributorInvoiceCount { get; set; }
 
-        [PropertyInfo(26, "مبلغ فاکتور راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(32, "مبلغ فاکتور راننده موزعی", true, ColumnType.Number)]
         public long DriverDistributorInvoiceAmount { get; set; }
 
 
-        [PropertyInfo(27, "تعداد فاکتور مرجوعی موزعی", true, ColumnType.Number)]
+        [PropertyInfo(33, "تعداد فاکتور مرجوعی موزعی", true, ColumnType.Number)]
         public int DistributorReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(28, "مبلغ مرجوعی موزعی", true, ColumnType.Number)]
+        [PropertyInfo(34, "مبلغ مرجوعی موزعی", true, ColumnType.Number)]
         public long DistributorReturnInvoiceAmount { get; set; }
 
-        [PropertyInfo(29, "تعداد فاکتور مرجوعی رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(35, "تعداد فاکتور مرجوعی رانندگی", true, ColumnType.Number)]
         public int DriverReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(30, "مبلغ مرجوعی رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(36, "مبلغ مرجوعی رانندگی", true, ColumnType.Number)]
         public long DriverReturnInvoiceAmount { get; set; }
 
-        [PropertyInfo(31, "تعداد فاکتور مرجوعی راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(37, "تعداد فاکتور مرجوعی راننده موزعی", true, ColumnType.Number)]
         public int DriverDistributorReturnInvoiceCount { get; set; }
 
-        [PropertyInfo(32, "مبلغ مرجوعی راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(38, "مبلغ مرجوعی راننده موزعی", true, ColumnType.Number)]
         public long DriverDistributorReturnInvoiceAmount { get; set; }
 
 
-        [PropertyInfo(33, "تعداد فاکتور خالص موزعی", true, ColumnType.Number)]
+        [PropertyInfo(39, "تعداد فاکتور خالص موزعی", true, ColumnType.Number)]
         public int DistributorNetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount;
 
-        [PropertyInfo(34, "مبلغ فاکتور خالص موزعی", true, ColumnType.Number)]
+        [PropertyInfo(40, "مبلغ فاکتور خالص موزعی", true, ColumnType.Number)]
         public long DistributorNetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount;
 
-        [PropertyInfo(35, "تعداد فاکتور خالص رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(41, "تعداد فاکتور خالص رانندگی", true, ColumnType.Number)]
         public int DriverNetInvoiceCount => DriverInvoiceCount - DriverReturnInvoiceCount;
 
-        [PropertyInfo(36, "مبلغ خالص رانندگی", true, ColumnType.Number)]
+        [PropertyInfo(42, "مبلغ خالص رانندگی", true, ColumnType.Number)]
         public long DriverNetInvoiceAmount => DriverInvoiceAmount - DriverReturnInvoiceAmount;
 
-        [PropertyInfo(37, "تعداد فاکتور خالص راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(43, "تعداد فاکتور خالص راننده موزعی", true, ColumnType.Number)]
         public int DriverDistributorNetInvoiceCount => DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
 
-        [PropertyInfo(38, "مبلغ خالص راننده موزعی", true, ColumnType.Number)]
+        [PropertyInfo(44, "مبلغ خالص راننده موزعی", true, ColumnType.Number)]
         public long DriverDistributorNetInvoiceAmount => DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
 
 
-        [PropertyInfo(39, "تعداد فاکتور خالص", true, ColumnType.Number)]
+        [PropertyInfo(45, "تعداد فاکتور خالص", true, ColumnType.Number)]
         public long NetInvoiceCount => DistributorInvoiceCount - DistributorReturnInvoiceCount + DriverInvoiceCount - DriverReturnInvoiceCount + DriverDistributorInvoiceCount - DriverDistributorReturnInvoiceCount;
 
-        [PropertyInfo(40, "مبلغ فاکتور خالص", true, ColumnType.Number)]
+        [PropertyInfo(46, "مبلغ فاکتور خالص", true, ColumnType.Number)]
         public long NetInvoiceAmount => DistributorInvoiceAmount - DistributorReturnInvoiceAmount + DriverInvoiceAmount - DriverReturnInvoiceAmount + DriverDistributorInvoiceAmount - DriverDistributorReturnInvoiceAmount;
 
 
@@ -502,6 +535,22 @@
         public string NetInvoiceCountFormatted => NetInvoiceCount.ToString("N0");
         [PropertyInfo(100, "-", false, ColumnType.Text)]
         public string NetInvoiceAmountFormatted => NetInvoiceAmount.ToString("N0");
+
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string WarehouseTaksunInvoiceAmountFormatted => WarehouseTaksunInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string WarehouseKhoshbakhtInvoiceAmountFormatted => WarehouseKhoshbakhtInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string WarehouseFiroozInvoiceAmountFormatted => WarehouseFiroozInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string WarehouseMakenzyInvoiceAmountFormatted => WarehouseMakenzyInvoiceAmount.ToString("N0");
+
+        [PropertyInfo(100, "-", false, ColumnType.Text)]
+        public string WarehouseNooshidaniInvoiceAmountFormatted => WarehouseNooshidaniInvoiceAmount.ToString("N0");
     }
 
     private async Task OpenDialogAsync(long id)
