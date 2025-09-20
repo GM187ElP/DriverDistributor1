@@ -68,7 +68,6 @@ jobs:
             sudo mkdir -p /home/ubuntu/pg_backups 2>/dev/null || true
             sudo chmod -R 777 /home/ubuntu/sql_backups
             sudo chmod -R 777 /home/ubuntu/pg_backups
-            docker rm -f postgres
 
             docker network create sqlnet 2>/dev/null || true
             docker network create pgnet 2>/dev/null || true
@@ -94,7 +93,7 @@ jobs:
               else
                   echo "Creating new Postgres container..."
                   docker run -e "POSTGRES_USER=postgres" \
-                      -e "POSTGRES_PASSWORD=Arsalan.1461" \
+                      -e "POSTGRES_PASSWORD=${{Arsalan.1461}}" \
                       -e "POSTGRES_DB=${DB_NAME}" \
                       -p 5432:5432 \
                       -v pgdata:/var/lib/postgresql/data \
@@ -102,6 +101,8 @@ jobs:
                       --name postgres \
                       --network pgnet \
                       -d postgres:16-alpine
+
+                  echo ${DB_NAME}
               fi
             fi
 
