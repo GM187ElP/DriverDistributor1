@@ -87,7 +87,7 @@ var pgLinuxConnectionString = new NpgsqlConnectionStringBuilder()
 {
     Host = "10.11.11.28",
     Port = 5432,
-    Database = initCatalog,
+    Database = "DriverDistributor_Development",
     Username = "postgres",
     Password = "Arsalan.1461",
 };
@@ -133,9 +133,9 @@ var connectionString = string.Empty;
 //    }
 //}
 
-if (database == "ss")
-    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
-else
+//if (database == "ss")
+//    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
+//else
     builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseNpgsql(pgLinuxConnectionString.ToString()));
 
 //-------------------------------------------------------------------
