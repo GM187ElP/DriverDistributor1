@@ -26,11 +26,11 @@
         <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
         <MudSelect T="string"
-        Value="_selectedMonth"
-        ValueChanged="MonthChanged"
-        Dense="true"
-        FitContent="true"
-        Clearable="false">
+                   Value="_selectedMonth"
+                   ValueChanged="MonthChanged"
+                   Dense="true"
+                   FitContent="true"
+                   Clearable="false">
             @foreach (var month in monthList)
             {
                 <MudSelectItem Value="@month">@month</MudSelectItem>
@@ -38,20 +38,20 @@
         </MudSelect>
 
         <MudButton StartIcon="@Icons.Material.Filled.Refresh"
-        IconColor="Color.Primary"
-        Size="Size.Small"
-        @onclick="Refresh">
+                   IconColor="Color.Primary"
+                   Size="Size.Small"
+                   @onclick="Refresh">
             آپدیت
         </MudButton>
 
         <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection"
-        Value="_isGostaresh"
-        ValueChanged="WarehouseChanged"
-        Color="Color.Secondary"
-        CheckMark
-        FixedContent
-        Class="toggle-group-fit"
-        Delimiters="false">
+                        Value="_isGostaresh"
+                        ValueChanged="WarehouseChanged"
+                        Color="Color.Secondary"
+                        CheckMark
+                        FixedContent
+                        Class="toggle-group-fit"
+                        Delimiters="false">
             <MudToggleItem T="bool?" Value="true" Text="گسترش" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="null" Text="همه انبارها" Class="toggle-item-lg" />
             <MudToggleItem T="bool?" Value="false" Text="کوشش" Class="toggle-item-lg" />
@@ -92,33 +92,33 @@
         *@
 
 <MudDataGrid @ref="_mudDataGrid"
-T="IndexedShipment"
-Items="@indexedShipments"
-Dense="true"
-Bordered="true"
-Hover="true"
-RowClassFunc="@RowClassFunc"
-Striped="true"
-FixedHeader="true"
-Height="630px"
-Style="flex: 1; overflow: auto;"
-QuickFilter="@Filter"
-HeaderClass="table-header"
-Filterable=true
-ShowColumnOptions="false">
+             T="IndexedShipment"
+             Items="@indexedShipments"
+             Dense="true"
+             Bordered="true"
+             Hover="true"
+             RowClassFunc="@RowClassFunc"
+             Striped="true"
+             FixedHeader="true"
+             Height="630px"
+             Style="flex: 1; overflow: auto;"
+             QuickFilter="@Filter"
+             HeaderClass="table-header"
+             Filterable=true
+             ShowColumnOptions="false">
 
     <ToolBarContent>
         <MudTextField @bind-Value="_searchString"
-        Placeholder="جستجو"
-        Clearable=true
-        ClearIcon="@Icons.Material.Filled.Clear"
-        OnClearButtonClick="ClearDate"
-        Adornment="Adornment.Start"
-        Immediate="true"
-        AdornmentIcon="@Icons.Material.Filled.Search"
-        IconSize="Size.Medium"
-        FullWidth=false
-        Class="mt-0" />
+                      Placeholder="جستجو"
+                      Clearable=true
+                      ClearIcon="@Icons.Material.Filled.Clear"
+                      OnClearButtonClick="ClearDate"
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      FullWidth=false
+                      Class="mt-0" />
     </ToolBarContent>
 
     <Columns>
@@ -128,8 +128,8 @@ ShowColumnOptions="false">
         <TemplateColumn Title="حذف" Filterable="false" StickyLeft="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(!row.Item.CanModify)"
-                Color="Color.Error"
-                OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
+                               Color="Color.Error"
+                               OnClick="@(async () => await OpenDialogAsync(row.Item.Id))">
                 </MudIconButton>
             </CellTemplate>
         </TemplateColumn>
@@ -138,20 +138,20 @@ ShowColumnOptions="false">
         <TemplateColumn Title="ویرایش" Filterable="false" StickyRight="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                Color="Color.Primary"
-                Size="Size.Small"
-                Disabled="@( !row.Item.CanModify)"
-                OnClick="@(() => EditItem(row.Item))" />
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Disabled="@( !row.Item.CanModify)"
+                               OnClick="@(() => EditItem(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
 
         <TemplateColumn Title="ثبت مرجوعی" Filterable="false" StickyRight="true" HeaderClass="table-header">
             <CellTemplate Context="row">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                Color="Color.Primary"
-                Size="Size.Small"
-                Disabled="@(row.Item.IsException || !row.Item.CanModify)"
-                OnClick="@(() => RegisterReturn(row.Item))" />
+                               Color="Color.Primary"
+                               Size="Size.Small"
+                               Disabled="@(row.Item.IsException || !row.Item.CanModify)"
+                               OnClick="@(() => RegisterReturn(row.Item))" />
             </CellTemplate>
         </TemplateColumn>
 
@@ -201,25 +201,25 @@ ShowColumnOptions="false">
 
 <style>
     .table-header {
-    background-color: #1976d2 !important;
-    color: white !important;
-    text-align: center !important padding: 4px !important;
-    vertical-align: middle !important;
-    font-weight: bold !important;
+        background-color: #1976d2 !important;
+        color: white !important;
+        text-align: center !important padding: 4px !important;
+        vertical-align: middle !important;
+        font-weight: bold !important;
     }
 
     body, html {
-    overflow: hidden !important;
-    height: 99% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
+        overflow: hidden !important;
+        height: 99% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .table-cell {
-    padding: 2px 6px !important;
-    font-size: small;
-    text-align: center;
+        padding: 2px 6px !important;
+        font-size: small;
+        text-align: center;
     }
 </style>
 
@@ -311,11 +311,15 @@ ShowColumnOptions="false">
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         if (result is true)
         {
-            var row = await dbContext.Shipments.FindAsync(id);
+            var row = await dbContext.Shipments.Include(x => x.ShipmentNumbers).FirstOrDefaultAsync(x => x.Id == id);
             if (row is not null)
             {
                 row.IsDeleted = true;
-                row.UserName = user.Identity.Name;
+                foreach (var item in row.ShipmentNumbers)
+                {
+                    if (item.ShipmentId == row.Id)
+                        item.IsDeleted = true;
+                }
                 await dbContext.SaveChangesAsync();
             }
         }
