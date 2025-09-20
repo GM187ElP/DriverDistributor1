@@ -132,7 +132,7 @@ jobs:
           mkdir -p /tmp/.buildx-cache
           docker buildx build \
             --builder driverdist-builder \
-            --tag driverdistributor-${APP_ENV} \
+            --tag driverdistributor-${APP_ENV,,} \
             --load \
             --build-arg DOTNET_ENVIRONMENT=${APP_ENV} \
             --cache-from=type=local,src=/tmp/.buildx-cache \
@@ -145,12 +145,12 @@ jobs:
       - name: Run DriverDistributor container
         run: |
           docker run -d \
-            --name driverdistributor-${APP_ENV} \
+            --name driverdistributor-${APP_ENV,,} \
             -p ${PORT}:8080 \
-            -v driverdata-${APP_ENV}:/app/data \
+            -v driverdata-${APP_ENV,,}:/app/data \
             -e "DOTNET_ENVIRONMENT=Production" \
             -e "ConnectionStrings__Default=${DB_CONNECTION_STRING}" \
-            driverdistributor-${APP_ENV}
+            driverdistributor-${APP_ENV,,}
 
       # 13) Cleanup Docker resources
       - name: Clean up unused Docker resources
