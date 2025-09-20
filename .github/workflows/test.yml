@@ -68,6 +68,7 @@ jobs:
             sudo mkdir -p /home/ubuntu/pg_backups 2>/dev/null || true
             sudo chmod -R 777 /home/ubuntu/sql_backups
             sudo chmod -R 777 /home/ubuntu/pg_backups
+            docker rm -f postgres
 
             docker network create sqlnet 2>/dev/null || true
             docker network create pgnet 2>/dev/null || true
