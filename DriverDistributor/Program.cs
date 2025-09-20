@@ -190,11 +190,12 @@ using (var scope = app.Services.CreateAsyncScope())
     //await dbContext.Distributors.ExecuteDeleteAsync();
     //await dbContext.Personnels.ExecuteDeleteAsync();
 
-    var seeder = new Seeder(dbContext, userManager, roleManager);
+    var root = app.Environment.WebRootPath;
+    var seeder = new Seeder(dbContext, userManager, roleManager, root);
 
     if (!await userManager.Users.AnyAsync(x => x.UserName == "1"))
     {
-        string password = "1234";
+        string password = "";
         await seeder.AdminExecuteAsync(password);
     }
     var personnelExist = await dbContext.Personnels.CountAsync() >= 94;

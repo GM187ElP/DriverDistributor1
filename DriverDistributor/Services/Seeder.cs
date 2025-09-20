@@ -14,14 +14,16 @@ public class Seeder
     private readonly UserManager<ApplicationUser> userManager;
     private readonly RoleManager<ApplicationRole> roleManager;
     private readonly List<Personnel> personnels;
-
-    public Seeder(AppDbContext dbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    private readonly string _root;
+    public Seeder(AppDbContext dbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager, string root)
     {
         this.dbContext = dbContext;
         this.userManager = userManager;
         this.roleManager = roleManager;
         personnels = [];
+        _root = root;
     }
+
 
     public async Task AdminExecuteAsync(string password)
     {
@@ -47,7 +49,7 @@ public class Seeder
 
     public async Task RoutesExecuteAsync()
     {
-        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\routes.json";
+        var path = Path.Combine(_root, "json", "routes.json");
         var json = File.ReadAllText(path);
         var deserializedJson = JsonSerializer.Deserialize<List<RouteJson>>(json);
 
@@ -66,7 +68,7 @@ public class Seeder
 
     public async Task PersonnelsExecuteAsync(bool adminExists, bool personnelExist)
     {
-        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\personnels.json";
+        var path = Path.Combine(_root, "json", "personnels.json");
         var json = File.ReadAllText(path);
 
         var deserializedJson = JsonSerializer.Deserialize<List<Person>>(json);
@@ -104,7 +106,8 @@ public class Seeder
 
     public async Task WarehousesExecuteAsync()
     {
-        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\warehouses.json";
+        var path = Path.Combine(_root, "json", "warehouses.json");
+
         var json = File.ReadAllText(path);
         var deserializedJson = JsonSerializer.Deserialize<List<string>>(json);
 
@@ -122,7 +125,8 @@ public class Seeder
 
     public async Task DriversExecuteAsync()
     {
-        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\drivers.json";
+        var path = Path.Combine(_root, "json", "drivers.json");
+
         var json = File.ReadAllText(path);
         var deserializedJson = JsonSerializer.Deserialize<List<DD>>(json);
 
@@ -143,7 +147,8 @@ public class Seeder
 
     public async Task DistributorsExecuteAsync()
     {
-        var path = @"E:\C\CS\blazor6\DriverDistributor\DriverDistributor\wwwroot\json\distributors.json";
+        var path = Path.Combine(_root, "json", "distributors.json");
+
         var json = File.ReadAllText(path);
         var deserializedJson = JsonSerializer.Deserialize<List<DD>>(json);
 
