@@ -17,31 +17,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2) Set environment variables based on branch (persist via $GITHUB_ENV)
+      # 2) Set environment variables based on branch
       - name: Set environment variables
         run: |
           BRANCH="${{ github.ref_name }}"
           if [[ "$BRANCH" == "develop" ]]; then
-            echo "APP_ENV=develop" >> $GITHUB_ENV
+            echo "APP_ENV=Development" >> $GITHUB_ENV       # for build/publish config
             echo "PORT=5002" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV
             echo "DB_NAME=DriverDistributor_Development" >> $GITHUB_ENV
           elif [[ "$BRANCH" == "staging" ]]; then
-            echo "APP_ENV=staging" >> $GITHUB_ENV
+            echo "APP_ENV=Staging" >> $GITHUB_ENV
             echo "PORT=5001" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV
             echo "DB_NAME=DriverDistributor_Staging" >> $GITHUB_ENV
           else
-            echo "APP_ENV=production" >> $GITHUB_ENV
+            echo "APP_ENV=Production" >> $GITHUB_ENV
             echo "PORT=5000" >> $GITHUB_ENV
             echo "DB_TYPE=pg" >> $GITHUB_ENV
             echo "DB_NAME=DriverDistributor" >> $GITHUB_ENV
           fi
 
+          # Always run container in Production
+          echo "DOTNET_ENVIRONMENT=Production" >> $GITHUB_ENV
+
+      # 3) Compose DB connection string
       - name: Compose DB connection string
         run: |
-          # DB_NAME and DB_TYPE are available because we wrote them to $GITHUB_ENV previously
-          # Note: secrets.DB_PASSWORD will be substituted by GitHub Actions
           if [[ "$DB_TYPE" == "ss" ]]; then
             echo "DB_CONNECTION_STRING=Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{ secrets.DB_PASSWORD }};Multiple Active Result Sets=True;Trust Server Certificate=True;" >> $GITHUB_ENV
           else
@@ -49,24 +51,24 @@ jobs:
           fi
           echo "DB_CONNECTION_STRING set (hidden in logs)."
 
-      # 3) Prepare project folder (sync source to target folder on runner)
+      # 4) Prepare project folder
       - name: Prepare project folder
         run: |
           mkdir -p /home/ubuntu/DriverDistributor/${APP_ENV}
           rsync -av --delete --exclude='.vs' ./ /home/ubuntu/DriverDistributor/${APP_ENV}/
 
-      # 4) Stop old app containers (safe)
+      # 5) Stop old containers
       - name: Stop old containers
         run: |
           docker stop driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rm driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rmi driverdistributor-${APP_ENV} 2>/dev/null || true
 
-      # 5) Ensure DB container exists (start existing OR create new)
+      # 6) Ensure DB container exists
       - name: Ensure DB container
         run: |
-          sudo mkdir -p /home/ubuntu/sql_backups /home/ubuntu/pg_backups 2>/dev/null || true
-          sudo chmod -R 777 /home/ubuntu/sql_backups /home/ubuntu/pg_backups || true
+          sudo mkdir -p /home/ubuntu/sql_backups /home/ubuntu/pg_backups
+          sudo chmod -R 777 /home/ubuntu/sql_backups /home/ubuntu/pg_backups
           docker network create sqlnet 2>/dev/null || true
           docker network create pgnet 2>/dev/null || true
 
@@ -99,36 +101,34 @@ jobs:
             fi
           fi
 
-      # 6) Setup QEMU (optional, helps cross-platform builds)
-      - name: Set up QEMU (optional)
+      # 7) Setup QEMU
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 7) Setup Buildx (BuildKit)
-      - name: Set up Docker Buildx (BuildKit)
+      # 8) Setup Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           install: true
 
-      # 8) Prepare local cache directory for buildx
+      # 9) Prepare buildx cache
       - name: Prepare buildx local cache
         run: |
           mkdir -p /tmp/.buildx-cache
-          chmod -R 777 /tmp/.buildx-cache || true
+          chmod -R 777 /tmp/.buildx-cache
 
-      # 9) Create (or reuse) a named buildx builder and bootstrap it
+      # 10) Create & bootstrap buildx builder
       - name: Create & bootstrap buildx builder
         run: |
-          # create if not exists and use it
           docker buildx create --name driverdist-builder --use || true
           docker buildx inspect driverdist-builder --bootstrap
 
-      # 10) Build image with buildx + local cache (loads into local daemon)
+      # 11) Build image with Buildx + cache
       - name: Build image with Buildx + cache
         env:
           DOCKER_BUILDKIT: 1
         run: |
           cd /home/ubuntu/DriverDistributor/${APP_ENV}
-          # ensure cache dir present (cache-from accepts empty dir)
           mkdir -p /tmp/.buildx-cache
           docker buildx build \
             --builder driverdist-builder \
@@ -138,29 +138,27 @@ jobs:
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
             .
-          # rotate cache for next run (replace old cache atomically)
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
 
-      # 11) Run the built container (passes connection string into container)
+      # 12) Run the built container
       - name: Run DriverDistributor container
         run: |
           docker run -d \
             --name driverdistributor-${APP_ENV} \
             -p ${PORT}:8080 \
             -v driverdata-${APP_ENV}:/app/data \
-            -e "DOTNET_ENVIRONMENT=${APP_ENV}" \
+            -e "DOTNET_ENVIRONMENT=Production" \
             -e "ConnectionStrings__Default=${DB_CONNECTION_STRING}" \
             driverdistributor-${APP_ENV}
 
-      # 12) (Optional) cleanup Docker resources (be careful on shared runners)
+      # 13) Cleanup Docker resources
       - name: Clean up unused Docker resources
         if: always()
         run: |
-          # Only prune images/containers that are dangling - safer than full prune
           docker image prune -f
           docker container prune -f
 
-      # 13) Done
+      # 14) Deployment complete
       - name: Deployment complete
-        run: echo "DriverDistributor ${APP_ENV} container should be running on port ${PORT}"
+        run: echo "DriverDistributor ${APP_ENV} container running on port ${PORT}"

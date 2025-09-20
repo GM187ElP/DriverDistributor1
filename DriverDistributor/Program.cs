@@ -85,7 +85,7 @@ var ssLinuxConnectionString = new SqlConnectionStringBuilder()
 
 var pgLinuxConnectionString = new NpgsqlConnectionStringBuilder()
 {
-    Host = isLocal ? "localhost" : $"{hostIp}",
+    Host = "10.11.11.28",
     Port = 5432,
     Database = initCatalog,
     Username = "postgres",

@@ -487,13 +487,13 @@
     {
         SetMonth();
         Persian = new(DateTime.Today.AddDays(0), isEmptyAtStart: true);
-        await base.OnInitializedAsync();
 
         var authState = await authStateProvider.GetAuthenticationStateAsync();
         user = authState.User;
         await LoadDataAsync();
         isAuthorized = user.Identity?.IsAuthenticated ?? false;
 
+        await base.OnInitializedAsync();
         StateHasChanged();
     }
 
