@@ -90,54 +90,53 @@ var pgLinuxConnectionString = new NpgsqlConnectionStringBuilder()
     Database = initCatalog,
     Username = "postgres",
     Password = "Arsalan.1461",
-    //SslMode = SslMode.Require
 };
 
 var database = "pg"; // ss or pg
 var selector = "linux";
 var connectionString = string.Empty;
-if (builder.Environment.IsDevelopment())
-{
-    //--------------------------encryption------------------------------------
-    //SecretEncodeDecode.EncodeToJson();
+//if (builder.Environment.IsDevelopment())
+//{
+//    //--------------------------encryption------------------------------------
+//    //SecretEncodeDecode.EncodeToJson();
 
-    if (selector == "linux")
-    {
-        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
-    }
-    else
-    {
-        if (selector == "local")
-        {
-            //--------------------------sqlserver------------------------------------------
-            connectionString = builder.Configuration["ConnectionStrings:Local"];
-        }
-        else
-        {
-            //--------------------------decryption--------------------------------------------
-            path = Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json");   // using remote database for local project
-            connectionString = secretService.DecodeToJson(path).ToString();
-        }
-    }
-}
-else
-{
-    if (selector == "linux")
-    {
-        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
-    }
-    else
-    {
-        //--------------------------decryption--------------------------------------------
-        path = Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json");    // using in hosted env
-        connectionString = secretService.DecodeToJson(path).ToString();
-    }
-}
+//    if (selector == "linux")
+//    {
+//        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
+//    }
+//    else
+//    {
+//        if (selector == "local")
+//        {
+//            //--------------------------sqlserver------------------------------------------
+//            connectionString = builder.Configuration["ConnectionStrings:Local"];
+//        }
+//        else
+//        {
+//            //--------------------------decryption--------------------------------------------
+//            path = Path.Combine(dirInfo.FullName, "secrets.Remote.Remote.json");   // using remote database for local project
+//            connectionString = secretService.DecodeToJson(path).ToString();
+//        }
+//    }
+//}
+//else
+//{
+//    if (selector == "linux")
+//    {
+//        connectionString = database == "ss" ? ssLinuxConnectionString.ToString() : pgLinuxConnectionString.ToString();
+//    }
+//    else
+//    {
+//        //--------------------------decryption--------------------------------------------
+//        path = Path.Combine(dirInfo.FullName, "secrets.Remote.Local.json");    // using in hosted env
+//        connectionString = secretService.DecodeToJson(path).ToString();
+//    }
+//}
 
 if (database == "ss")
     builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseSqlServer(connectionString));
 else
-    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseNpgsql(connectionString));
+    builder.Services.AddDbContextFactory<AppDbContext>(options => options.UseNpgsql(pgLinuxConnectionString.ToString()));
 
 //-------------------------------------------------------------------
 
