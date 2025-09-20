@@ -11,14 +11,14 @@
 @inject NavigationManager nm
 @inject AuthenticationStateProvider authStateProvider
 @inject NavigationManager nm
-@inject AppDbContext dbContext
+@inject IDbContextFactory<AppDbContext> dbContextFactory;
 @attribute [Authorize(Roles = "Admin,LogisticManager,HR")]
 
-<PageTitle>لیست حواله ها</PageTitle>
+<PageTitle>گزارش فردی</PageTitle>
 
 
 <MudRTLProvider RightToLeft="true">
-    <h3 class="mt-5">لیست حواله ها</h3>
+    <h3 class="mt-5">گزارش فردی</h3>
 
     @* <div style="display: flex; flex-direction: column; height: 100vh;"> *@
     <!-- Top toolbar -->
@@ -30,22 +30,23 @@
             <Excel @ref="excel" FileName="گزارش راننده و موزع" ExportRequested="OnExportRequested" />
 
             <MudSelect T="string"
-            @bind-Value="Month"
-            Dense="true"
-            FitContent="true"
-            Clearable="false">
+                       Value="_month"
+                       ValueChanged="MonthChanged"
+                       Dense="true"
+                       FitContent="true"
+                       Clearable="false">
                 @foreach (var month in monthList)
                 {
                     <MudSelectItem Value="@month">@month</MudSelectItem>
                 }
             </MudSelect>
 
-            <MudSelect @bind-value="@SelectedName"
+            <MudSelect value="@_selectedName"
+            ValueChanged="SelectedNameChanged"
             T="string"
             Dense="true"
             FitContent="true"
-            Clearable="true"
-            @onselectionchange=LoadProperData>
+            Clearable="true"                       >
                 @foreach (var name in nameList)
                 {
                     <MudSelectItem Value="name.name">@name.name</MudSelectItem>
@@ -59,7 +60,7 @@
                 آپدیت
             </MudButton>
 
-            <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" @bind-Value="IsDistributor" Color="Color.Secondary" CheckMark FixedContent>
+            <MudToggleGroup T="bool?" SelectionMode="SelectionMode.SingleSelection" Value="_isDistributor" ValueChanged="IsDistributorChanged" Color="Color.Secondary" CheckMark FixedContent>
                 <MudToggleItem T="bool?" Value="@(false)" Text="راننده" />
                 <MudToggleItem T="bool?" Value="@(null)" Text="کلی" />
                 <MudToggleItem T="bool?" Value="@(true)" Text="موزع" />
@@ -144,7 +145,7 @@
     .table-header {
     background-color: #1976d2 !important;
     color: white !important;
-    text-align: center !important padding: 4px !important;
+    text-align: center !important;
     vertical-align: middle !important;
     font-weight: bold !important;
     }
@@ -159,62 +160,53 @@
 
 @code {
     //------------------------------------------------
-    private MudDataGrid<Report2> _report2Data;
-    private Excel excel;
-    private MudDataGrid<Report> _report1Data;
-    List<Report> report1ToExcel;
-    List<Report2> report2ToExcel;
+    private MudDataGrid<Report2>? _report2Data;
+    private Excel? excel;
+    private MudDataGrid<Report>? _report1Data;
+    List<Report>? report1ToExcel;
+    List<Report2>? report2ToExcel;
     private PersianCalendar persianCalendar = new();
     private string? _selectedName;
     private string? _selectedMonth;
     private string _month = "فروردین";
     private readonly string[] monthList = { "کلی", "فروردین", "اردیبهشت", "خرداد", "تیر", "اَمرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند" };
-    private string? SelectedName
-    {
-        get => _selectedName;
-        set
-        {
-            _selectedName = value;
-            LoadProperData();
-        }
-    }
     private List<Driver> drivers = [];
     private List<Distributor> distributors = [];
-    private bool? isDistributor = null;
+    private bool? _isDistributor = null;
     private HashSet<(string? code, string name)> nameList = [];
     private HashSet<Report2> data = [];
-    private MudDataGrid<ShipmentWithIndex> table;
+    private MudDataGrid<ShipmentWithIndex>? table;
     List<Report> reportByWarehouse = [];
 
-    private string Month
+
+    private async Task SelectedNameChanged(string value)
     {
-        get => _month; set
-        {
-            _month = value;
-            ChangeMonth();
-            LoadProperData();
-        }
+        _selectedName = value;
+        await LoadProperData();
     }
 
-    private bool? IsDistributor
+    private async Task MonthChanged(string value)
     {
-        get => isDistributor;
-        set
+        _month = value;
+        ChangeMonth();
+        await LoadProperData();
+    }
+
+    private async Task IsDistributorChanged(bool? value=null)
+    {
+        _isDistributor = value;
+        if (value == false)
+            nameList = drivers.Select(d => (d.PersonnelCode, d.Name)).ToHashSet();
+        else if (value == true)
+            nameList = distributors.Select(d => (d.PersonnelCode, d.Name)).ToHashSet();
+        else
         {
-            isDistributor = value;
-            if (value == false)
-                nameList = drivers.Select(d => (d.PersonnelCode, d.Name)).ToHashSet();
-            else if (value == true)
-                nameList = distributors.Select(d => (d.PersonnelCode, d.Name)).ToHashSet();
-            else
-            {
-                nameList = new HashSet<(string? code, string name)>();
-                nameList.UnionWith(drivers.Select(d => (d.PersonnelCode, d.Name)));
-                nameList.UnionWith(distributors.Select(d => (d.PersonnelCode, d.Name)));
-            }
-            LoadProperData();
-            StateHasChanged();
+            nameList = new HashSet<(string? code, string name)>();
+            nameList.UnionWith(drivers.Select(d => (d.PersonnelCode, d.Name)));
+            nameList.UnionWith(distributors.Select(d => (d.PersonnelCode, d.Name)));
         }
+        await LoadProperData();
+        StateHasChanged();
     }
 
     private List<T> SafeFilteredItems<T>(MudDataGrid<T> grid)
@@ -232,42 +224,44 @@
         }
     }
 
-    private async Task PrepareExportData()
+    private void PrepareExportData()
     {
-        report1ToExcel = SafeFilteredItems(_report1Data);
-        report2ToExcel = SafeFilteredItems(_report2Data);
+        report1ToExcel = SafeFilteredItems(_report1Data!);
+        report2ToExcel = SafeFilteredItems(_report2Data!);
     }
 
 
     private async Task LoadData(bool isRefresh = false)
     {
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         SetMonth();
         drivers = await dbContext.Drivers.AsNoTracking().ToListAsync();
         distributors = await dbContext.Distributors.AsNoTracking().ToListAsync();
         if (!isRefresh)
-            IsDistributor = null;
+            _isDistributor = null;
 
         StateHasChanged();
     }
 
-    private void LoadProperData()
+    private async Task LoadProperData()
     {
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         var query = dbContext.Shipments.AsNoTracking();
 
-        if (IsDistributor == false)
-            query = query.Where(x => x.DriverName == SelectedName && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
+        if (_isDistributor == false)
+            query = query.Where(x => x.DriverName == _selectedName && (_selectedMonth == "کلی" ? true : x.MonthName == _month));
 
-        else if (IsDistributor == true)
-            query = query.Where(x => x.DistributorName == SelectedName && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
+        else if (_isDistributor == true)
+            query = query.Where(x => x.DistributorName == _selectedName && (_selectedMonth == "کلی" ? true : x.MonthName == _month));
         else
-            query = query.Where(x => (x.DriverName == SelectedName || x.DistributorName == SelectedName) && (_selectedMonth == "کلی" ? true : x.MonthName == Month));
+            query = query.Where(x => (x.DriverName == _selectedName || x.DistributorName == _selectedName) && (_selectedMonth == "کلی" ? true : x.MonthName == _month));
 
         data = query.Select(x => new Report2
             {
                 Id = x.Id,
                 PersianDate = x.ShipmentDatePersian ?? string.Empty,
                 PersianWeekday = x.Weekday ?? string.Empty,
-                Duty = (string.IsNullOrWhiteSpace(x.DistributorName) && !x.IsException) ? "راننده_موزع" : (x.DriverName == SelectedName && !x.IsException ? "راننده" : (x.IsException ? "" : "موزع")),
+                Duty = (string.IsNullOrWhiteSpace(x.DistributorName) && !x.IsException) ? "راننده_موزع" : (x.DriverName == _selectedName && !x.IsException ? "راننده" : (x.IsException ? "" : "موزع")),
                 Route = x.RouteName ?? string.Empty,
                 Warehouse = x.WarehouseName ?? string.Empty,
                 InvoiceCount = (x.InvoiceCount ?? 0 + x.SecondServiceInvoiceCount ?? 0 + x.ThirdServiceInvoiceCount ?? 0),
@@ -286,15 +280,15 @@
     }
 
 
-    private async Task OnSearchChanged(string value)
+    private void OnSearchChanged(string value)
     {
         _searchString = value;
-        await SetReport();
+        SetReport();
     }
 
-    private async Task SetReport()
+    private void SetReport()
     {
-        if (!string.IsNullOrWhiteSpace(SelectedName))
+        if (!string.IsNullOrWhiteSpace(_selectedName))
         {
             shipments = [];
 
@@ -321,6 +315,7 @@
     {
         await base.OnInitializedAsync();
         await LoadData();
+        await IsDistributorChanged();
 
         StateHasChanged();
     }
@@ -376,20 +371,20 @@
 
     private async Task OnExportRequested()
     {
-        await PrepareExportData();
+        PrepareExportData();
 
         var workbook = new XLWorkbook();
         var worksheet = workbook.AddWorksheet("گزارش کلی");
 
         var rowCol = excel.SetData(report2ToExcel, worksheet, 1, 2, null);
-        excel.SetData(report1ToExcel, worksheet, 1, rowCol.lastColumn+2, null);
+        excel.SetData(report1ToExcel, worksheet, 1, rowCol.lastColumn + 2, null);
 
         await excel.Export(workbook);
     }
 
     public class Report
     {
-        public  string Name { get; set; }
+        public string Name { get; set; }
 
         [PropertyInfo(1, "ردیف", true, ColumnType.Number)]
         public int Index { get; set; }
@@ -446,6 +441,7 @@
         [PropertyInfo(5, "مسیر", true, ColumnType.Text)]
         public string Route { get; set; } = string.Empty;
     }
+
 }
 
 

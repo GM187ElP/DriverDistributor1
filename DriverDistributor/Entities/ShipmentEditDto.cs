@@ -4,16 +4,16 @@ public class ShipmentEditDto
 {
     public long Id { get; set; }
     public DateOnly? ShipmentDateGregorian { get; set; }
-    public string ShipmentDatePersian { get; set; }
-    public string Weekday { get; set; }
-    public string MonthName { get; set; }
+    public string ShipmentDatePersian { get; set; } = null!;
+    public string Weekday { get; set; } = null!;
+    public string MonthName { get; set; }=null!;
     public string? DriverPersonnelCode { get; set; }
     public string? DistributionCenter { get; set; }
     public string? DistributorPersonnelCode { get; set; }
-    public string DriverName { get; set; }
-    public string DistributorName { get; set; }
-    public string RouteName { get; set; }
-    public string WarehouseName { get; set; }
+    public string DriverName { get; set; } = null!;
+    public string DistributorName { get; set; } = null!;
+    public string RouteName { get; set; } = null!;
+    public string WarehouseName { get; set; } = null!;
     public int? InvoiceCount { get; set; }
     public long? InvoiceAmount { get; set; }
     public int? ReturnInvoiceCount { get; set; }

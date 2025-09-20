@@ -38,6 +38,7 @@
 
                         <MudDataGrid T="RoutesCount" Class="mt-5" Items="driverRoutes">
                             <Columns>
+
                                 <PropertyColumn Property="x=>x.Name" Title="مسیر راننده" />
                                 <PropertyColumn Property="x=>x.Count" Title="دفعات" />
                                 <PropertyColumn Property="x=>x.VIP" Title="VIP" />
@@ -56,13 +57,13 @@
                     <MudItem xs="4" sm="6" md="4">
                         <div class="autocomplete-container">
                             <MudAutocomplete Class="mt-5" T="string"
-                                             @bind-Value=dto.DriverName
+                                             Value=dto.DriverName
                                              Label="راننده"
                                              SearchFunc="SearchDriver"
                                              HelperText="@(string.IsNullOrWhiteSpace(dto.DriverName) ? "" : (string.IsNullOrWhiteSpace(dto.DistributorName) ? "راننده_موزع" : "راننده"))"
                                              ToStringFunc="(x) => x"
                                              Dense="true"
-                                             @onselectionchange="DistributorReload"
+                                             ValueChanged="DistributorReload"
                                              ResetValueOnEmptyText="true"
                                              Clearable="true"
                                              MaxItems="100"
@@ -71,13 +72,13 @@
                                              Disabled=@(IsException && !string.IsNullOrWhiteSpace(dto.DistributorName)) />
 
                             <MudAutocomplete Class="mt-5" T="string"
-                                             @bind-Value=dto.DistributorName
+                                             Value=dto.DistributorName
                                              Label="موزع"
                                              HelperText="@(string.IsNullOrWhiteSpace(dto.DistributorName) ? "" : "موزع")"
                                              SearchFunc="SearchDistributor"
                                              ToStringFunc="(x) => x"
                                              Dense="true"
-                                             @onselectionchange="DriverReload"
+                                             ValueChanged="DriverReload"
                                              ResetValueOnEmptyText="true"
                                              Clearable="true"
                                              MaxItems="100"
@@ -285,7 +286,7 @@
     {
         var dbContext = await dbContextFactory.CreateDbContextAsync();
         var auth = await authenticationStateProvider.GetAuthenticationStateAsync();
-        personnel = await dbContext.Personnels.FirstOrDefaultAsync(x=>x.PersonnelCode== auth.User.Identity.Name);
+        personnel = await dbContext.Personnels.FirstOrDefaultAsync(x => x.PersonnelCode == auth.User.Identity.Name);
 
         if (Id == 0)
         {
@@ -309,16 +310,6 @@
 
         await LoadDataAsync(IsException);
     }
-
-    // private DateTime ConvertToUtc(DateTime date, string tz = "Iran Standard Time")
-    // {
-    //     var iranTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tz);
-
-    //     var unspecifiedDate = DateTime.SpecifyKind(date, DateTimeKind.Unspecified);
-
-    //     return TimeZoneInfo.ConvertTimeToUtc(unspecifiedDate, iranTimeZone);
-    // }
-
 
     private void SetDateAndWarehouse()
     {
@@ -368,11 +359,18 @@
         }
     }
 
-    async Task<IEnumerable<RoutesCount>> LoadDriverDistributorRoutesAndCount(string name, bool isDistributor)
+    async Task LoadDriverDistributorRoutesAndCount(string name, bool isDistributor)
     {
-        if (name == null)
-            return [];
-        await using var dbContext = dbContextFactory.CreateDbContext();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            if (isDistributor)
+                distributorRoutes = [];
+            else
+                driverRoutes = [];
+
+            return;
+        }
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         var query = dbContext.Shipments.AsQueryable();
 
         if (isDistributor)
@@ -380,7 +378,7 @@
         else
             query = query.Where(s => s.DriverName == name);
 
-        return await query
+        var result = await query
             .GroupBy(s => s.RouteName)
             .Select(g => new RoutesCount
                 {
@@ -389,6 +387,11 @@
                     VIP = g.Count(x => x.HasVip)
                 })
             .ToListAsync();
+
+        if (isDistributor)
+            distributorRoutes = result;
+        else
+            driverRoutes = result;
     }
 
 
@@ -406,19 +409,23 @@
         return null;
     }
 
-    async Task DriverReload()
+    async Task DriverReload(string value)
     {
-        await using var dbContext = dbContextFactory.CreateDbContext();
+        dto.DistributorName = value;
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         drivers = await dbContext.Drivers.Where(d => d.Name != dto.DistributorName).AsNoTracking().ToListAsync();
         await OnDistributorChanged();
+        await LoadDriverDistributorRoutesAndCount(value, true);
         StateHasChanged();
     }
 
-    async Task DistributorReload()
+    async Task DistributorReload(string value)
     {
-        await using var dbContext = dbContextFactory.CreateDbContext();
+        dto.DriverName = value;
+        var dbContext = await dbContextFactory.CreateDbContextAsync();
         distributors = await dbContext.Distributors.Where(d => d.Name != dto.DriverName).AsNoTracking().ToListAsync();
         await OnDriverChanged();
+        await LoadDriverDistributorRoutesAndCount(value, false);
         StateHasChanged();
     }
 
