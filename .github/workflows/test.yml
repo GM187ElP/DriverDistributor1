@@ -22,31 +22,38 @@ jobs:
         run: |
           if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
             echo ">>> Running develop environment setup"
-            echo "APP_ENV=develop" >> $GITHUB_ENV
-            echo "PORT=5002" >> $GITHUB_ENV
-            echo "DB_TYPE=pg" >> $GITHUB_ENV
-            echo "DB_NAME=DriverDistributor_Development" >> $GITHUB_ENV
-
+            export APP_ENV="develop"
+            export PORT=5002
+            export DB_TYPE="pg"
+            export DB_NAME="DriverDistributor_Development"
           elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
             echo ">>> Running staging environment setup"
-            echo "APP_ENV=staging" >> $GITHUB_ENV
-            echo "PORT=5001" >> $GITHUB_ENV
-            echo "DB_TYPE=pg" >> $GITHUB_ENV
-            echo "DB_NAME=DriverDistributor_Staging" >> $GITHUB_ENV
-
+            export APP_ENV="staging"
+            export PORT=5001
+            export DB_TYPE="pg"
+            export DB_NAME="DriverDistributor_Staging"
           elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
             echo ">>> Running production environment setup"
-            echo "APP_ENV=production" >> $GITHUB_ENV
-            echo "PORT=5000" >> $GITHUB_ENV
-            echo "DB_TYPE=pg" >> $GITHUB_ENV
-            echo "DB_NAME=DriverDistributor" >> $GITHUB_ENV
+            export APP_ENV="production"
+            export PORT=5000
+            export DB_TYPE="pg"
+            export DB_NAME="DriverDistributor"
           fi
 
+          # Export environment variables to be used in later steps
+          echo "APP_ENV=$APP_ENV" >> $GITHUB_ENV
+          echo "PORT=$PORT" >> $GITHUB_ENV
+          echo "DB_TYPE=$DB_TYPE" >> $GITHUB_ENV
+          echo "DB_NAME=$DB_NAME" >> $GITHUB_ENV
+
+          # Set database connection string
           if [[ "$DB_TYPE" == "ss" ]]; then
-            echo "DB_CONNECTION_STRING=Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{secrets.DB_PASSWORD}};Multiple Active Result Sets=True;Trust Server Certificate=True;" >> $GITHUB_ENV
+            export DB_CONNECTION_STRING="Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{secrets.DB_PASSWORD}};Multiple Active Result Sets=True;Trust Server Certificate=True;"
           else
-            echo "DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{secrets.DB_PASSWORD}}" >> $GITHUB_ENV
+            export DB_CONNECTION_STRING="Host=localhost;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{secrets.DB_PASSWORD}}"
           fi
+          echo "DB_CONNECTION_STRING=$DB_CONNECTION_STRING" >> $GITHUB_ENV
+          echo "Connection string: $DB_CONNECTION_STRING"
 
       # 3. Prepare project folder
       - name: Prepare project folder
@@ -61,49 +68,48 @@ jobs:
           docker rm driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rmi driverdistributor-${APP_ENV} 2>/dev/null || true
 
-      # 5. Ensure SQL Server / Postgres containers persist
+      # 5. Ensure SQL Server / Postgres containers exist
       - name: Ensure DB containers
         run: |
-            sudo mkdir -p /home/ubuntu/sql_backups 2>/dev/null || true
-            sudo mkdir -p /home/ubuntu/pg_backups 2>/dev/null || true
-            sudo chmod -R 777 /home/ubuntu/sql_backups
-            sudo chmod -R 777 /home/ubuntu/pg_backups
-            docker rm -f postgres
+          sudo mkdir -p /home/ubuntu/sql_backups 2>/dev/null || true
+          sudo mkdir -p /home/ubuntu/pg_backups 2>/dev/null || true
+          sudo chmod -R 777 /home/ubuntu/sql_backups
+          sudo chmod -R 777 /home/ubuntu/pg_backups
 
-            docker network create sqlnet 2>/dev/null || true
-            docker network create pgnet 2>/dev/null || true
+          docker network create sqlnet 2>/dev/null || true
+          docker network create pgnet 2>/dev/null || true
 
-            if [[ "$DB_TYPE" == "ss" ]]; then
-              if docker ps -a --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
-                  echo "Starting existing SQL Server container..."
-                  docker start sqlserver
-              else
-                  echo "Creating new SQL Server container..."
-                  docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Arsalan.1461" \
-                      -p 1433:1433 \
-                      -v mssql_data:/var/opt/mssql \
-                      -v /home/ubuntu/sql_backups:/var/opt/mssql/backups \
-                      --name sqlserver \
-                      --network sqlnet \
-                      -d mcr.microsoft.com/mssql/server:2022-latest
-              fi
+          if [[ "$DB_TYPE" == "ss" ]]; then
+            if docker ps -a --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
+                echo "Starting existing SQL Server container..."
+                docker start sqlserver
             else
-              if docker ps -a --format '{{.Names}}' | grep -w postgres >/dev/null; then
-                  echo "Starting existing Postgres container..."
-                  docker start postgres
-              else
-                  echo "Creating new Postgres container..."
-                  docker run -e "POSTGRES_USER=postgres" \
-                      -e "POSTGRES_PASSWORD=Arsalan.1461" \
-                      -e "POSTGRES_DB=${DB_NAME}" \
-                      -p 5432:5432 \
-                      -v pgdata:/var/lib/postgresql/data \
-                      -v /home/ubuntu/pg_backups:/var/lib/postgresql/backups \
-                      --name postgres \
-                      --network pgnet \
-                      -d postgres:16-alpine
-              fi
+                echo "Creating new SQL Server container..."
+                docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Arsalan.1461" \
+                    -p 1433:1433 \
+                    -v mssql_data:/var/opt/mssql \
+                    -v /home/ubuntu/sql_backups:/var/opt/mssql/backups \
+                    --name sqlserver \
+                    --network sqlnet \
+                    -d mcr.microsoft.com/mssql/server:2022-latest
             fi
+          else
+            if docker ps -a --format '{{.Names}}' | grep -w postgres >/dev/null; then
+                echo "Starting existing Postgres container..."
+                docker start postgres
+            else
+                echo "Creating new Postgres container..."
+                docker run -e "POSTGRES_USER=postgres" \
+                    -e "POSTGRES_PASSWORD=Arsalan.1461" \
+                    -e "POSTGRES_DB=${DB_NAME}" \
+                    -p 5432:5432 \
+                    -v pgdata:/var/lib/postgresql/data \
+                    -v /home/ubuntu/pg_backups:/var/lib/postgresql/backups \
+                    --name postgres \
+                    --network pgnet \
+                    -d postgres:16-alpine
+            fi
+          fi
 
       # 6. Build new DriverDistributor Docker image
       - name: Build Docker image
@@ -115,12 +121,12 @@ jobs:
       - name: Run DriverDistributor container
         run: |
           docker run -d \
-          --name driverdistributor-${APP_ENV} \
-          -p ${PORT}:8080 \
-          -v driverdata-${APP_ENV}:/app/data \
-          -e DOTNET_ENVIRONMENT=${APP_ENV} \
-          -e ConnectionStrings__Default="${DB_CONNECTION_STRING}" \
-          driverdistributor-${APP_ENV}
+            --name driverdistributor-${APP_ENV} \
+            -p ${PORT}:8080 \
+            -v driverdata-${APP_ENV}:/app/data \
+            -e DOTNET_ENVIRONMENT=${APP_ENV} \
+            -e ConnectionStrings__Default="${DB_CONNECTION_STRING}" \
+            driverdistributor-${APP_ENV}
 
       # 8. Cleanup unused Docker resources
       - name: Clean up unused Docker resources
