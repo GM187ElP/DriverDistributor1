@@ -178,6 +178,7 @@ app.MapRazorPages(); // this makes /Identity/Account/Login work
 app.MapControllers();
 app.MapHub<PresenceHub>("/presenceHub");
 
+/*
 using (var scope = app.Services.CreateAsyncScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -211,6 +212,7 @@ using (var scope = app.Services.CreateAsyncScope())
         await seeder.DistributorsExecuteAsync();
 }
 //-------------------------------------------------------------------
+*/
 
 app.Run();
 
