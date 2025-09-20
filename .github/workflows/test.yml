@@ -47,7 +47,7 @@ jobs:
           if [[ "$DB_TYPE" == "ss" ]]; then
             echo "DB_CONNECTION_STRING=Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{ secrets.DB_PASSWORD }};Multiple Active Result Sets=True;Trust Server Certificate=True;" >> $GITHUB_ENV
           else
-            echo "DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+            echo "DB_CONNECTION_STRING=Host=10.11.11.28;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
           fi
           echo "DB_CONNECTION_STRING set (hidden in logs)."
 
