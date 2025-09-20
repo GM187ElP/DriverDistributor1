@@ -93,7 +93,7 @@ jobs:
               else
                   echo "Creating new Postgres container..."
                   docker run -e "POSTGRES_USER=postgres" \
-                      -e "POSTGRES_PASSWORD=${{Arsalan.1461}}" \
+                      -e "POSTGRES_PASSWORD=Arsalan.1461" \
                       -e "POSTGRES_DB=${DB_NAME}" \
                       -p 5432:5432 \
                       -v pgdata:/var/lib/postgresql/data \
