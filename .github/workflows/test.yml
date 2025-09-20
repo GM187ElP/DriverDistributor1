@@ -13,133 +13,154 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      # 1. Checkout the repo
+      # 1) Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Force Docker to use IPv4
-      - name: Force Docker to use IPv4
-        run: |
-          echo ">>> Forcing Docker to use IPv4 only"
-          echo "RES_OPTIONS='options single-request-reopen'" | sudo tee -a /etc/resolv.conf
-          export DOCKER_CLI_EXPERIMENTAL=enabled
-          export DOCKER_DEFAULT_ADDRESS_POOL=10.0.0.0/8
-
-      # 3. Set environment variables based on branch
+      # 2) Set environment variables based on branch (persist via $GITHUB_ENV)
       - name: Set environment variables
         run: |
-          if [[ "${GITHUB_REF##*/}" == "develop" ]]; then
-            echo ">>> Running develop environment setup"
-            export APP_ENV="develop"
-            export PORT=5002
-            export DB_TYPE="pg"
-            export DB_NAME="DriverDistributor_Development"
-          elif [[ "${GITHUB_REF##*/}" == "staging" ]]; then
-            echo ">>> Running staging environment setup"
-            export APP_ENV="staging"
-            export PORT=5001
-            export DB_TYPE="pg"
-            export DB_NAME="DriverDistributor_Staging"
-          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
-            echo ">>> Running production environment setup"
-            export APP_ENV="production"
-            export PORT=5000
-            export DB_TYPE="pg"
-            export DB_NAME="DriverDistributor"
-          fi
-
-          # Export environment variables to be used in later steps
-          echo "APP_ENV=$APP_ENV" >> $GITHUB_ENV
-          echo "PORT=$PORT" >> $GITHUB_ENV
-          echo "DB_TYPE=$DB_TYPE" >> $GITHUB_ENV
-          echo "DB_NAME=$DB_NAME" >> $GITHUB_ENV
-
-          # Set database connection string
-          if [[ "$DB_TYPE" == "ss" ]]; then
-            export DB_CONNECTION_STRING="Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{secrets.DB_PASSWORD}};Multiple Active Result Sets=True;Trust Server Certificate=True;"
+          BRANCH="${{ github.ref_name }}"
+          if [[ "$BRANCH" == "develop" ]]; then
+            echo "APP_ENV=develop" >> $GITHUB_ENV
+            echo "PORT=5002" >> $GITHUB_ENV
+            echo "DB_TYPE=pg" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor_Development" >> $GITHUB_ENV
+          elif [[ "$BRANCH" == "staging" ]]; then
+            echo "APP_ENV=staging" >> $GITHUB_ENV
+            echo "PORT=5001" >> $GITHUB_ENV
+            echo "DB_TYPE=pg" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor_Staging" >> $GITHUB_ENV
           else
-            export DB_CONNECTION_STRING="Host=localhost;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{secrets.DB_PASSWORD}}"
+            echo "APP_ENV=production" >> $GITHUB_ENV
+            echo "PORT=5000" >> $GITHUB_ENV
+            echo "DB_TYPE=pg" >> $GITHUB_ENV
+            echo "DB_NAME=DriverDistributor" >> $GITHUB_ENV
           fi
-          echo "DB_CONNECTION_STRING=$DB_CONNECTION_STRING" >> $GITHUB_ENV
-          echo "Connection string: $DB_CONNECTION_STRING"
 
-      # 4. Prepare project folder
+      - name: Compose DB connection string
+        run: |
+          # DB_NAME and DB_TYPE are available because we wrote them to $GITHUB_ENV previously
+          # Note: secrets.DB_PASSWORD will be substituted by GitHub Actions
+          if [[ "$DB_TYPE" == "ss" ]]; then
+            echo "DB_CONNECTION_STRING=Data Source=.,1433;Initial Catalog=${DB_NAME};User ID=sa;Password=${{ secrets.DB_PASSWORD }};Multiple Active Result Sets=True;Trust Server Certificate=True;" >> $GITHUB_ENV
+          else
+            echo "DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=${DB_NAME};Username=postgres;Password=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          fi
+          echo "DB_CONNECTION_STRING set (hidden in logs)."
+
+      # 3) Prepare project folder (sync source to target folder on runner)
       - name: Prepare project folder
         run: |
           mkdir -p /home/ubuntu/DriverDistributor/${APP_ENV}
           rsync -av --delete --exclude='.vs' ./ /home/ubuntu/DriverDistributor/${APP_ENV}/
 
-      # 5. Stop old DriverDistributor containers
+      # 4) Stop old app containers (safe)
       - name: Stop old containers
         run: |
           docker stop driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rm driverdistributor-${APP_ENV} 2>/dev/null || true
           docker rmi driverdistributor-${APP_ENV} 2>/dev/null || true
 
-      # 6. Ensure SQL Server / Postgres containers exist
-      - name: Ensure DB containers
+      # 5) Ensure DB container exists (start existing OR create new)
+      - name: Ensure DB container
         run: |
-          sudo mkdir -p /home/ubuntu/sql_backups 2>/dev/null || true
-          sudo mkdir -p /home/ubuntu/pg_backups 2>/dev/null || true
-          sudo chmod -R 777 /home/ubuntu/sql_backups
-          sudo chmod -R 777 /home/ubuntu/pg_backups
-
+          sudo mkdir -p /home/ubuntu/sql_backups /home/ubuntu/pg_backups 2>/dev/null || true
+          sudo chmod -R 777 /home/ubuntu/sql_backups /home/ubuntu/pg_backups || true
           docker network create sqlnet 2>/dev/null || true
           docker network create pgnet 2>/dev/null || true
 
           if [[ "$DB_TYPE" == "ss" ]]; then
             if docker ps -a --format '{{.Names}}' | grep -w sqlserver >/dev/null; then
-                echo "Starting existing SQL Server container..."
-                docker start sqlserver
+              docker start sqlserver
             else
-                echo "Creating new SQL Server container..."
-                docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=Arsalan.1461" \
-                    -p 1433:1433 \
-                    -v mssql_data:/var/opt/mssql \
-                    -v /home/ubuntu/sql_backups:/var/opt/mssql/backups \
-                    --name sqlserver \
-                    --network sqlnet \
-                    -d mcr.microsoft.com/mssql/server:2022-latest
+              docker run -e "ACCEPT_EULA=Y" \
+                         -e "SA_PASSWORD=${{ secrets.DB_PASSWORD }}" \
+                         -p 1433:1433 \
+                         -v mssql_data:/var/opt/mssql \
+                         -v /home/ubuntu/sql_backups:/var/opt/mssql/backups \
+                         --name sqlserver \
+                         --network sqlnet \
+                         -d mcr.microsoft.com/mssql/server:2022-latest
             fi
           else
             if docker ps -a --format '{{.Names}}' | grep -w postgres >/dev/null; then
-                echo "Starting existing Postgres container..."
-                docker start postgres
+              docker start postgres
             else
-                echo "Creating new Postgres container..."
-                docker run -e "POSTGRES_USER=postgres" \
-                    -e "POSTGRES_PASSWORD=Arsalan.1461" \
-                    -e "POSTGRES_DB=${DB_NAME}" \
-                    -p 5432:5432 \
-                    -v pgdata:/var/lib/postgresql/data \
-                    -v /home/ubuntu/pg_backups:/var/lib/postgresql/backups \
-                    --name postgres \
-                    --network pgnet \
-                    -d postgres:16-alpine
+              docker run -e "POSTGRES_USER=postgres" \
+                         -e "POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}" \
+                         -e "POSTGRES_DB=${DB_NAME}" \
+                         -p 5432:5432 \
+                         -v pgdata:/var/lib/postgresql/data \
+                         -v /home/ubuntu/pg_backups:/var/lib/postgresql/backups \
+                         --name postgres \
+                         --network pgnet \
+                         -d postgres:16-alpine
             fi
           fi
 
-      # 7. Build new DriverDistributor Docker image
-      - name: Build Docker image
+      # 6) Setup QEMU (optional, helps cross-platform builds)
+      - name: Set up QEMU (optional)
+        uses: docker/setup-qemu-action@v3
+
+      # 7) Setup Buildx (BuildKit)
+      - name: Set up Docker Buildx (BuildKit)
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+
+      # 8) Prepare local cache directory for buildx
+      - name: Prepare buildx local cache
+        run: |
+          mkdir -p /tmp/.buildx-cache
+          chmod -R 777 /tmp/.buildx-cache || true
+
+      # 9) Create (or reuse) a named buildx builder and bootstrap it
+      - name: Create & bootstrap buildx builder
+        run: |
+          # create if not exists and use it
+          docker buildx create --name driverdist-builder --use || true
+          docker buildx inspect driverdist-builder --bootstrap
+
+      # 10) Build image with buildx + local cache (loads into local daemon)
+      - name: Build image with Buildx + cache
+        env:
+          DOCKER_BUILDKIT: 1
         run: |
           cd /home/ubuntu/DriverDistributor/${APP_ENV}
-          docker build -t driverdistributor-${APP_ENV} .
+          # ensure cache dir present (cache-from accepts empty dir)
+          mkdir -p /tmp/.buildx-cache
+          docker buildx build \
+            --builder driverdist-builder \
+            --tag driverdistributor-${APP_ENV} \
+            --load \
+            --build-arg DOTNET_ENVIRONMENT=${APP_ENV} \
+            --cache-from=type=local,src=/tmp/.buildx-cache \
+            --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
+            .
+          # rotate cache for next run (replace old cache atomically)
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache || true
 
-      # 8. Run DriverDistributor container
+      # 11) Run the built container (passes connection string into container)
       - name: Run DriverDistributor container
         run: |
           docker run -d \
             --name driverdistributor-${APP_ENV} \
             -p ${PORT}:8080 \
             -v driverdata-${APP_ENV}:/app/data \
-            -e DOTNET_ENVIRONMENT=${APP_ENV} \
-            -e ConnectionStrings__Default="${DB_CONNECTION_STRING}" \
+            -e "DOTNET_ENVIRONMENT=${APP_ENV}" \
+            -e "ConnectionStrings__Default=${DB_CONNECTION_STRING}" \
             driverdistributor-${APP_ENV}
 
-      # 9. Cleanup unused Docker resources
+      # 12) (Optional) cleanup Docker resources (be careful on shared runners)
       - name: Clean up unused Docker resources
-        run: docker system prune -af
+        if: always()
+        run: |
+          # Only prune images/containers that are dangling - safer than full prune
+          docker image prune -f
+          docker container prune -f
 
-      # 10. Deployment complete
+      # 13) Done
       - name: Deployment complete
-        run: echo "DriverDistributor ${APP_ENV} container is up and running!"
+        run: echo "DriverDistributor ${APP_ENV} container should be running on port ${PORT}"
